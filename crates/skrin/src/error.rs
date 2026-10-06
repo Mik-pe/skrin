@@ -13,6 +13,10 @@ pub enum Error {
     /// A write or sync failed. The transaction may exist after reopening.
     /// This handle is poisoned and must not be reused, even for reads.
     CommitUncertain(io::Error),
+    /// Generation publication may have succeeded. Close and reopen the handle.
+    MaintenanceUncertain(io::Error),
+    /// The operation is invalid for this backend, schema or maintenance state.
+    InvalidOperation(String),
     /// Another handle or process owns the database file lock.
     Busy,
     /// A prior commit failure or panic requires closing and reopening.
@@ -25,6 +29,8 @@ pub enum Error {
     SchemaMismatch { expected: Schema, found: Schema },
     /// An insert would overwrite an existing key; use `put` to replace it.
     DuplicateKey(u64),
+    /// An update requires an existing key; it never silently inserts a row.
+    MissingKey(u64),
     /// An application codec rejected a value or input.
     Codec(String),
     /// A record or transaction exceeded a documented byte limit.
@@ -51,6 +57,13 @@ impl fmt::Display for Error {
             Self::CommitUncertain(error) => {
                 write!(f, "commit outcome uncertain; close and reopen: {error}")
             }
+            Self::MaintenanceUncertain(error) => {
+                write!(
+                    f,
+                    "maintenance outcome uncertain; close and reopen: {error}"
+                )
+            }
+            Self::InvalidOperation(reason) => write!(f, "invalid operation: {reason}"),
             Self::Busy => f.write_str("database is already open by another handle"),
             Self::Poisoned => f.write_str("database handle is poisoned; close and reopen"),
             Self::Corrupt { offset, reason } => {
@@ -62,6 +75,7 @@ impl fmt::Display for Error {
             Self::SchemaMismatch { expected, found } => {
                 write!(f, "schema mismatch: expected {expected:?}, found {found:?}")
             }
+            Self::MissingKey(key) => write!(f, "missing primary key {key}"),
             Self::DuplicateKey(key) => write!(f, "duplicate primary key {key}"),
             Self::Codec(reason) => write!(f, "record codec: {reason}"),
             Self::LimitExceeded { limit } => write!(f, "encoded data exceeds {limit} bytes"),
@@ -76,7 +90,9 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::Io(error) | Self::CommitUncertain(error) => Some(error),
+            Self::Io(error) | Self::CommitUncertain(error) | Self::MaintenanceUncertain(error) => {
+                Some(error)
+            }
             _ => None,
         }
     }

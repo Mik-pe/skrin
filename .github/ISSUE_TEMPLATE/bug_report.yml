@@ -1,0 +1,24 @@
+name: Bug report
+description: Report a reproducible correctness, recovery or API problem.
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Commit, Rust version, operating system, filesystem and backend.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include sanitized code and exact errors. Never upload private databases or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and observed behavior
+      description: Which operation returned success? What survived after closing and reopening?
+    validations:
+      required: true

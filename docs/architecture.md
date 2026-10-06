@@ -1,4 +1,4 @@
-# Architecture: first executable slice
+# Architecture
 
 ## Ownership and representation
 
@@ -6,7 +6,7 @@
 
 The key is external to the record. `Record::SCHEMA` identifies the logical table and application schema version. Schema identity is not derived from a Rust type name, field name, `TypeId`, or memory layout. Reusing an identity for an incompatible codec is an application bug; Skrin cannot infer semantic compatibility from a struct.
 
-`Encoder`/`Decoder` provide bounded, little-endian primitives and length-prefixed bytes/UTF-8. The application's field order and representation are part of its versioned contract. Field-ID macros and old-to-new transformations are not implemented yet. A schema mismatch is a safe refusal, not a migration.
+`Encoder`/`Decoder` provide bounded, little-endian primitives and length-prefixed bytes/UTF-8. The application's field order and representation are part of its versioned contract. Field-ID macros are not implemented. A schema mismatch is a safe refusal, not an implicit migration. Managed databases support explicit old-to-new `Record` transformations through `migrate`; see [managed storage](managed-storage.md).
 
 Records must have immutable value semantics. `Send + Sync` is insufficient to prohibit atomics, mutexes, shared external mutable state, or panicking destructors; these are excluded by the `Record` contract. No implementation can make arbitrary application code's external side effects transactional.
 
@@ -24,14 +24,14 @@ The closure API commits only after `Ok` and returns the closure value only after
 
 `log.rs` owns framing, bounds, checksums and replay; `file_storage.rs` owns the locked file backend. A small internal `Storage` trait wraps read/write/seek/size/truncate/sync. Tests inject faults here, so they execute the real codec, transaction and recovery code. There is one dynamic dispatch per I/O operation, not per in-memory row read.
 
-The file is both the WAL and the OS lock target. It must not be renamed, unlinked, replaced or externally modified while open. Unix locks attach to an open file/inode, not a permanent path identity. A future generation/checkpoint design must first introduce a stable lock owner that survives generation replacement; reusing the current lock protocol while renaming the WAL would be incorrect.
+For the standalone v1 backend, the file is both the WAL and the OS lock target. It must not be renamed, unlinked, replaced or externally modified while open. Unix locks attach to an open file/inode, not a permanent path identity. The managed backend instead holds a permanent directory `LOCK` owner across all generation replacement. Reusing the standalone lock protocol while renaming its WAL would be incorrect.
 
 The file wrapper explicitly unlocks on owner-process drop, including failed initialization/recovery paths. Merely closing one descriptor can leave the lock held by a descriptor temporarily inherited during another thread's fork/exec. A process-ID guard prevents cleanup in a forked child from explicitly unlocking the parent's live database. Do not use an inherited database handle in a child before exec; open a fresh database only after the owner has released it. Regression tests model the shared descriptor lifetime deterministically using `File::try_clone` and exercise process tests repeatedly in release mode. See the standard library's [lock lifetime contract](https://doc.rust-lang.org/std/fs/struct.File.html#method.try_lock).
 
-`create` uses atomic create-new semantics, writes and syncs the header, then syncs the parent directory. `open` takes the lock before validation/replay. Complete frames are replayed in sequence, an incomplete final frame can be truncated, and the resulting file is synced before state is exposed. Data and primary index must fit in memory; the log is streamed during recovery, but all historical committed frames must still be processed.
+`create` uses atomic create-new semantics, writes and syncs the header, then syncs the parent directory. `open` takes the lock before validation/replay. Complete frames are replayed in sequence, an incomplete final frame can be truncated, and the resulting file is synced before state is exposed. Data and primary index must fit in memory. A standalone file replays all historical committed frames; a managed directory decodes its active snapshot and replays only its bound WAL suffix.
 
 ## Why this starting point
 
 A native map and serialized writer are a measurable correctness baseline, not the final performance architecture. This avoids hiding whole-database cloning or a second database engine beneath an ergonomic API. No derive crate exists yet because there is no implemented derive behavior to host.
 
-The next storage milestone is checkpoints, bounded log retention and offline migrations with a crash-safe generation handoff (tracked in #3). Next come multi-table schemas and atomic secondary indexes. Read versions and group commit must be designed with index versioning, reader retention, sync ordering and measured contention in mind. The baseline benchmark is not evidence for a SpacetimeDB comparison.
+Managed checkpoints, explicit retention, backups and offline migrations are implemented in `directory.rs`, `snapshot.rs` and `maintenance.rs`. See [the publication protocol](managed-storage.md) and [remaining release gates](roadmap.md). Operational resource/persistence hardening comes before multi-table schemas and atomic secondary indexes. Read versions and group commit must be designed with index versioning, reader retention, sync ordering and measured contention in mind. The baseline benchmark is not evidence for a SpacetimeDB comparison.

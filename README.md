@@ -1,90 +1,177 @@
-# Skrin
+<p align="center">
+  <img src="assets/skrin.webp" width="440" alt="Skrin — a Nordic storage chest with layered data and a warm gold glow">
+</p>
 
-A small, Rust-native embedded database. Typed values in memory, explicit transactions, and a checksummed log on disk. No SQL or database server.
+<p align="center"><strong>Native Rust values. Explicit transactions. Durable state.</strong></p>
+<p align="center">
+  <a href="https://github.com/Mik-pe/skrin/actions/workflows/ci.yml"><img src="https://github.com/Mik-pe/skrin/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <img src="https://img.shields.io/badge/Rust-1.89%2B-DEA584" alt="Rust 1.89 or newer">
+  <img src="https://img.shields.io/badge/unsafe-forbidden-537B65" alt="Unsafe code forbidden">
+  <img src="https://img.shields.io/badge/status-experimental-C89D58" alt="Experimental">
+</p>
+<p align="center">
+  <a href="#get-started">Get started</a> · <a href="#the-api">The API</a> · <a href="docs/durability.md">Durability</a> · <a href="docs/roadmap.md">Roadmap</a>
+</p>
 
-**Status: experimental first milestone.** This is a working storage-engine foundation, not a production-ready database or a claim to outperform SpacetimeDB. In particular, the WAL currently grows until you retire the file: checkpoints and migrations are the next storage milestone.
+---
 
-## Run it
+**Skrin** is a small, typed, embedded database written in Rust. Work with ordinary Rust values, borrow reads without decoding, and commit changes through one controlled write path. No SQL parser. No network server. No second database hidden underneath.
 
-Requires Rust 1.89 or newer. The crate has no external dependencies and is not published to crates.io.
+*Skrin* is Swedish for a small chest: a place to keep things worth saving.
+
+> **Experimental, not production-certified.** The transaction and recovery engine is executable and tested, including managed checkpoints, verified backups and offline migrations. API compatibility is not frozen. Publishing remains disabled; no SpacetimeDB performance claim is made.
+
+## Get started
 
 ```sh
+git clone https://github.com/Mik-pe/skrin.git
+cd skrin
 cargo test --workspace --locked
 cargo run -p skrin --example accounts
 ```
 
-The example above uses volatile memory. On Linux/macOS, give it a **new** file path to commit to disk, close, and verify the data by reopening:
+The first example runs entirely in memory. On Linux/macOS, run the complete **create → update → checkpoint → backup → migrate → reopen** lifecycle with two **new** directory paths:
 
 ```sh
-cargo run -p skrin --example accounts -- /tmp/accounts-demo.skrin
+cargo run -p skrin --example lifecycle -- /tmp/skrin-demo /tmp/skrin-backup
 ```
 
-An existing file is never overwritten. Use another new path on subsequent runs. The parent directory must already exist.
+Existing paths are never overwritten. Pick new paths on subsequent runs; their parent directories must exist. The example leaves its databases in place for inspection. See [the complete executable source](crates/skrin/examples/lifecycle.rs).
 
-## API
+To use the unpublished crate from another Rust workspace:
 
-Define an ordinary Rust value and implement `Record` with a stable schema identity and explicit codec. See the complete, executable [accounts example](crates/skrin/examples/accounts.rs).
+```toml
+[dependencies]
+skrin = { git = "https://github.com/Mik-pe/skrin", branch = "main" }
+```
+
+For reproducible experiments, pin a reviewed commit with `rev` instead of following `main`. A distribution license has not been selected; see [release gates](docs/roadmap.md#release-gates).
+
+## The API
+
+Define a `Record` with an explicit, stable schema and codec. Then use typed transactions. This excerpt uses `Account` from the [accounts example](crates/skrin/examples/accounts.rs):
 
 ```rust
-let db = Database::<Account>::create("accounts.skrin")?;
+let db = Database::<Account>::create_dir("accounts.skrin")?;
 
 db.write(|tx| {
     tx.insert(42, Account { name: "Alice".into(), balance: 100 })?;
     tx.insert(7, Account { name: "Bob".into(), balance: 100 })?;
     Ok(())
-})?; // Persistent commits sync before success.
+})?; // The WAL is synced before success and visible publication.
 
 {
     let read = db.read()?;
     let account: &Account = read.get(42).unwrap();
     println!("{}: {}", account.name, account.balance);
-} // Release read guards before writing.
+} // Drop read guards before writing or running maintenance.
+
+let checkpoint = db.checkpoint()?;
+let cleanup = db.prune()?; // Keep active + previous generation.
+let backup = db.backup_to("accounts-backup.skrin")?;
 ```
 
-`create` is create-only; `open` is open-only. `in_memory` explicitly opts out of persistence and does not invoke the codec. Manual `begin_write`/`commit` is also available; dropping a write transaction discards staging.
+`insert` rejects duplicates. `put` explicitly inserts or replaces. `update` requires an existing row and returns a complete replacement without requiring `Clone`. `remove` reports whether a row existed. Transaction reads see earlier staged changes. Propagating an error rolls back the closure; dropping a manual transaction discards its staging.
 
-## What works now
+<details>
+<summary><strong>Why an explicit codec?</strong></summary>
 
-| Capability | First milestone |
+Rust's native memory layout is not the disk format. Table identity, schema version and field encoding remain stable across refactors:
+
+```rust
+impl Record for Account {
+    const SCHEMA: Schema = Schema { table_id: 1, version: 1 };
+
+    fn encode(&self, encoder: &mut Encoder) -> Result<()> {
+        encoder.string(&self.name)?;
+        encoder.u64(self.balance)
+    }
+
+    fn decode(decoder: &mut Decoder<'_>) -> Result<Self> {
+        Ok(Self {
+            name: decoder.string()?.to_owned(),
+            balance: decoder.u64()?,
+        })
+    }
+}
+```
+
+Skrin validates schema identity before decoding and rejects trailing record bytes. Changes in field meaning or representation require a schema version and an explicit migration, not a cast of old bytes into a new struct.
+
+</details>
+
+## Keep it, compact it, evolve it
+
+| Operation | Contract |
 | --- | --- |
-| Native typed records, `u64` primary keys | Implemented; no decode/clone on reads |
-| Atomic writes, duplicate detection, read-your-writes | Implemented, including multi-row batches |
-| Ordered iteration and primary-key ranges | Implemented with `BTreeMap` |
-| Persistent commits and recovery | Versioned/checksummed WAL, sync-before-publication |
-| Exclusive file ownership | OS file lock held for the handle lifetime |
-| Schema protection | Wrong table/schema/format is rejected before recovery repair |
-| Failure handling | Incomplete final frames may be discarded; complete corruption is an error |
-| Inspection | Row count, sequence, log bytes, recovered suffix bytes |
-| Portability | In-memory: Linux/macOS/Windows CI; file backend: Unix, tested on Linux/macOS |
+| `create_dir` / `open_dir` | Managed generations, permanent directory ownership, authoritative checksummed manifest |
+| `checkpoint` | Verified snapshot + fresh WAL; preserves rows and committed sequence; blocks transactions |
+| `prune` | Explicit retention of active + previous generations; skips unknown content |
+| `backup_to` | Consistent new directory; independently decodes the snapshot; never overwrites its destination |
+| `migrate::<NewRecord>` | Consumes the old handle; preserves table/key identity; records a named, forward schema transition |
+| `generation_info` / `stats` | Generation, migration history, row count, committed sequence, WAL bytes and repaired-tail bytes |
+| `create` / `open` | Original standalone v1 files; no implicit conversion or in-place compaction |
+| `in_memory` | Explicitly volatile; no serialization or disk I/O |
 
-## Important boundaries
+An offline migration uses **both real record types**. The old codec reads old storage; the closure builds the new value; the new codec is validated before publication:
 
-This version has **one typed table per database**. Read guards block writers, and write transactions block readers. There is no MVCC, group commit, secondary index, multi-table transaction, derive macro, migration executor, checkpoint, replication, encryption, or live-backup API yet. Data must fit in memory. An encoded record is limited to 8 MiB and a transaction payload to 16 MiB.
+```rust
+let db = db.migrate::<PersonV2>("split-name-v2", |_, old| {
+    let (first, last) = old.full_name.split_once(' ')
+        .ok_or_else(|| Error::Codec("missing surname".into()))?;
+    Ok(PersonV2 {
+        first_name: first.into(),
+        last_name: last.into(),
+        active: true,
+    })
+})?;
+```
 
-Do not nest transactions, hold them across `await`, or perform external side effects inside a transaction closure. Records must have immutable value semantics: interior mutation through shared references bypasses persistence. A Rust API and advisory file locks are not an access-control boundary against another program with file permissions.
+This excerpt is from the runnable lifecycle example above. After publication, the old record type is refused. A failed conversion leaves the original generation active. To import a v1 file, open it with its original `Record` and call `backup_to` on a new directory; the source is not rewritten.
 
-`CommitUncertain` means the transaction **may** be present after reopening, even though the caller received an error. The handle is then poisoned, including reads. Do not blindly retry a non-idempotent operation.
+## Safety is a contract, not a badge
 
-See [durability](docs/durability.md) before storing anything important. The current test suite is not power-loss certification; filesystem and hardware sync guarantees matter.
+A successful persistent write means **encode → append → sync → publish**. Complete corruption is an error, not permission to truncate. Only an incomplete final WAL frame may be repaired. Directory recovery follows `CURRENT`; it never guesses the newest filename or silently falls back to an older schema.
 
-## Measure, then optimize
+A write/sync failure returns `CommitUncertain`. A generation-publication failure may return `MaintenanceUncertain`. Either poisons the handle, including reads: close, reopen, and reconcile the actual state. No successful response is not proof of rollback.
+
+The tests cover malformed and interrupted logs, snapshot/manifest corruption, migration failures, subprocess exits at publication boundaries, stable cross-process locks, independent format fixtures and reference-model transactions. They are **not** a certification against every filesystem, device or power-loss failure.
+
+Read [durability](docs/durability.md) and the [managed storage protocol](docs/managed-storage.md) before storing important data.
+
+## Deliberately small
+
+| Area | Current boundary |
+| --- | --- |
+| Data model | One typed table per database; `u64` primary keys; data and primary index fit in RAM |
+| Reads | Borrowed values, ordered iteration, primary-key ranges; read guards block writers |
+| Writes | One serialized writer; staged deltas, not whole-database copies on each commit |
+| Maintenance | Explicit and serialized; snapshot verification temporarily duplicates resident data; caller provides disk headroom |
+| Retention | Call `checkpoint` and `prune`; maintenance is not an automatic background service |
+| Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
+| Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |
+| Not implemented | Multi-table schemas, secondary indexes, MVCC, group commit, derive macros, encryption, replication |
+
+Never nest transactions, hold guards across `await`, or perform external side effects in transaction/migration closures. Records must have immutable value semantics. A Rust-only API and advisory locks are not access control against another process with filesystem permissions.
+
+## Measure the right thing
 
 ```sh
 cargo bench -p skrin --bench baseline
 cargo bench -p skrin --bench baseline -- --durable /tmp
+cargo bench -p skrin --bench maintenance -- /tmp
 ```
 
-The benchmark separates a plain `BTreeMap` baseline, volatile database operations, and synced transactions. Persistent measurements include per-transaction p50/p99 and distinguish transactions/s from rows/s. The directory must exist; only the benchmark's newly created file is removed. Results from shared CI runners are smoke tests, not publishable performance evidence.
+The baseline separates a plain `BTreeMap`, volatile operations and synced transactions. Maintenance measures checkpoint/prune pauses, disk footprint and warm-cache reopen with verification after every round. Shared CI and container timings are smoke evidence, not published performance comparisons.
 
-## Development
+## Work on Skrin
 
 ```sh
 cargo +1.89.0 fmt --all -- --check
 cargo +1.89.0 clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
+cargo test --workspace --release --locked
 RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked
 ```
 
-The tests inject short writes and read/sync/truncation failures into the real WAL implementation. They cover every truncation position and every single-bit corruption in a sample log, an independently encoded format fixture, a deterministic reference model, concurrent updates, OS locks across processes, and process exit without destructors.
-
-Read [architecture](docs/architecture.md), [file format](docs/file-format.md), and [benchmark methodology](docs/benchmarks.md). Publishing remains disabled; choosing the project's license and release compatibility policy is an owner decision before distribution.
+Start with [architecture](docs/architecture.md), [v1 file format](docs/file-format.md), [managed storage](docs/managed-storage.md), [benchmarks](docs/benchmarks.md), and [the roadmap](docs/roadmap.md). Contributions should preserve the failure contract before expanding the API.

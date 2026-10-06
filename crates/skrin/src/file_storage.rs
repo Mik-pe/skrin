@@ -6,13 +6,13 @@ use std::io::{self, Read, Seek, SeekFrom, Write};
 /// The file and its lock have one owner. Closing a descriptor alone is not
 /// sufficient: an unrelated concurrent fork can temporarily inherit it and
 /// keep the same open-file-description lock alive until exec.
-pub(super) struct LockedFile {
+pub(crate) struct LockedFile {
     file: File,
     owner_process: u32,
 }
 
 impl LockedFile {
-    pub(super) fn acquire(file: File) -> Result<Self> {
+    pub(crate) fn acquire(file: File) -> Result<Self> {
         match file.try_lock() {
             Ok(()) => Ok(Self {
                 file,

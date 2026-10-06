@@ -6,7 +6,7 @@ use std::io::{self, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
 #[path = "file_storage.rs"]
-mod file_storage;
+pub(crate) mod file_storage;
 use file_storage::LockedFile;
 
 pub(crate) const HEADER_LEN: usize = 32;
@@ -38,7 +38,7 @@ pub(crate) struct Recovered<R> {
     pub(crate) discarded: u64,
 }
 
-fn supported_platform() -> Result<()> {
+pub(crate) fn supported_platform() -> Result<()> {
     if cfg!(unix) {
         Ok(())
     } else {
@@ -47,7 +47,7 @@ fn supported_platform() -> Result<()> {
 }
 
 #[cfg(unix)]
-fn sync_parent(path: &Path) -> Result<()> {
+pub(crate) fn sync_parent(path: &Path) -> Result<()> {
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -57,7 +57,7 @@ fn sync_parent(path: &Path) -> Result<()> {
 }
 
 #[cfg(not(unix))]
-fn sync_parent(_path: &Path) -> Result<()> {
+pub(crate) fn sync_parent(_path: &Path) -> Result<()> {
     Err(Error::UnsupportedPlatform)
 }
 
@@ -82,8 +82,45 @@ impl Wal {
         Ok(result)
     }
 
-    pub(crate) fn recover<R: Record>(mut io: Box<dyn Storage>) -> Result<(Self, Recovered<R>)> {
-        let (rows, sequence, valid_len) = replay::<R>(&mut *io)?;
+    pub(crate) fn recover<R: Record>(io: Box<dyn Storage>) -> Result<(Self, Recovered<R>)> {
+        Self::recover_seed(io, BTreeMap::new(), 0, None)
+    }
+
+    // Directory segments deliberately use format 2. Opening an internal segment
+    // as a standalone v1 database must fail, even when its WAL is empty.
+    pub(crate) fn create_segment<R: Record>(
+        path: &Path,
+        generation: u64,
+        sequence: u64,
+    ) -> Result<Self> {
+        supported_platform()?;
+        let mut file = LockedFile::acquire(File::create_new(path)?)?;
+        file.write_all(&header_with_format(R::SCHEMA, 2))?;
+        file.write_all(&segment_header(generation, sequence))?;
+        file.sync()?;
+        Ok(Self {
+            io: Box::new(file),
+            bytes: (HEADER_LEN + 24) as u64,
+        })
+    }
+
+    pub(crate) fn open_segment<R: Record>(
+        path: &Path,
+        rows: BTreeMap<u64, R>,
+        sequence: u64,
+        generation: u64,
+    ) -> Result<(Self, Recovered<R>)> {
+        let file = LockedFile::acquire(File::options().read(true).write(true).open(path)?)?;
+        Self::recover_seed(Box::new(file), rows, sequence, Some(generation))
+    }
+
+    fn recover_seed<R: Record>(
+        mut io: Box<dyn Storage>,
+        rows: BTreeMap<u64, R>,
+        sequence: u64,
+        generation: Option<u64>,
+    ) -> Result<(Self, Recovered<R>)> {
+        let (rows, sequence, valid_len) = replay::<R>(&mut *io, rows, sequence, generation)?;
         let original_len = io.size()?;
         if original_len != valid_len {
             io.truncate(valid_len)?;
@@ -118,9 +155,13 @@ impl Wal {
 }
 
 pub(crate) fn file_header(schema: Schema) -> Vec<u8> {
+    header_with_format(schema, FORMAT_VERSION)
+}
+
+fn header_with_format(schema: Schema, format: u32) -> Vec<u8> {
     let mut bytes = Vec::with_capacity(HEADER_LEN);
     bytes.extend_from_slice(MAGIC);
-    bytes.extend_from_slice(&FORMAT_VERSION.to_le_bytes());
+    bytes.extend_from_slice(&format.to_le_bytes());
     bytes.extend_from_slice(&schema.table_id.to_le_bytes());
     bytes.extend_from_slice(&schema.version.to_le_bytes());
     bytes.extend_from_slice(&0u32.to_le_bytes());
@@ -128,12 +169,12 @@ pub(crate) fn file_header(schema: Schema) -> Vec<u8> {
     bytes
 }
 
-fn check_file_header<R: Record>(bytes: &[u8; HEADER_LEN]) -> Result<()> {
+fn check_file_header<R: Record>(bytes: &[u8; HEADER_LEN], format: u32) -> Result<()> {
     if &bytes[..8] != MAGIC || checksum(&bytes[..28]) != read_u32(&bytes[28..]) {
         return Err(Error::corrupt(0, "invalid file header or checksum"));
     }
     let version = read_u32(&bytes[8..]);
-    if version != FORMAT_VERSION {
+    if version != format {
         return Err(Error::UnsupportedFormat(version));
     }
     if read_u32(&bytes[24..]) != 0 {
@@ -228,7 +269,12 @@ fn decode_transaction<R: Record>(payload: &[u8]) -> Result<BTreeMap<u64, Option<
     Ok(changes)
 }
 
-fn replay<R: Record>(io: &mut dyn Storage) -> Result<(BTreeMap<u64, R>, u64, u64)> {
+fn replay<R: Record>(
+    io: &mut dyn Storage,
+    mut rows: BTreeMap<u64, R>,
+    mut sequence: u64,
+    generation: Option<u64>,
+) -> Result<(BTreeMap<u64, R>, u64, u64)> {
     let file_len = io.size()?;
     if file_len < HEADER_LEN as u64 {
         return Err(Error::corrupt(0, "truncated file header"));
@@ -237,10 +283,26 @@ fn replay<R: Record>(io: &mut dyn Storage) -> Result<(BTreeMap<u64, R>, u64, u64
     let mut reader = BufReader::new(io);
     let mut header = [0; HEADER_LEN];
     reader.read_exact(&mut header)?;
-    check_file_header::<R>(&header)?;
-    let mut rows = BTreeMap::new();
-    let mut sequence = 0u64;
+    check_file_header::<R>(
+        &header,
+        if generation.is_some() {
+            2
+        } else {
+            FORMAT_VERSION
+        },
+    )?;
     let mut offset = HEADER_LEN as u64;
+    if let Some(generation) = generation {
+        let mut segment = [0; 24];
+        reader.read_exact(&mut segment)?;
+        if segment.as_slice() != segment_header(generation, sequence) {
+            return Err(Error::corrupt(
+                offset,
+                "WAL segment does not match checkpoint",
+            ));
+        }
+        offset += 24;
+    }
     while offset < file_len {
         let available = (file_len - offset).min(FRAME_HEADER_LEN as u64) as usize;
         let mut header = [0; FRAME_HEADER_LEN];
@@ -312,6 +374,14 @@ fn replay<R: Record>(io: &mut dyn Storage) -> Result<(BTreeMap<u64, R>, u64, u64
     Ok((rows, sequence, offset))
 }
 
+fn segment_header(generation: u64, sequence: u64) -> Vec<u8> {
+    let mut bytes = b"SEG2".to_vec();
+    bytes.extend_from_slice(&generation.to_le_bytes());
+    bytes.extend_from_slice(&sequence.to_le_bytes());
+    bytes.extend_from_slice(&checksum(&bytes).to_le_bytes());
+    bytes
+}
+
 fn read_u32(bytes: &[u8]) -> u32 {
     let mut value = [0; 4];
     value.copy_from_slice(&bytes[..4]);
@@ -346,7 +416,7 @@ const fn crc_table() -> [u32; 256] {
 
 const CRC_TABLE: [u32; 256] = crc_table();
 
-fn checksum(bytes: &[u8]) -> u32 {
+pub(crate) fn checksum(bytes: &[u8]) -> u32 {
     let mut crc = !0u32;
     for &byte in bytes {
         crc = CRC_TABLE[((crc as u8) ^ byte) as usize] ^ (crc >> 8);

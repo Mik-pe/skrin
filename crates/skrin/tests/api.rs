@@ -294,3 +294,27 @@ mod disk {
         std::process::exit(0);
     }
 }
+
+#[test]
+fn updates_are_typed_read_their_own_writes_and_never_implicitly_insert() -> Result<()> {
+    let db = Database::<Account>::in_memory();
+    db.write(|tx| {
+        tx.insert(1, account(10))?;
+        tx.update(1, |row| Ok(account(row.balance + 2)))?;
+        tx.update(1, |row| Ok(account(row.balance + 3)))?;
+        assert_eq!(tx.get(1), Some(&account(15)));
+        assert!(matches!(
+            tx.update(2, |_| Ok(account(99))),
+            Err(Error::MissingKey(2))
+        ));
+        assert!(
+            tx.update(1, |_| Err(Error::Codec("cancel".into())))
+                .is_err()
+        );
+        assert_eq!(tx.get(1), Some(&account(15)));
+        Ok(())
+    })?;
+    assert_eq!(db.read()?.get(1), Some(&account(15)));
+    assert_eq!(db.stats()?.commits, 1);
+    Ok(())
+}

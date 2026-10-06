@@ -53,4 +53,4 @@ CRC-32/ISO-HDLC (IEEE) uses reflected polynomial `0xedb88320`, initial state `0x
 
 See [durability](durability.md) for the exact recovery policy. Only an incomplete final frame may be truncated. Bad complete headers/payloads/trailers are errors. In particular, changing a length field without fixing its checksum must not turn corruption into apparent truncation. Valid checksums do not bypass semantic validation.
 
-Checkpoint generations and schema migration manifests are not part of v1. Future designs must preserve ownership across file replacement and must not repurpose reserved bytes without an explicit format transition.
+Standalone v1 remains unchanged. Managed directories use separate manifest/snapshot formats and a deliberately versioned v2 WAL segment bound to a generation and snapshot sequence; see [managed storage](managed-storage.md#binary-formats). The stable directory lock survives WAL replacement. No standalone file is silently converted on open.

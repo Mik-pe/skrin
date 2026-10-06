@@ -17,3 +17,11 @@ Do not publish shared CI-runner output as a performance claim. Record the exact 
 Before comparing with redb, SQLite, SpacetimeDB or another engine, match durability and transaction semantics. Compare embedded storage paths with embedded storage paths, not a local pointer lookup with a network/backend benchmark. Include realistic record sizes, multiple dataset sizes, allocation/memory usage and recovery work.
 
 Skrin has no checkpoint or log rotation yet, so the current harness cannot establish long-running steady-state maintenance costs. Implement those before claiming sustainable throughput. Multi-table workloads, secondary indexes, concurrent readers/writers and controlled cold-cache recovery are follow-on benchmarks, not hidden assumptions in these results.
+
+## Managed maintenance
+
+Run `cargo bench -p skrin --bench maintenance -- /tmp` with an existing scratch parent. The benchmark creates its own fresh directory, arms cleanup only after successful creation, and removes only that owned directory after closing the database. A failed create can leave an unowned partial directory for inspection.
+
+Eight rounds each run 200 synced transactions of 100 row updates, checkpoint, prune, close and reopen. Output includes checkpoint/prune pause, warm-cache reopen time, WAL shrinkage, snapshot bytes and before/peak/after disk bytes. Rows and sequence are checked after every reopen. The retained previous WAL is included in disk totals.
+
+These are smoke measurements on the actual selected filesystem, not proof of hardware persistence or a cross-engine comparison. Record physical storage, mount type, available RAM and cache state before publishing results. Do not describe container or shared-runner numbers as SSD guarantees.

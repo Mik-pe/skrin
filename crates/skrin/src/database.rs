@@ -1,3 +1,4 @@
+use crate::directory::Directory;
 use crate::log::{Recovered, Wal, encode_transaction};
 use crate::{Error, Record, Result};
 use std::collections::BTreeMap;
@@ -8,6 +9,7 @@ use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 struct State<R> {
     rows: BTreeMap<u64, R>,
     wal: Option<Wal>,
+    directory: Option<Directory>,
     sequence: u64,
     recovered_tail_bytes: u64,
     failed: bool,
@@ -44,6 +46,7 @@ impl<R: Record> Database<R> {
             state: RwLock::new(State {
                 rows: BTreeMap::new(),
                 wal: None,
+                directory: None,
                 sequence: 0,
                 recovered_tail_bytes: 0,
                 failed: false,
@@ -81,6 +84,7 @@ impl<R: Record> Database<R> {
             state: RwLock::new(State {
                 rows: recovered.rows,
                 wal: Some(wal),
+                directory: None,
                 sequence: recovered.sequence,
                 recovered_tail_bytes: recovered.discarded,
                 failed: false,
@@ -204,6 +208,16 @@ impl<R: Record> WriteTransaction<'_, R> {
         Ok(())
     }
 
+    /// Replace an existing row using the transaction's current view. The
+    /// callback must return a complete replacement; no `Clone` is required.
+    /// A missing key or callback error leaves this statement's staging unchanged.
+    pub fn update(&mut self, key: u64, update: impl FnOnce(&R) -> Result<R>) -> Result<()> {
+        let row = self.get(key).ok_or(Error::MissingKey(key))?;
+        let replacement = update(row)?;
+        self.put(key, replacement);
+        Ok(())
+    }
+
     /// Insert or replace a record explicitly.
     pub fn put(&mut self, key: u64, row: R) {
         self.changes.insert(key, Some(row));
@@ -269,3 +283,6 @@ impl<R: Record> WriteTransaction<'_, R> {
 #[cfg(test)]
 #[path = "database_tests.rs"]
 mod tests;
+
+#[path = "maintenance.rs"]
+mod maintenance;
