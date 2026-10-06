@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Format and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain
+        run: rustup toolchain install 1.89.0 --profile minimal --component rustfmt,clippy
+      - name: Formatting
+        run: cargo +1.89.0 fmt --all -- --check
+      - name: Clippy
+        if: ${{ !cancelled() }}
+        run: cargo +1.89.0 clippy --workspace --all-targets --locked -- -D warnings
+      - name: Documentation
+        if: ${{ !cancelled() }}
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo +1.89.0 doc --workspace --no-deps --locked
+  test:
+    name: Test (${{ matrix.os }}, ${{ matrix.rust }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rust: 1.89.0
+          - os: ubuntu-latest
+            rust: stable
+          - os: macos-latest
+            rust: stable
+          - os: windows-latest
+            rust: stable
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain
+        run: rustup toolchain install ${{ matrix.rust }} --profile minimal
+      - name: Tests
+        run: cargo +${{ matrix.rust }} test --workspace --locked
+      - name: Check all targets
+        run: cargo +${{ matrix.rust }} check --workspace --all-targets --locked
+      - name: Run in-memory example
+        run: cargo +${{ matrix.rust }} run -p skrin --example accounts --locked
+      - name: Run persistent example and verify reopen
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == 'stable'
+        run: cargo +${{ matrix.rust }} run -p skrin --example accounts --locked -- "$RUNNER_TEMP/skrin-example-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.skrin"
+      - name: Release tests
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} test --workspace --release --locked
+      - name: Repeat parallel process and reopen regressions
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: |
+          for iteration in $(seq 1 10); do
+            echo "Release integration regression round $iteration"
+            cargo +${{ matrix.rust }} test -p skrin --test api --release --locked
+          done
+      - name: Smoke benchmark including synced commits
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench baseline --locked -- --durable "$RUNNER_TEMP"
