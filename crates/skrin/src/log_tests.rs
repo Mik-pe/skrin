@@ -4,8 +4,11 @@ use crate::test_support::{Item, TestStorage};
 fn sample() -> (Vec<u8>, usize) {
     let mut image = file_header(Item::SCHEMA);
     image.extend(
-        encode_transaction(1, &BTreeMap::from([(1, Some(Item(10))), (2, Some(Item(20)))]))
-            .unwrap(),
+        encode_transaction(
+            1,
+            &BTreeMap::from([(1, Some(Item(10))), (2, Some(Item(20)))]),
+        )
+        .unwrap(),
     );
     let boundary = image.len();
     image.extend(
@@ -68,7 +71,11 @@ fn recovery_at_every_byte_boundary_never_applies_half_a_transaction() {
         } else {
             Vec::new()
         };
-        let actual: Vec<_> = recovered.rows.iter().map(|(&key, row)| (key, row.0)).collect();
+        let actual: Vec<_> = recovered
+            .rows
+            .iter()
+            .map(|(&key, row)| (key, row.0))
+            .collect();
         assert_eq!(actual, expected, "cutoff {cutoff}");
         assert_eq!(recovered.discarded, (cutoff - valid) as u64);
         assert_eq!(wal.bytes, valid as u64);
@@ -175,7 +182,10 @@ fn valid_checksums_do_not_bypass_operation_validation() {
         }
         payload_crc(&mut invalid, HEADER_LEN);
         let io = TestStorage::new(invalid.clone());
-        assert!(matches!(recover(&io), Err(Error::Corrupt { .. })), "case {case}");
+        assert!(
+            matches!(recover(&io), Err(Error::Corrupt { .. })),
+            "case {case}"
+        );
         assert_eq!(io.image(), invalid);
     }
 }

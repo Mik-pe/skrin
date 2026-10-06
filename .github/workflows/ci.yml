@@ -59,3 +59,14 @@ jobs:
         run: cargo +${{ matrix.rust }} test --workspace --locked
       - name: Check all targets
         run: cargo +${{ matrix.rust }} check --workspace --all-targets --locked
+      - name: Run in-memory example
+        run: cargo +${{ matrix.rust }} run -p skrin --example accounts --locked
+      - name: Run persistent example and verify reopen
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == 'stable'
+        run: cargo +${{ matrix.rust }} run -p skrin --example accounts --locked -- "$RUNNER_TEMP/skrin-example-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.skrin"
+      - name: Release tests
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} test --workspace --release --locked
+      - name: Smoke benchmark including synced commits
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench baseline --locked -- --durable "$RUNNER_TEMP"

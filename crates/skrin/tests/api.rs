@@ -50,8 +50,14 @@ fn typed_reads_ranges_and_read_your_writes() -> Result<()> {
     assert_eq!(read.sequence(), 1);
     assert_eq!(read.len(), 3);
     assert_eq!(read.get(1), Some(&account(10)));
-    assert_eq!(read.range(2..=3).map(|(key, _)| key).collect::<Vec<_>>(), [2, 3]);
-    assert_eq!(read.iter().rev().map(|(key, _)| key).collect::<Vec<_>>(), [3, 2, 1]);
+    assert_eq!(
+        read.range(2..=3).map(|(key, _)| key).collect::<Vec<_>>(),
+        [2, 3]
+    );
+    assert_eq!(
+        read.iter().rev().map(|(key, _)| key).collect::<Vec<_>>(),
+        [3, 2, 1]
+    );
     Ok(())
 }
 
@@ -150,13 +156,14 @@ mod disk {
     impl TempDir {
         fn new() -> Self {
             static NEXT: AtomicU64 = AtomicU64::new(0);
-            let stamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+            let stamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
             for _ in 0..100 {
                 let id = NEXT.fetch_add(1, Ordering::Relaxed);
-                let path = std::env::temp_dir().join(format!(
-                    "skrin-tests-{}-{stamp}-{id}",
-                    std::process::id()
-                ));
+                let path = std::env::temp_dir()
+                    .join(format!("skrin-tests-{}-{stamp}-{id}", std::process::id()));
                 match fs::create_dir(&path) {
                     Ok(()) => return Self(path),
                     Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
@@ -207,12 +214,18 @@ mod disk {
     #[test]
     fn create_never_overwrites_and_open_never_creates() -> Result<()> {
         let dir = TempDir::new();
-        assert!(matches!(Database::<Account>::open(dir.file()), Err(Error::Io(_))));
+        assert!(matches!(
+            Database::<Account>::open(dir.file()),
+            Err(Error::Io(_))
+        ));
         assert!(!dir.file().exists());
         let db = Database::<Account>::create(dir.file())?;
         db.write(|tx| tx.insert(1, account(10)))?;
         let before = fs::read(dir.file())?;
-        assert!(matches!(Database::<Account>::create(dir.file()), Err(Error::Io(_))));
+        assert!(matches!(
+            Database::<Account>::create(dir.file()),
+            Err(Error::Io(_))
+        ));
         assert_eq!(fs::read(dir.file())?, before);
         drop(db);
         assert!(Database::<Account>::open(dir.file()).is_ok());
@@ -235,7 +248,10 @@ mod disk {
     fn lock_excludes_second_handle_and_another_process() -> Result<()> {
         let dir = TempDir::new();
         let db = Database::<Account>::create(dir.file())?;
-        assert!(matches!(Database::<Account>::open(dir.file()), Err(Error::Busy)));
+        assert!(matches!(
+            Database::<Account>::open(dir.file()),
+            Err(Error::Busy)
+        ));
         let status = Command::new(std::env::current_exe()?)
             .args(["--exact", "disk::child_lock_probe", "--nocapture"])
             .env("SKRIN_TEST_LOCK_PATH", dir.file())

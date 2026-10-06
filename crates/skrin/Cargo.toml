@@ -6,3 +6,7 @@ rust-version.workspace = true
 repository.workspace = true
 description = "A typed, Rust-native embedded storage engine"
 publish = false
+
+[[bench]]
+name = "baseline"
+harness = false
