@@ -22,9 +22,11 @@ The closure API commits only after `Ok` and returns the closure value only after
 
 ## Storage
 
-`log.rs` owns framing, bounds, checksums, replay and the file backend. A small internal `Storage` trait wraps read/write/seek/size/truncate/sync. Tests inject faults here, so they execute the real codec, transaction and recovery code. There is one dynamic dispatch per I/O operation, not per in-memory row read.
+`log.rs` owns framing, bounds, checksums and replay; `file_storage.rs` owns the locked file backend. A small internal `Storage` trait wraps read/write/seek/size/truncate/sync. Tests inject faults here, so they execute the real codec, transaction and recovery code. There is one dynamic dispatch per I/O operation, not per in-memory row read.
 
 The file is both the WAL and the OS lock target. It must not be renamed, unlinked, replaced or externally modified while open. Unix locks attach to an open file/inode, not a permanent path identity. A future generation/checkpoint design must first introduce a stable lock owner that survives generation replacement; reusing the current lock protocol while renaming the WAL would be incorrect.
+
+The file wrapper explicitly unlocks on owner-process drop, including failed initialization/recovery paths. Merely closing one descriptor can leave the lock held by a descriptor temporarily inherited during another thread's fork/exec. A process-ID guard prevents cleanup in a forked child from explicitly unlocking the parent's live database. Do not use an inherited database handle in a child before exec; open a fresh database only after the owner has released it. Regression tests model the shared descriptor lifetime deterministically using `File::try_clone` and exercise process tests repeatedly in release mode. See the standard library's [lock lifetime contract](https://doc.rust-lang.org/std/fs/struct.File.html#method.try_lock).
 
 `create` uses atomic create-new semantics, writes and syncs the header, then syncs the parent directory. `open` takes the lock before validation/replay. Complete frames are replayed in sequence, an incomplete final frame can be truncated, and the resulting file is synced before state is exposed. Data and primary index must fit in memory; the log is streamed during recovery, but all historical committed frames must still be processed.
 
@@ -32,4 +34,4 @@ The file is both the WAL and the OS lock target. It must not be renamed, unlinke
 
 A native map and serialized writer are a measurable correctness baseline, not the final performance architecture. This avoids hiding whole-database cloning or a second database engine beneath an ergonomic API. No derive crate exists yet because there is no implemented derive behavior to host.
 
-The next storage milestone is checkpoints, bounded log retention and offline migrations with a crash-safe generation handoff. Next come multi-table schemas and atomic secondary indexes. Read versions and group commit must be designed with index versioning, reader retention, sync ordering and measured contention in mind. The baseline benchmark is not evidence for a SpacetimeDB comparison.
+The next storage milestone is checkpoints, bounded log retention and offline migrations with a crash-safe generation handoff (tracked in #3). Next come multi-table schemas and atomic secondary indexes. Read versions and group commit must be designed with index versioning, reader retention, sync ordering and measured contention in mind. The baseline benchmark is not evidence for a SpacetimeDB comparison.

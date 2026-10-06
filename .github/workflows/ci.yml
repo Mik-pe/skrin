@@ -67,6 +67,13 @@ jobs:
       - name: Release tests
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} test --workspace --release --locked
+      - name: Repeat parallel process and reopen regressions
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: |
+          for iteration in $(seq 1 10); do
+            echo "Release integration regression round $iteration"
+            cargo +${{ matrix.rust }} test -p skrin --test api --release --locked
+          done
       - name: Smoke benchmark including synced commits
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench baseline --locked -- --durable "$RUNNER_TEMP"

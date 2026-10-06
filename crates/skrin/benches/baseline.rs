@@ -71,7 +71,11 @@ fn memory() -> Result<()> {
             Ok(())
         })?;
     }
-    report("Skrin volatile single-row transactions", ROWS, start.elapsed());
+    report(
+        "Skrin volatile single-row transactions",
+        ROWS,
+        start.elapsed(),
+    );
 
     let start = Instant::now();
     for batch in 0..1000 {
@@ -82,7 +86,11 @@ fn memory() -> Result<()> {
             Ok(())
         })?;
     }
-    report("Skrin volatile batches (100 rows/tx)", 100_000, start.elapsed());
+    report(
+        "Skrin volatile batches (100 rows/tx)",
+        100_000,
+        start.elapsed(),
+    );
     Ok(())
 }
 
@@ -138,10 +146,7 @@ fn durable(directory: &Path) -> Result<()> {
         .map_err(std::io::Error::other)?
         .as_nanos();
     let path = directory.join(format!("skrin-bench-{}-{stamp}.skrin", std::process::id()));
-    let mut scratch = ScratchFile {
-        path,
-        owned: false,
-    };
+    let mut scratch = ScratchFile { path, owned: false };
     let db = Database::<Row>::create(&scratch.path)?;
     scratch.owned = true;
     synced_batch(&db, 1)?;
@@ -168,10 +173,9 @@ fn main() -> Result<()> {
         if arg != "--durable" || directory.is_some() {
             return Err(std::io::Error::other("usage: baseline [--durable DIRECTORY]").into());
         }
-        directory = Some(PathBuf::from(
-            args.next()
-                .ok_or_else(|| std::io::Error::other("missing durable benchmark directory"))?,
-        ));
+        directory = Some(PathBuf::from(args.next().ok_or_else(|| {
+            std::io::Error::other("missing durable benchmark directory")
+        })?));
     }
     println!("Smoke baseline only; record hardware/compiler/filesystem for real comparisons.");
     memory()?;

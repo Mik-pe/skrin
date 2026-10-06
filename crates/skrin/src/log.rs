@@ -1,9 +1,13 @@
 use crate::codec::MAX_RECORD_BYTES;
 use crate::{Decoder, Encoder, Error, Record, Result, Schema};
 use std::collections::BTreeMap;
-use std::fs::{File, TryLockError};
+use std::fs::File;
 use std::io::{self, BufReader, Read, Seek, SeekFrom, Write};
 use std::path::Path;
+
+#[path = "file_storage.rs"]
+mod file_storage;
+use file_storage::LockedFile;
 
 pub(crate) const HEADER_LEN: usize = 32;
 const FORMAT_VERSION: u32 = 1;
@@ -23,20 +27,6 @@ pub(crate) trait Storage: Read + Write + Seek + Send + Sync {
     fn sync(&self) -> io::Result<()>;
 }
 
-impl Storage for File {
-    fn size(&self) -> io::Result<u64> {
-        Ok(self.metadata()?.len())
-    }
-
-    fn truncate(&mut self, len: u64) -> io::Result<()> {
-        self.set_len(len)
-    }
-
-    fn sync(&self) -> io::Result<()> {
-        self.sync_all()
-    }
-}
-
 pub(crate) struct Wal {
     io: Box<dyn Storage>,
     pub(crate) bytes: u64,
@@ -46,14 +36,6 @@ pub(crate) struct Recovered<R> {
     pub(crate) rows: BTreeMap<u64, R>,
     pub(crate) sequence: u64,
     pub(crate) discarded: u64,
-}
-
-fn lock(file: &File) -> Result<()> {
-    match file.try_lock() {
-        Ok(()) => Ok(()),
-        Err(TryLockError::WouldBlock) => Err(Error::Busy),
-        Err(TryLockError::Error(error)) => Err(error.into()),
-    }
 }
 
 fn supported_platform() -> Result<()> {
@@ -82,10 +64,9 @@ fn sync_parent(_path: &Path) -> Result<()> {
 impl Wal {
     pub(crate) fn create<R: Record>(path: &Path) -> Result<Self> {
         supported_platform()?;
-        let mut file = File::create_new(path)?;
-        lock(&file)?;
+        let mut file = LockedFile::acquire(File::create_new(path)?)?;
         file.write_all(&file_header(R::SCHEMA))?;
-        file.sync_all()?;
+        file.sync()?;
         sync_parent(path)?;
         Ok(Self {
             io: Box::new(file),
@@ -95,8 +76,7 @@ impl Wal {
 
     pub(crate) fn open<R: Record>(path: &Path) -> Result<(Self, Recovered<R>)> {
         supported_platform()?;
-        let file = File::options().read(true).write(true).open(path)?;
-        lock(&file)?;
+        let file = LockedFile::acquire(File::options().read(true).write(true).open(path)?)?;
         let result = Self::recover::<R>(Box::new(file))?;
         sync_parent(path)?;
         Ok(result)
