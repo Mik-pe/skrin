@@ -1,0 +1,32 @@
+name: Remove temporary development artifacts
+on:
+  pull_request:
+    paths: ['.github/workflows/cleanup-dev-artifacts.yml']
+permissions:
+  contents: read
+jobs:
+  cleanup:
+    if: github.repository == 'Mik-pe/skrin' && github.event.pull_request.number == 4 && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'agent/generations-and-polish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Remove only artifacts created for this development session
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo=Mik-pe/skrin
+          gh api --paginate "repos/$repo/actions/workflows/376804073/runs?branch=agent%2Fgenerations-and-polish&per_page=100" --jq '.workflow_runs[] | select(.status != "completed") | .id' > "$RUNNER_TEMP/export-runs"
+          while read -r run; do
+            gh api --method POST "repos/$repo/actions/runs/$run/cancel" || true
+          done < "$RUNNER_TEMP/export-runs"
+          for pass in 1 2; do
+            gh api --paginate "repos/$repo/actions/artifacts?per_page=100" --jq '.artifacts[] | select(.name == "skrin-offline-dev" and .workflow_run.head_branch == "agent/generations-and-polish") | .id' > "$RUNNER_TEMP/development-artifacts"
+            while read -r artifact; do
+              gh api --method DELETE "repos/$repo/actions/artifacts/$artifact"
+            done < "$RUNNER_TEMP/development-artifacts"
+            sleep 2
+          done
