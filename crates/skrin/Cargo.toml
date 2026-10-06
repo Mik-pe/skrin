@@ -10,3 +10,7 @@ publish = false
 [[bench]]
 name = "baseline"
 harness = false
+
+[[bench]]
+name = "maintenance"
+harness = false

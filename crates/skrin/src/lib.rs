@@ -1,6 +1,7 @@
 //! Skrin: typed records, atomic transactions, and an explicit durable log.
 //!
-//! This first milestone implements one table per database with `u64` keys.
+//! Implements one table per database with `u64` keys. Managed directories add
+//! verified checkpoints, backups and explicit offline schema migrations.
 //! Reads borrow native Rust values. Read guards block writers; they are not MVCC
 //! snapshots. Persistent databases currently require a local Unix filesystem.
 //! No SQL, network service, unsafe code, or external dependencies are involved.
@@ -9,13 +10,16 @@
 
 pub mod codec;
 mod database;
+mod directory;
 mod error;
 mod log;
+mod snapshot;
 #[cfg(test)]
 mod test_support;
 
 pub use codec::{Decoder, Encoder};
 pub use database::{Database, ReadTransaction, Stats, WriteTransaction};
+pub use directory::{Checkpoint, GenerationInfo, Migration, PruneReport};
 pub use error::{Error, Result};
 
 /// Stable application identity, independent of the storage format version.

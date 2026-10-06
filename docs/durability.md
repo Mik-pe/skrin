@@ -2,7 +2,7 @@
 
 ## Persistent versus volatile
 
-`Database::create` and `Database::open` use a file backend on Unix. A nonempty persistent commit follows:
+`Database::create` / `open` and `create_dir` / `open_dir` use persistent backends on Unix. A nonempty persistent commit follows:
 
 1. Validate the application closure and encode all changed records within size limits.
 2. Append a complete transaction frame with sequence and checksums.
@@ -42,14 +42,18 @@ Recovery first validates all available complete frames. Only then can it truncat
 
 Checksums detect accidental damage, not malicious modifications. No log-only protocol can prove that an entire valid suffix was not externally removed without another trusted durable reference. Keep independent backups of important data.
 
-## Current operational limits
+## Managed maintenance and operational limits
 
-The log is append-only and **has no checkpoint/rotation yet**. Disk space and recovery time grow with history, including overwritten/deleted records. This is a production blocker, not background maintenance that already exists.
+Managed directories implement an explicit checkpoint/manifest protocol, stable lock ownership, verified backups and offline migrations. Read [managed storage](managed-storage.md) for every publication boundary, retention rule and format.
 
-There is no live-backup API. For experiments, fully close the database and copy the closed file; verify the copy by reopening it independently. Do not copy/rename/replace the live WAL and expect the lock or consistency contract to survive.
+A preparation failure before manifest publication leaves the current database usable. An error from the publication attempt onward is `MaintenanceUncertain`: poison the handle, close and reopen, just as with an uncertain commit. A migration consumes the old handle even on failure; the valid active manifest determines which schema to use on reopen. Pruning removes only obsolete recognized contents and cleanup errors do not poison the active generation.
+
+Retention requires explicit `checkpoint()` and `prune()` calls. Without them the active WAL still grows. Standalone v1 files have no in-place rotation; `backup_to(NEW_DIRECTORY)` is the non-destructive upgrade route. There is no automatic disk reservation or RAM-budget enforcement; provide headroom for retained and replacement generations and full snapshot verification. Failed stages can leave orphaned files for inspection.
+
+`backup_to` is a consistent, verified live-backup API, but blocks source writers while it encodes and validates. Restore by opening the independent directory with its recorded schema. It never overwrites an existing destination. Never copy/rename/replace a live WAL and expect the lock or consistency contract to survive.
 
 ## Evidence and its limits
 
-Tests exercise every byte truncation boundary and single-bit corruption in a sample two-transaction log, injected short writes and read/sync/truncate failures, uncertain sync outcomes, malformed but correctly checksummed operations, a fixed external-format fixture and a deterministic reference model. Integration tests use actual files, cross-process locks and process exit without destructors.
+Tests exercise every byte truncation boundary and single-bit corruption in a sample two-transaction log, injected short writes and read/sync/truncate failures, uncertain sync outcomes, malformed but correctly checksummed operations, a fixed external-format fixture and a deterministic reference model. Integration tests use actual files, cross-process locks and process exit without destructors. Managed-storage tests inject failures before/after snapshot writes, syncs, manifest publication and cleanup; subprocesses exit at each checkpoint/migration publication boundary. Snapshot and manifest bit flips/truncations, generation swaps, independently encoded fixtures and snapshots larger than the transaction limit are also covered.
 
 These tests are valuable but not a full filesystem simulator: they do not exhaustively model torn sectors, write reordering, device caches, kernel/filesystem bugs, or real power cuts. A future durability certification requires those additional tests and platform-specific flush review.
