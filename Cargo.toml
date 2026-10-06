@@ -1,0 +1,13 @@
+[workspace]
+members = ["crates/skrin"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+repository = "https://github.com/Mik-pe/skrin"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

@@ -1,0 +1,8 @@
+[package]
+name = "skrin"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+description = "A typed, Rust-native embedded storage engine"
+publish = false
