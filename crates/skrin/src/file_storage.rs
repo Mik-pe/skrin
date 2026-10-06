@@ -128,7 +128,8 @@ mod tests {
         let next = path.another_handle();
         assert!(matches!(next.try_lock(), Err(TryLockError::WouldBlock)));
         drop(locked);
-        next.try_lock().expect("the former owner must release its lock");
+        next.try_lock()
+            .expect("the former owner must release its lock");
         drop(inherited);
         let third = path.another_handle();
         assert!(matches!(third.try_lock(), Err(TryLockError::WouldBlock)));
