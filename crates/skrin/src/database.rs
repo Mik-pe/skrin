@@ -244,11 +244,11 @@ impl<R: Record> WriteTransaction<'_, R> {
             // User codec errors happen before touching the log and do not
             // poison the handle. No whole-database copy occurs here.
             let frame = encode_transaction(sequence, &self.changes)?;
-            if let Some(wal) = &mut self.state.wal {
-                if let Err(error) = wal.append(&frame) {
-                    self.state.failed = true;
-                    return Err(Error::CommitUncertain(error));
-                }
+            if let Some(wal) = &mut self.state.wal
+                && let Err(error) = wal.append(&frame)
+            {
+                self.state.failed = true;
+                return Err(Error::CommitUncertain(error));
             }
         }
         for (key, row) in std::mem::take(&mut self.changes) {
@@ -265,3 +265,7 @@ impl<R: Record> WriteTransaction<'_, R> {
         Ok(sequence)
     }
 }
+
+#[cfg(test)]
+#[path = "database_tests.rs"]
+mod tests;

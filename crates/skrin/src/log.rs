@@ -137,7 +137,7 @@ impl Wal {
     }
 }
 
-fn file_header(schema: Schema) -> Vec<u8> {
+pub(crate) fn file_header(schema: Schema) -> Vec<u8> {
     let mut bytes = Vec::with_capacity(HEADER_LEN);
     bytes.extend_from_slice(MAGIC);
     bytes.extend_from_slice(&FORMAT_VERSION.to_le_bytes());
@@ -273,7 +273,10 @@ fn replay<R: Record>(io: &mut dyn Storage) -> Result<(BTreeMap<u64, R>, u64, u64
             break;
         }
         if checksum(&header[..20]) != read_u32(&header[20..]) {
-            return Err(Error::corrupt(offset, "transaction header checksum mismatch"));
+            return Err(Error::corrupt(
+                offset,
+                "transaction header checksum mismatch",
+            ));
         }
         let payload_len = read_u32(&header[4..]) as usize;
         if !(4..=MAX_TRANSACTION_BYTES).contains(&payload_len) {
@@ -281,7 +284,10 @@ fn replay<R: Record>(io: &mut dyn Storage) -> Result<(BTreeMap<u64, R>, u64, u64
         }
         let next = sequence.checked_add(1).ok_or(Error::SequenceExhausted)?;
         if read_u64(&header[8..]) != next {
-            return Err(Error::corrupt(offset, "nonconsecutive transaction sequence"));
+            return Err(Error::corrupt(
+                offset,
+                "nonconsecutive transaction sequence",
+            ));
         }
         let payload_start = offset + FRAME_HEADER_LEN as u64;
         if file_len - payload_start < payload_len as u64 {
@@ -290,7 +296,10 @@ fn replay<R: Record>(io: &mut dyn Storage) -> Result<(BTreeMap<u64, R>, u64, u64
         let mut payload = vec![0; payload_len];
         reader.read_exact(&mut payload)?;
         if checksum(&payload) != read_u32(&header[16..]) {
-            return Err(Error::corrupt(offset, "transaction payload checksum mismatch"));
+            return Err(Error::corrupt(
+                offset,
+                "transaction payload checksum mismatch",
+            ));
         }
         let end_start = payload_start + payload_len as u64;
         let available = (file_len - end_start).min(FRAME_END_LEN as u64) as usize;
@@ -366,13 +375,5 @@ fn checksum(bytes: &[u8]) -> u32 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn crc_matches_standard_vectors() {
-        assert_eq!(checksum(b""), 0);
-        assert_eq!(checksum(b"123456789"), 0xcbf4_3926);
-        assert_eq!(checksum(b"The quick brown fox jumps over the lazy dog"), 0x414f_a339);
-    }
-}
+#[path = "log_tests.rs"]
+mod tests;

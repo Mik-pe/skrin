@@ -11,6 +11,8 @@ pub mod codec;
 mod database;
 mod error;
 mod log;
+#[cfg(test)]
+mod test_support;
 
 pub use codec::{Decoder, Encoder};
 pub use database::{Database, ReadTransaction, Stats, WriteTransaction};

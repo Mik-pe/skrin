@@ -46,7 +46,8 @@ impl Encoder {
     /// Encode a length-prefixed byte string.
     pub fn bytes(&mut self, value: &[u8]) -> Result<()> {
         self.reserve(value.len().saturating_add(4))?;
-        self.bytes.extend_from_slice(&(value.len() as u32).to_le_bytes());
+        self.bytes
+            .extend_from_slice(&(value.len() as u32).to_le_bytes());
         self.bytes.extend_from_slice(value);
         Ok(())
     }
