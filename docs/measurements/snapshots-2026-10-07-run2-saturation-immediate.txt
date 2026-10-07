@@ -1,0 +1,20 @@
+config,mode=immediate,producers=8,per_producer=200,inter_request_us=0,group_delay_us=1000,readers=2,read_hold_us=1000,read_interval_us=0,queue_capacity=64,max_group_requests=16,max_snapshots=32,max_pinned_bytes=536870912,initial_read_capture_before_timing=true,durability=sync_all,root=/home/mikpe/.cache/skrin-snapshots-3610159-1791402441937869426
+workload,transactions=1600,elapsed_s=18.015622,tx_per_s=88.812,read_samples=4,reads_per_s=0.222
+latency,samples=1600,p50_us=9460.929,p95_us=13819.900,p99_us=232881.864,max_us=16091316.009
+call_to_callback,samples=1600,p50_us=0.582,p95_us=0.794,p99_us=47.194,max_us=16084086.881
+admission_to_callback,unavailable
+read_acquire,samples=4,p50_us=0.469,p95_us=18014104.531,p99_us=18014104.531,max_us=18014104.531
+read_acquire_verify,samples=4,p50_us=2.669,p95_us=18014107.775,p99_us=18014107.775,max_us=18014107.775
+groups,sync_groups=1600,mean_frames=1.000,max_frames=1,histogram={1: 1600}
+retention,sampled_max_pins=0,sampled_max_versions=0,sampled_max_pinned_bytes=0,sampled_oldest_sequence=None,final=None,accounting=whole_root_per_lease_allocator_overhead_excluded
+memory,VmHWM:	    4264 kB
+memory,VmRSS:	    4264 kB
+maintenance,sequence=1602,checkpoint_ms=61.330,reclaim_ms=5.928,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944)),readers_released=true
+memory,VmHWM:	    4264 kB
+memory,VmRSS:	    4264 kB
+conversion,native_ms=0.000,outside_workload_and_maintenance=true
+memory,VmHWM:	    4264 kB
+memory,VmRSS:	    4264 kB
+memory,VmHWM:	    3272 kB
+memory,VmRSS:	    3272 kB
+reopen,open_ms=7.241,cache_policy=no_advice,includes_recovery_sync=true

@@ -1,0 +1,20 @@
+config,mode=group,producers=8,per_producer=200,inter_request_us=0,group_delay_us=1000,readers=2,read_hold_us=1000,read_interval_us=0,queue_capacity=64,max_group_requests=16,max_snapshots=32,max_pinned_bytes=536870912,initial_read_capture_before_timing=true,durability=sync_all,root=/home/mikpe/.cache/skrin-snapshots-3610593-1791402527372252601
+workload,transactions=1600,elapsed_s=1.928291,tx_per_s=829.750,read_samples=693,reads_per_s=359.386
+latency,samples=1600,p50_us=8766.899,p95_us=14548.841,p99_us=17195.858,max_us=18486.379
+call_to_callback,samples=1600,p50_us=2161.647,p95_us=4646.462,p99_us=6832.660,max_us=7990.790
+admission_to_callback,samples=1600,p50_us=2157.570,p95_us=4646.356,p99_us=6831.605,max_us=7989.562
+read_acquire,samples=693,p50_us=5861.528,p95_us=11416.881,p99_us=14215.697,max_us=17303.291
+read_acquire_verify,samples=693,p50_us=5863.801,p95_us=11420.574,p99_us=14221.215,max_us=17307.459
+groups,sync_groups=200,mean_frames=8.000,max_frames=8,histogram={8: 200}
+retention,sampled_max_pins=0,sampled_max_versions=0,sampled_max_pinned_bytes=0,sampled_oldest_sequence=None,final=None,accounting=whole_root_per_lease_allocator_overhead_excluded
+memory,VmHWM:	    4376 kB
+memory,VmRSS:	    4376 kB
+maintenance,sequence=1602,checkpoint_ms=49.405,reclaim_ms=5.848,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944)),readers_released=true
+memory,VmHWM:	    4416 kB
+memory,VmRSS:	    4416 kB
+conversion,native_ms=0.266,outside_workload_and_maintenance=true
+memory,VmHWM:	    4416 kB
+memory,VmRSS:	    4416 kB
+memory,VmHWM:	    3272 kB
+memory,VmRSS:	    3272 kB
+reopen,open_ms=6.523,cache_policy=no_advice,includes_recovery_sync=true

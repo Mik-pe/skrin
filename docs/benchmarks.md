@@ -103,3 +103,7 @@ root still exists; conversion/drain back to the native baseline is reported
 separately and excluded from workload/maintenance timings. Neither filesystem
 nor device cache is declared cold. Use repeated paired runs on the same identified device; keep
 tails and read rates when judging whether the added version machinery is useful.
+
+[Recorded 24-run NVMe comparison](measurements/snapshots-2026-10-07.md) preserves
+all low-load/saturated writer/read tails and sample counts, including sparse
+starved borrowed-reader observations and worse snapshot writer contention tails.

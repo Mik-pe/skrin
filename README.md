@@ -196,7 +196,9 @@ Never nest transactions, hold guards across `await`, or perform external side ef
 Opt-in [bounded independent group commit](docs/group-commit.md) shares synchronization across queued single-table or catalog transactions. The immediate-sync API remains the baseline; its borrowed readers block writers.
 [Immutable snapshots](docs/snapshots.md) provide opt-in nonblocking old read versions
 with coherent indexes, observed oldest pins and explicit admission limits. Their
-cooperative native-memory accounting is not an allocator/process cap. The executable `group_commit` example covers dropped responses, operation-ID retry and managed maintenance.
+cooperative native-memory accounting is not an allocator/process cap.
+[Repeated device comparisons](docs/measurements/snapshots-2026-10-07.md) record
+reader availability alongside writer contention tails and memory costs. The executable `group_commit` example covers dropped responses, operation-ID retry and managed maintenance.
 
 ## Measure the right thing
 

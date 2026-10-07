@@ -152,3 +152,9 @@ modes. It reports writer/read distributions, throughput, groups/queue time,
 process RSS, sampled accounted retention and checkpoint/fresh-process recovery.
 Use an identified filesystem/device for performance evidence; `/tmp` or CI smoke
 runs only prove execution. See [benchmark methodology](benchmarks.md).
+
+[Three repeated low-load/saturated NVMe comparisons](measurements/snapshots-2026-10-07.md)
+record reader availability, writer contention tails, unequal completed read counts,
+process HWM and conservative pins. Snapshot reader p99 acquisition was roughly
+33–35 µs in these workloads, with additional memory/sampling cost and variable
+writer tails; this is not a general fairness or writer-performance guarantee.
