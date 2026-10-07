@@ -1,0 +1,428 @@
+{
+  "started_utc": "2026-10-07T18:24:59.120013+00:00",
+  "source_commit": "b3d39a631e4e1576b31ce6f17ba91b1e1e2d7e69",
+  "tree": "d4e1a9230161fe75f52d44c8008ec3f2168ae31a",
+  "bench_source_sha256": "3facc288478c8bbcb10ec0b5647bb34b3df89f9884beaf28464de85c76221fd4",
+  "executable_sha256": "8dcb7b4bf4fb14c305487bd117cb561a4756049af1c198e3a468310f96ab52d4",
+  "rustc": "rustc 1.89.0 (29483883e 2025-08-04)\nbinary: rustc\ncommit-hash: 29483883eed69d5fb4db01964cdf2af4d86e9cb2\ncommit-date: 2025-08-04\nhost: x86_64-unknown-linux-gnu\nrelease: 1.89.0\nLLVM version: 20.1.7",
+  "kernel": "Linux mikparchy 7.2.5-3-omarchy #1 SMP PREEMPT_DYNAMIC Mon, 14 Sep 2026 19:55:01 +0000 x86_64 GNU/Linux",
+  "cpu": {
+    "lscpu": [
+      {
+        "field": "Architecture:",
+        "data": "x86_64"
+      },
+      {
+        "field": "CPU op-mode(s):",
+        "data": "32-bit, 64-bit"
+      },
+      {
+        "field": "Address sizes:",
+        "data": "39 bits physical, 48 bits virtual"
+      },
+      {
+        "field": "Byte Order:",
+        "data": "Little Endian"
+      },
+      {
+        "field": "CPU(s):",
+        "data": "8"
+      },
+      {
+        "field": "On-line CPU(s) list:",
+        "data": "0-7"
+      },
+      {
+        "field": "Vendor ID:",
+        "data": "GenuineIntel"
+      },
+      {
+        "field": "Model name:",
+        "data": "Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz"
+      },
+      {
+        "field": "CPU family:",
+        "data": "6"
+      },
+      {
+        "field": "Model:",
+        "data": "126"
+      },
+      {
+        "field": "Thread(s) per core:",
+        "data": "2"
+      },
+      {
+        "field": "Core(s) per socket:",
+        "data": "4"
+      },
+      {
+        "field": "Socket(s):",
+        "data": "1"
+      },
+      {
+        "field": "Stepping:",
+        "data": "5"
+      },
+      {
+        "field": "Microcode version:",
+        "data": "0xce"
+      },
+      {
+        "field": "CPU(s) scaling MHz:",
+        "data": "53%"
+      },
+      {
+        "field": "CPU max MHz:",
+        "data": "3700.0000"
+      },
+      {
+        "field": "CPU min MHz:",
+        "data": "400.0000"
+      },
+      {
+        "field": "BogoMIPS:",
+        "data": "2995.20"
+      },
+      {
+        "field": "Flags:",
+        "data": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves split_lock_detect dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm md_clear flush_l1d arch_capabilities"
+      },
+      {
+        "field": "Virtualization:",
+        "data": "VT-x"
+      },
+      {
+        "field": "L1d cache:",
+        "data": "192 KiB (4 instances)"
+      },
+      {
+        "field": "L1i cache:",
+        "data": "128 KiB (4 instances)"
+      },
+      {
+        "field": "L2 cache:",
+        "data": "2 MiB (4 instances)"
+      },
+      {
+        "field": "L3 cache:",
+        "data": "6 MiB (1 instance)"
+      },
+      {
+        "field": "NUMA node(s):",
+        "data": "1"
+      },
+      {
+        "field": "NUMA node0 CPU(s):",
+        "data": "0-7"
+      },
+      {
+        "field": "Vulnerability Gather data sampling:",
+        "data": "Mitigation; Microcode"
+      },
+      {
+        "field": "Vulnerability Ghostwrite:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Indirect target selection:",
+        "data": "Mitigation; Aligned branch/return thunks"
+      },
+      {
+        "field": "Vulnerability Itlb multihit:",
+        "data": "KVM: Mitigation: Split huge pages"
+      },
+      {
+        "field": "Vulnerability L1tf:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Mds:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Meltdown:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Mmio stale data:",
+        "data": "Mitigation; Clear CPU buffers; SMT vulnerable"
+      },
+      {
+        "field": "Vulnerability Old microcode:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Reg file data sampling:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Retbleed:",
+        "data": "Mitigation; Enhanced IBRS"
+      },
+      {
+        "field": "Vulnerability Spec rstack overflow:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Spec store bypass:",
+        "data": "Mitigation; Speculative Store Bypass disabled via prctl"
+      },
+      {
+        "field": "Vulnerability Spectre v1:",
+        "data": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization"
+      },
+      {
+        "field": "Vulnerability Spectre v2:",
+        "data": "Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop"
+      },
+      {
+        "field": "Vulnerability Srbds:",
+        "data": "Mitigation; Microcode"
+      },
+      {
+        "field": "Vulnerability Tsa:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Tsx async abort:",
+        "data": "Not affected"
+      },
+      {
+        "field": "Vulnerability Vmscape:",
+        "data": "Not affected"
+      }
+    ]
+  },
+  "devices": {
+    "blockdevices": [
+      {
+        "name": "zram0",
+        "model": null,
+        "size": "7.3G",
+        "type": "disk",
+        "mountpoints": [
+          "[SWAP]"
+        ]
+      },
+      {
+        "name": "nvme0n1",
+        "model": "KBG40ZNS256G TOSHIBA MEMORY",
+        "size": "238.5G",
+        "type": "disk",
+        "mountpoints": [],
+        "children": [
+          {
+            "name": "nvme0n1p1",
+            "model": null,
+            "size": "2G",
+            "type": "part",
+            "mountpoints": [
+              "/boot"
+            ]
+          },
+          {
+            "name": "nvme0n1p2",
+            "model": null,
+            "size": "236.5G",
+            "type": "part",
+            "mountpoints": [],
+            "children": [
+              {
+                "name": "root",
+                "model": null,
+                "size": "236.5G",
+                "type": "crypt",
+                "mountpoints": [
+                  "/var/log",
+                  "/home",
+                  "/var/cache/pacman/pkg",
+                  "/"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "filesystem": "/dev/mapper/root[/@home] btrfs rw,relatime,compress=zstd:3,ssd,space_cache=v2,subvolid=257,subvol=/@home",
+  "memory_before": {
+    "MemTotal": "        7701944 kB",
+    "MemAvailable": "    4819920 kB",
+    "SwapTotal": "      15404236 kB",
+    "SwapFree": "       12489352 kB"
+  },
+  "limits": "Shared workstation; uncontrolled background work/frequency/device caches. No cache eviction; no power-loss experiment. Whole-process RSS includes benchmark samples and native rows/indexes. Disk counts regular files, excludes filesystem/directory metadata; shared extents may be counted more than once.",
+  "runs": [
+    {
+      "file": "group-commit-2026-10-07-run1-low-immediate.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "immediate",
+        "1",
+        "500",
+        "10000",
+        "1000"
+      ],
+      "wall_seconds": 9.35332058899803,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run1-low-group.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "group",
+        "1",
+        "500",
+        "10000",
+        "1000"
+      ],
+      "wall_seconds": 9.9833193810191,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run1-saturation-immediate.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "immediate",
+        "8",
+        "200",
+        "0",
+        "1000"
+      ],
+      "wall_seconds": 12.810497674974613,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run1-saturation-group.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "group",
+        "8",
+        "200",
+        "0",
+        "1000"
+      ],
+      "wall_seconds": 1.943233308964409,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run2-low-group.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "group",
+        "1",
+        "500",
+        "10000",
+        "1000"
+      ],
+      "wall_seconds": 9.734727255010512,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run2-low-immediate.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "immediate",
+        "1",
+        "500",
+        "10000",
+        "1000"
+      ],
+      "wall_seconds": 9.699165211990476,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run2-saturation-group.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "group",
+        "8",
+        "200",
+        "0",
+        "1000"
+      ],
+      "wall_seconds": 1.995464815001469,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run2-saturation-immediate.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "immediate",
+        "8",
+        "200",
+        "0",
+        "1000"
+      ],
+      "wall_seconds": 12.860293391975574,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run3-low-immediate.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "immediate",
+        "1",
+        "500",
+        "10000",
+        "1000"
+      ],
+      "wall_seconds": 10.196978574967943,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run3-low-group.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "group",
+        "1",
+        "500",
+        "10000",
+        "1000"
+      ],
+      "wall_seconds": 10.189653438981622,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run3-saturation-immediate.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "immediate",
+        "8",
+        "200",
+        "0",
+        "1000"
+      ],
+      "wall_seconds": 15.221364605997223,
+      "exit_code": 0
+    },
+    {
+      "file": "group-commit-2026-10-07-run3-saturation-group.txt",
+      "argv": [
+        "/home/mikpe/Work/skrin/target/release/deps/group_commit-290736cb566410b8",
+        "/home/mikpe/.cache",
+        "group",
+        "8",
+        "200",
+        "0",
+        "1000"
+      ],
+      "wall_seconds": 2.1243124419706874,
+      "exit_code": 0
+    }
+  ],
+  "ended_utc": "2026-10-07T18:26:45.325574+00:00"
+}

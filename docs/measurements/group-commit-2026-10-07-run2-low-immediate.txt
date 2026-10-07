@@ -1,0 +1,14 @@
+config,mode=immediate,producers=1,per_producer=500,inter_request_us=10000,group_delay_us=1000,queue_capacity=64,max_group_requests=16,durability=sync_all,retained_versions=0,root=/home/mikpe/.cache/skrin-group-3508642-1791397543036662846
+workload,transactions=500,elapsed_s=9.547789,tx_per_s=52.368
+latency,samples=500,p50_us=7328.123,p95_us=12550.873,p99_us=14570.918,max_us=292129.594
+call_to_callback,samples=500,p50_us=0.488,p95_us=0.578,p99_us=0.724,max_us=0.844
+admission_to_callback,unavailable
+groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}
+memory,VmHWM:	    3340 kB
+memory,VmRSS:	    3340 kB
+maintenance,sequence=502,checkpoint_ms=53.141,reclaim_ms=5.869,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))
+memory,VmHWM:	    3376 kB
+memory,VmRSS:	    3376 kB
+memory,VmHWM:	    2952 kB
+memory,VmRSS:	    2952 kB
+reopen,open_ms=6.339,cache_policy=no_advice,includes_recovery_sync=true
