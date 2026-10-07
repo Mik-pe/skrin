@@ -1,5 +1,10 @@
 # Changelog
 
+## Linux/macOS flush contract review
+
+- Review exact MSRV/current standard-library sources and platform contracts; document that reviewed macOS `sync_all` requests `F_FULLFSYNC` without weaker fallback.
+- Require native macOS persistence/lifecycle checks on Rust 1.89 as well as stable, and record runner compiler identity. Preserve conditional device guarantees and all synchronization boundaries.
+
 ## Required Linux file-data reservation
 
 - Add opt-in `reserve_file_data` maintenance policy using safe Linux allocation bindings for all new generation-file data; require allocation success without sparse/unsupported fallback.
