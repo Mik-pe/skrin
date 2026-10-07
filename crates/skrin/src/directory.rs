@@ -1,7 +1,10 @@
 //! Stable ownership and explicit publication of complete storage generations.
 use crate::log::file_storage::LockedFile;
 use crate::log::{Recovered, Storage, Wal, checksum, supported_platform, sync_parent};
-use crate::{Decoder, Encoder, Error, Record, Result, Schema, snapshot};
+use crate::{
+    Decoder, Encoder, Error, MaintenanceEstimate, MaintenanceOptions, Record, Result, Schema,
+    snapshot,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
@@ -62,7 +65,7 @@ pub struct PruneReport {
     pub skipped: u64,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Manifest {
     info: GenerationInfo,
     rows: u64,
@@ -78,6 +81,7 @@ pub(crate) struct Directory {
 pub(crate) fn boundary() -> io::Result<()> {
     #[cfg(all(test, unix))]
     {
+        crate::persistence_model::boundary();
         faults::hit()
     }
     #[cfg(not(all(test, unix)))]
@@ -222,7 +226,18 @@ impl Manifest {
     }
 }
 
+fn require_regular(path: &Path) -> Result<()> {
+    if !fs::symlink_metadata(path)?.is_file() {
+        return Err(Error::corrupt(
+            0,
+            "managed storage requires regular files, not links or special files",
+        ));
+    }
+    Ok(())
+}
+
 fn read_bounded(path: &Path, limit: usize) -> Result<Vec<u8>> {
+    require_regular(path)?;
     let mut bytes = Vec::new();
     File::open(path)?
         .take(limit as u64 + 1)
@@ -236,6 +251,8 @@ fn read_bounded(path: &Path, limit: usize) -> Result<Vec<u8>> {
 fn sync_directory(path: &Path) -> io::Result<()> {
     boundary()?;
     File::open(path)?.sync_all()?;
+    #[cfg(all(test, unix))]
+    crate::persistence_model::directory_synced(path);
     boundary()
 }
 
@@ -248,6 +265,8 @@ fn write_new(path: &Path, bytes: &[u8]) -> Result<()> {
     file.write_all(&bytes[middle..])?;
     boundary()?;
     file.sync_all()?;
+    #[cfg(all(test, unix))]
+    crate::persistence_model::file_synced(&file);
     boundary()?;
     Ok(())
 }
@@ -282,8 +301,13 @@ impl Directory {
         rows: &BTreeMap<u64, R>,
         sequence: u64,
         history: Vec<Migration>,
+        options: MaintenanceOptions,
     ) -> Result<(Self, Wal, Recovered<R>)> {
         supported_platform()?;
+        options.validate()?;
+        options.check_rows(rows.len() as u64)?;
+        // Reject impossible minimum budgets without even creating the destination.
+        options.check_bytes(8 + 28 + 56 + 60 + 48)?;
         fs::create_dir(path)?; // create-only, never adopt an existing directory
         sync_parent(path)?;
         let root = fs::canonicalize(path)?;
@@ -306,13 +330,27 @@ impl Directory {
             _lock: lock,
             manifest,
         };
-        let (wal, recovered, _) = directory.install::<R>(rows, sequence, history)?;
-        Ok((directory, wal, recovered))
+        let mut decoded = BTreeMap::new();
+        let (wal, _) =
+            directory.install::<R>(rows, sequence, history, options, 8, |key, row| {
+                decoded.insert(key, row);
+                Ok(())
+            })?;
+        Ok((
+            directory,
+            wal,
+            Recovered {
+                rows: decoded,
+                sequence,
+                discarded: 0,
+            },
+        ))
     }
 
     pub(crate) fn open<R: Record>(path: &Path) -> Result<(Self, Wal, Recovered<R>)> {
         supported_platform()?;
         let root = fs::canonicalize(path)?;
+        require_regular(&root.join("LOCK"))?;
         let mut lock = LockedFile::acquire(
             File::options()
                 .read(true)
@@ -333,6 +371,14 @@ impl Directory {
         }
         let generation = manifest.info.generation;
         let dir = root.join(generation_name(generation));
+        if !fs::symlink_metadata(&dir)?.is_dir() {
+            return Err(Error::corrupt(
+                0,
+                "active generation must be a real directory",
+            ));
+        }
+        require_regular(&dir.join("snapshot"))?;
+        require_regular(&dir.join("wal"))?;
         if read_bounded(&dir.join("OWNER"), 28)? != owner_marker(R::SCHEMA.table_id, generation) {
             return Err(Error::corrupt(0, "generation ownership mismatch"));
         }
@@ -362,12 +408,58 @@ impl Directory {
         ))
     }
 
+    fn next_manifest<R: Record>(
+        &self,
+        count: usize,
+        sequence: u64,
+        history: Vec<Migration>,
+    ) -> Result<Manifest> {
+        Ok(Manifest {
+            rows: count as u64,
+            info: GenerationInfo {
+                generation: self
+                    .manifest
+                    .info
+                    .generation
+                    .checked_add(1)
+                    .ok_or(Error::SequenceExhausted)?,
+                previous_generation: self.manifest.info.generation,
+                checkpoint_sequence: sequence,
+                schema: R::SCHEMA,
+                migrations: history,
+            },
+        })
+    }
+
+    pub(crate) fn estimate<R: Record>(
+        &self,
+        rows: &BTreeMap<u64, R>,
+        sequence: u64,
+        options: MaintenanceOptions,
+    ) -> Result<MaintenanceEstimate> {
+        let manifest = self.next_manifest::<R>(rows.len(), sequence, self.info().migrations)?;
+        snapshot::estimate(
+            rows,
+            sequence,
+            28 + 56 + manifest.encode()?.len() as u64,
+            options,
+        )
+    }
+
     pub(crate) fn install<R: Record>(
         &mut self,
         rows: &BTreeMap<u64, R>,
         sequence: u64,
         history: Vec<Migration>,
-    ) -> Result<(Wal, Recovered<R>, Checkpoint)> {
+        options: MaintenanceOptions,
+        extra_bytes: u64,
+        accept: impl FnMut(u64, R) -> Result<()>,
+    ) -> Result<(Wal, Checkpoint)> {
+        options.validate()?;
+        options.check_rows(rows.len() as u64)?;
+        let mut manifest = self.next_manifest::<R>(rows.len(), sequence, history)?;
+        let overhead = 28 + 56 + manifest.encode()?.len() as u64 + extra_bytes;
+        options.check_bytes(overhead + 48)?;
         let mut generation = self.manifest.info.generation;
         let mut staged = None;
         for _ in 0..1024 {
@@ -384,43 +476,45 @@ impl Directory {
             }
         }
         let dir = staged.ok_or_else(|| {
-            invalid("too many orphan generations; inspect storage before retrying")
+            invalid("too many orphan generations; inspect/reclaim storage before retrying")
         })?;
+        manifest.info.generation = generation;
+        let encoded_manifest = manifest.encode()?;
+        Manifest::decode(&encoded_manifest)?;
         write_new(
             &dir.join("OWNER"),
             &owner_marker(R::SCHEMA.table_id, generation),
         )?;
-        let bytes = snapshot::write::<R>(&dir.join("snapshot"), generation, sequence, rows)?;
+        let bytes = snapshot::write::<R>(
+            &dir.join("snapshot"),
+            generation,
+            sequence,
+            rows,
+            overhead,
+            options,
+        )?;
         let wal = Wal::create_segment::<R>(&dir.join("wal"), generation, sequence)?;
         boundary()?;
-        // Verify through the real decoder before making a generation discoverable.
-        let verified = snapshot::read::<R>(
+        // One real decoder, one row at a time. Checkpoints/migrations discard
+        // verification rows instead of constructing a second resident table.
+        snapshot::visit::<R>(
             &dir.join("snapshot"),
             generation,
             sequence,
             rows.len() as u64,
+            options,
+            accept,
         )?;
         sync_directory(&dir)?;
-        // The generation's directory entry must be durable BEFORE CURRENT can
-        // point at it, not merely synced alongside a later manifest rename.
+        // The generation's name must be durable BEFORE CURRENT can refer to it.
         sync_directory(&self.root)?;
-        let manifest = Manifest {
-            rows: rows.len() as u64,
-            info: GenerationInfo {
-                generation,
-                previous_generation: self.manifest.info.generation,
-                checkpoint_sequence: sequence,
-                schema: R::SCHEMA,
-                migrations: history,
-            },
-        };
         let temporary = self.root.join(format!("CURRENT-{generation:016x}.tmp"));
-        let encoded_manifest = manifest.encode()?;
-        Manifest::decode(&encoded_manifest)?;
         write_new(&temporary, &encoded_manifest)?;
-        boundary()?; // still a clean preparation failure
+        boundary()?;
         let publish = || -> io::Result<()> {
             fs::rename(&temporary, self.root.join("CURRENT"))?;
+            #[cfg(all(test, unix))]
+            crate::persistence_model::manifest_renamed(&self.root, &temporary);
             boundary()?;
             sync_directory(&self.root)
         };
@@ -428,11 +522,6 @@ impl Directory {
         self.manifest = manifest;
         Ok((
             wal,
-            Recovered {
-                rows: verified,
-                sequence,
-                discarded: 0,
-            },
             Checkpoint {
                 generation,
                 sequence,
@@ -443,67 +532,12 @@ impl Directory {
     }
 
     pub(crate) fn prune(&self) -> Result<PruneReport> {
-        let mut report = PruneReport::default();
-        let info = &self.manifest.info;
-        for entry in fs::read_dir(&self.root)? {
-            let entry = entry?;
-            let Some(generation) = entry.file_name().to_str().and_then(parse_generation) else {
-                continue;
-            };
-            if generation >= info.generation || generation == info.previous_generation {
-                continue;
-            }
-            if !entry.file_type()?.is_dir() {
-                report.skipped += 1;
-                continue;
-            }
-            let dir = entry.path();
-            let files: Vec<_> = fs::read_dir(&dir)?.collect::<io::Result<_>>()?;
-            // An empty reserved generation directory can remain after interrupted
-            // final cleanup. No arbitrary child paths are ever recursively removed.
-            if files.is_empty() {
-                boundary()?;
-                fs::remove_dir(&dir)?;
-                report.generations_removed += 1;
-                continue;
-            }
-            let mut known = true;
-            for file in &files {
-                if !file.file_type()?.is_file()
-                    || !matches!(
-                        file.file_name().to_str(),
-                        Some("OWNER" | "snapshot" | "wal")
-                    )
-                {
-                    known = false;
-                }
-            }
-            let marker = read_bounded(&dir.join("OWNER"), 28);
-            if !known
-                || !matches!(marker, Ok(ref bytes) if *bytes == owner_marker(info.schema.table_id, generation))
-            {
-                report.skipped += 1;
-                continue;
-            }
-            for name in ["snapshot", "wal", "OWNER"] {
-                let file = dir.join(name);
-                match fs::metadata(&file) {
-                    Ok(metadata) => {
-                        boundary()?;
-                        fs::remove_file(&file)?;
-                        report.bytes_removed += metadata.len();
-                    }
-                    Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-                    Err(error) => return Err(error.into()),
-                }
-                sync_directory(&dir)?;
-            }
-            boundary()?;
-            fs::remove_dir(&dir)?;
-            report.generations_removed += 1;
-        }
-        sync_directory(&self.root)?;
-        Ok(report)
+        let report = self.cleanup(false)?;
+        Ok(PruneReport {
+            generations_removed: report.generations_removed,
+            bytes_removed: report.bytes_removed,
+            skipped: report.skipped,
+        })
     }
 }
 
@@ -524,6 +558,9 @@ pub(crate) mod faults {
     }
     pub(crate) fn clear() {
         FAIL_AFTER.with(|value| value.set(None));
+    }
+    pub(crate) fn active() -> bool {
+        FAIL_AFTER.with(|value| value.get().is_some())
     }
     pub(crate) fn hit() -> io::Result<()> {
         FAIL_AFTER.with(|value| match value.get() {
@@ -546,3 +583,7 @@ pub(crate) mod faults {
 #[cfg(all(test, unix))]
 #[path = "directory_tests.rs"]
 mod tests;
+
+#[path = "inventory.rs"]
+mod inventory;
+pub use inventory::{ReclaimReport, StorageEntry, StorageEntryKind, StorageInventory};

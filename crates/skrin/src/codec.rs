@@ -6,17 +6,35 @@ use crate::{Error, Result};
 pub const MAX_RECORD_BYTES: usize = 8 * 1024 * 1024;
 
 /// Bounded encoder for a single record. No native memory layout is persisted.
-#[derive(Default)]
 pub struct Encoder {
     bytes: Vec<u8>,
+    limit: usize,
+}
+
+impl Default for Encoder {
+    fn default() -> Self {
+        Self::with_limit(MAX_RECORD_BYTES)
+    }
 }
 
 impl Encoder {
+    pub(crate) fn with_limit(limit: usize) -> Self {
+        Self {
+            bytes: Vec::new(),
+            limit,
+        }
+    }
+
+    pub(crate) fn clear(&mut self) {
+        self.bytes.clear();
+    }
+    pub(crate) fn as_slice(&self) -> &[u8] {
+        &self.bytes
+    }
+
     fn reserve(&mut self, additional: usize) -> Result<()> {
-        if self.bytes.len().saturating_add(additional) > MAX_RECORD_BYTES {
-            return Err(Error::LimitExceeded {
-                limit: MAX_RECORD_BYTES,
-            });
+        if self.bytes.len().saturating_add(additional) > self.limit {
+            return Err(Error::LimitExceeded { limit: self.limit });
         }
         self.bytes.reserve(additional);
         Ok(())

@@ -202,11 +202,12 @@ pub(crate) fn encode_transaction<R: Record>(
         limit: MAX_TRANSACTION_BYTES,
     })?;
     payload.extend_from_slice(&count.to_le_bytes());
+    let mut encoder = Encoder::default();
     for (&key, row) in changes {
         let encoded = if let Some(row) = row {
-            let mut encoder = Encoder::default();
+            encoder.clear();
             row.encode(&mut encoder)?;
-            Some(encoder.finish())
+            Some(encoder.as_slice())
         } else {
             None
         };
@@ -220,7 +221,7 @@ pub(crate) fn encode_transaction<R: Record>(
         payload.extend_from_slice(&key.to_le_bytes());
         if let Some(encoded) = encoded {
             payload.extend_from_slice(&(encoded.len() as u32).to_le_bytes());
-            payload.extend_from_slice(&encoded);
+            payload.extend_from_slice(encoded);
         }
     }
     let mut frame = Vec::with_capacity(FRAME_HEADER_LEN + payload.len() + FRAME_END_LEN);
@@ -303,6 +304,7 @@ fn replay<R: Record>(
         }
         offset += 24;
     }
+    let mut payload = Vec::new();
     while offset < file_len {
         let available = (file_len - offset).min(FRAME_HEADER_LEN as u64) as usize;
         let mut header = [0; FRAME_HEADER_LEN];
@@ -335,7 +337,7 @@ fn replay<R: Record>(
         if file_len - payload_start < payload_len as u64 {
             break;
         }
-        let mut payload = vec![0; payload_len];
+        payload.resize(payload_len, 0);
         reader.read_exact(&mut payload)?;
         if checksum(&payload) != read_u32(&header[16..]) {
             return Err(Error::corrupt(
@@ -394,34 +396,68 @@ fn read_u64(bytes: &[u8]) -> u64 {
     u64::from_le_bytes(value)
 }
 
-const fn crc_table() -> [u32; 256] {
-    let mut table = [0; 256];
-    let mut index = 0;
-    while index < 256 {
-        let mut value = index as u32;
+// IEEE CRC-32, slicing-by-eight. Portable safe Rust; identical wire checksum.
+const fn crc_tables() -> [[u32; 256]; 8] {
+    let mut tables = [[0; 256]; 8];
+    let mut i = 0;
+    while i < 256 {
+        let mut value = i as u32;
         let mut bit = 0;
         while bit < 8 {
-            value = if value & 1 == 1 {
-                (value >> 1) ^ 0xedb8_8320
-            } else {
-                value >> 1
-            };
+            value = (value >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(value & 1));
             bit += 1;
         }
-        table[index] = value;
-        index += 1;
+        tables[0][i] = value;
+        i += 1;
     }
-    table
+    // Higher slices depend on every entry of table zero, not just entries <= i.
+    let mut n = 1;
+    while n < 8 {
+        let mut i = 0;
+        while i < 256 {
+            let previous = tables[n - 1][i];
+            tables[n][i] = (previous >> 8) ^ tables[0][(previous & 255) as usize];
+            i += 1;
+        }
+        n += 1;
+    }
+    tables
 }
 
-const CRC_TABLE: [u32; 256] = crc_table();
+const CRC_TABLES: [[u32; 256]; 8] = crc_tables();
+
+pub(crate) struct Checksum(u32);
+impl Checksum {
+    pub(crate) fn new() -> Self {
+        Self(!0)
+    }
+    pub(crate) fn update(&mut self, bytes: &[u8]) {
+        let mut chunks = bytes.chunks_exact(8);
+        for chunk in &mut chunks {
+            let a = read_u32(chunk) ^ self.0;
+            let b = read_u32(&chunk[4..]);
+            self.0 = CRC_TABLES[7][(a & 255) as usize]
+                ^ CRC_TABLES[6][((a >> 8) & 255) as usize]
+                ^ CRC_TABLES[5][((a >> 16) & 255) as usize]
+                ^ CRC_TABLES[4][(a >> 24) as usize]
+                ^ CRC_TABLES[3][(b & 255) as usize]
+                ^ CRC_TABLES[2][((b >> 8) & 255) as usize]
+                ^ CRC_TABLES[1][((b >> 16) & 255) as usize]
+                ^ CRC_TABLES[0][(b >> 24) as usize];
+        }
+        for &byte in chunks.remainder() {
+            self.0 = CRC_TABLES[0][((self.0 as u8) ^ byte) as usize] ^ (self.0 >> 8);
+        }
+    }
+    pub(crate) fn finish(self) -> u32 {
+        !self.0
+    }
+}
 
 pub(crate) fn checksum(bytes: &[u8]) -> u32 {
-    let mut crc = !0u32;
-    for &byte in bytes {
-        crc = CRC_TABLE[((crc as u8) ^ byte) as usize] ^ (crc >> 8);
-    }
-    !crc
+    let mut crc = Checksum::new();
+    crc.update(bytes);
+    crc.finish()
 }
 
 #[cfg(test)]

@@ -106,9 +106,11 @@ Skrin validates schema identity before decoding and rejects trailing record byte
 | --- | --- |
 | `create_dir` / `open_dir` | Managed generations, permanent directory ownership, authoritative checksummed manifest |
 | `checkpoint` | Verified snapshot + fresh WAL; preserves rows and committed sequence; blocks transactions |
-| `prune` | Explicit retention of active + previous generations; skips unknown content |
+| `prune` / `reclaim` | Retain active + previous; reclaim recognized abandoned stages and temporary manifests without touching unknown contents |
 | `backup_to` | Consistent new directory; independently decodes the snapshot; never overwrites its destination |
 | `migrate::<NewRecord>` | Consumes the old handle; preserves table/key identity; records a named, forward schema transition |
+| `storage_inventory` / `estimate_checkpoint` | Read-only ownership/space inspection and exact encoded-size preflight |
+| `checkpoint_if_needed` | Caller-driven WAL-byte/commit thresholds, checked under the publication lock |
 | `generation_info` / `stats` | Generation, migration history, row count, committed sequence, WAL bytes and repaired-tail bytes |
 | `create` / `open` | Original standalone v1 files; no implicit conversion or in-place compaction |
 | `in_memory` | Explicitly volatile; no serialization or disk I/O |
@@ -129,6 +131,28 @@ let db = db.migrate::<PersonV2>("split-name-v2", |_, old| {
 
 This excerpt is from the runnable lifecycle example above. After publication, the old record type is refused. A failed conversion leaves the original generation active. To import a v1 file, open it with its original `Record` and call `backup_to` on a new directory; the source is not rewritten.
 
+## Bound the work, then reclaim the space
+
+```rust
+let options = MaintenanceOptions {
+    max_new_file_bytes: 64 * 1024 * 1024,
+    max_record_bytes: 64 * 1024,
+    max_rows: 100_000,
+};
+let policy = CheckpointPolicy {
+    wal_bytes: Some(32 * 1024 * 1024),
+    commits: Some(10_000),
+};
+if let Some(checkpoint) = db.checkpoint_if_needed(policy, options)? {
+    let cleanup = db.reclaim()?;
+}
+let inventory = db.storage_inventory()?;
+```
+
+Import `MaintenanceOptions` and `CheckpointPolicy` alongside `Database`. Run the [complete example](crates/skrin/examples/maintenance.rs) with `cargo run -p skrin --example maintenance -- /tmp/skrin-maintenance-demo` (a **new** path). Limits also work with `backup_to_with_options` and `migrate_with_options`.
+
+The limits bound newly encoded file bytes, record bytes and row count—not application allocations or available disk space. Checkpoint verification no longer constructs a second resident table. Unknown/corrupt ownership markers are preserved, not guessed away. Read [the maintenance contract](docs/maintenance.md) for exact accounting, failure handling and persistence-order tests.
+
 ## Safety is a contract, not a badge
 
 A successful persistent write means **encode → append → sync → publish**. Complete corruption is an error, not permission to truncate. Only an incomplete final WAL frame may be repaired. Directory recovery follows `CURRENT`; it never guesses the newest filename or silently falls back to an older schema.
@@ -146,8 +170,8 @@ Read [durability](docs/durability.md) and the [managed storage protocol](docs/ma
 | Data model | One typed table per database; `u64` primary keys; data and primary index fit in RAM |
 | Reads | Borrowed values, ordered iteration, primary-key ranges; read guards block writers |
 | Writes | One serialized writer; staged deltas, not whole-database copies on each commit |
-| Maintenance | Explicit and serialized; snapshot verification temporarily duplicates resident data; caller provides disk headroom |
-| Retention | Call `checkpoint` and `prune`; maintenance is not an automatic background service |
+| Maintenance | Explicit and serialized; checkpoint verification retains one decoded row at a time; enforceable encoded-size/count budgets, not a process-memory or disk-space reservation |
+| Retention | Call `checkpoint_if_needed` and `reclaim` (or `checkpoint`/`prune`); no automatic background service |
 | Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
 | Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |
 | Not implemented | Multi-table schemas, secondary indexes, MVCC, group commit, derive macros, encryption, replication |
@@ -160,9 +184,10 @@ Never nest transactions, hold guards across `await`, or perform external side ef
 cargo bench -p skrin --bench baseline
 cargo bench -p skrin --bench baseline -- --durable /tmp
 cargo bench -p skrin --bench maintenance -- /tmp
+cargo bench -p skrin --bench storage_scale -- /tmp 100000
 ```
 
-The baseline separates a plain `BTreeMap`, volatile operations and synced transactions. Maintenance measures checkpoint/prune pauses, disk footprint and warm-cache reopen with verification after every round. Shared CI and container timings are smoke evidence, not published performance comparisons.
+The baseline separates a plain `BTreeMap`, volatile operations and synced transactions. Maintenance measures checkpoint/prune pauses, disk footprint and warm-cache reopen with verification after every round. The scale harness exercises 10k–1M rows with the same verified storage workload. See [the measured before/after results and limitations](docs/measurements/maintenance-2026-10-07.md). Shared CI/container timings are not physical-device guarantees or cross-engine comparisons.
 
 ## Work on Skrin
 
