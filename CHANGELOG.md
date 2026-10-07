@@ -1,5 +1,11 @@
 # Changelog
 
+## Catalog maintenance controls
+
+- Expose encoded checkpoint/backup/migration budgets, exact preflight, explicit checkpoint thresholds, inventory and generation history to catalog applications.
+- Preserve decoded projection validation under the threshold/publication lock; keep source/index state usable after preparation refusal.
+- Document descriptor accounting and exercise bounded catalog maintenance in the banking lifecycle.
+
 ## Schema-bound tables and atomic indexes
 
 - Add a catalog-owned native row enum, typed table markers and persisted table/index definitions.

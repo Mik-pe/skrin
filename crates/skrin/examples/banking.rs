@@ -5,7 +5,7 @@ mod banking;
 mod banking_v2;
 use banking::*;
 use skrin::catalog::CatalogDatabase;
-use skrin::{Error, Result};
+use skrin::{CheckpointPolicy, Error, MaintenanceOptions, Result};
 
 fn main() -> Result<()> {
     let path = std::env::args_os().nth(1);
@@ -31,7 +31,31 @@ fn main() -> Result<()> {
         );
     }
     if let Some(path) = path {
-        db.checkpoint()?;
+        let options = MaintenanceOptions {
+            max_new_file_bytes: 1024 * 1024,
+            max_record_bytes: 4096,
+            max_rows: 1000,
+        };
+        let estimate = db.estimate_checkpoint(options)?;
+        println!(
+            "catalog snapshot: {} stored rows including descriptor, {} new encoded bytes",
+            estimate.rows, estimate.new_file_bytes
+        );
+        assert!(
+            db.checkpoint_if_needed(
+                CheckpointPolicy {
+                    wal_bytes: None,
+                    commits: Some(2)
+                },
+                options
+            )?
+            .is_some()
+        );
+        let inventory = db.storage_inventory()?;
+        println!(
+            "catalog storage: {} observed bytes",
+            inventory.observed_file_bytes
+        );
         db.reclaim()?;
         drop(db);
         let reopened = CatalogDatabase::<Banking>::open_dir(&path)?;
@@ -43,8 +67,11 @@ fn main() -> Result<()> {
                 .0,
             2
         );
-        let migrated =
-            reopened.migrate::<banking_v2::BankingV2>("add-active", banking_v2::migrate_row)?;
+        let migrated = reopened.migrate_with_options::<banking_v2::BankingV2>(
+            "add-active",
+            options,
+            banking_v2::migrate_row,
+        )?;
         assert!(
             migrated
                 .read()?

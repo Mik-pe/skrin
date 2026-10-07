@@ -40,6 +40,25 @@ Derived indexes are **rebuilt**, not stored as separately writable files. Recove
 
 `checkpoint`, `reclaim`, `backup_to` and `migrate` use the existing managed-generation implementation. Checkpoint also checks that independently decoded rows preserve their logical identities and index projections. Backup/migration independently validate decoded destination constraints **before CURRENT publication**. The permanent LOCK stays held across every generation change. Cleanup retains active and previous generations and preserves unknown/orphan ownership metadata according to the existing [maintenance contract](maintenance.md).
 
+Catalog maintenance also exposes `checkpoint_with_options`, `checkpoint_if_needed`, `estimate_checkpoint`, `backup_to_with_options`, `migrate_with_options`, `storage_inventory` and `generation_info`. These use the same production budgets, ownership checks and publication locks as the single-table engine. There is no hidden maintenance in ordinary writes.
+
+```rust
+let options = MaintenanceOptions {
+    max_new_file_bytes: 64 * 1024 * 1024,
+    max_record_bytes: 64 * 1024,
+    max_rows: 100_001,
+};
+let estimate = db.estimate_checkpoint(options)?;
+if let Some(checkpoint) = db.checkpoint_if_needed(
+    CheckpointPolicy { wal_bytes: None, commits: Some(10_000) }, options,
+)? {
+    let cleanup = db.reclaim()?;
+}
+let inventory = db.storage_inventory()?;
+```
+
+The mandatory descriptor counts as **one stored snapshot row** for `MaintenanceOptions.max_rows` and `MaintenanceEstimate.rows`. Its encoded record and envelope count toward record/file-byte limits too; a very small record limit may reject metadata before reaching user rows. In contrast, catalog `Stats.rows` and `Checkpoint.rows` count application rows only. Estimates measure current encoded contents exactly and do not reserve disk space or include native/index allocator usage. Limits are enforced again during execution, including migration to a potentially larger destination codec. Budget refusal leaves CURRENT unchanged before publication; migration consumes its source handle even on refusal. A failed preparation may leave recognized stages for inspection/reclamation. Default methods retain the original default options.
+
 Migration consumes the old handle, accepts concrete old/new native enums and preserves table IDs, logical u64 keys, committed sequence and named catalog migration history. The example's [real V2 schema](../crates/skrin/examples/support/banking_v2.rs) adds an encoded `active` flag with an explicit default while retaining Transfer records and rebuilding both indexes. Conversion/constraint failures preserve the old CURRENT. Publication uncertainty requires reopening with the actual selected catalog. A migrated descriptor can add tables/indexes; existing rows cannot silently change table identity or be decoded with the new codec before conversion.
 
 ```sh
