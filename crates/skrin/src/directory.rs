@@ -261,8 +261,12 @@ fn write_new(path: &Path, bytes: &[u8]) -> Result<()> {
     let mut file = File::create_new(path)?;
     let middle = bytes.len() / 2;
     file.write_all(&bytes[..middle])?;
+    #[cfg(all(test, unix))]
+    crate::persistence_model::file_written(&file);
     boundary()?;
     file.write_all(&bytes[middle..])?;
+    #[cfg(all(test, unix))]
+    crate::persistence_model::file_written(&file);
     boundary()?;
     file.sync_all()?;
     #[cfg(all(test, unix))]
@@ -568,9 +572,16 @@ pub(crate) mod faults {
     thread_local! {
         static FAIL_AFTER: Cell<Option<usize>> = const { Cell::new(None) };
         static EXIT_ON_HIT: Cell<bool> = const { Cell::new(false) };
+        static ERROR_KIND: Cell<io::ErrorKind> = const { Cell::new(io::ErrorKind::Other) };
     }
     pub(crate) fn arm(after: usize) {
         FAIL_AFTER.with(|value| value.set(Some(after)));
+        EXIT_ON_HIT.with(|value| value.set(false));
+        ERROR_KIND.with(|value| value.set(io::ErrorKind::Other));
+    }
+    pub(crate) fn enospc_after(after: usize) {
+        arm(after);
+        ERROR_KIND.with(|value| value.set(io::ErrorKind::StorageFull));
     }
     pub(crate) fn exit_after(after: usize) {
         arm(after);
@@ -578,6 +589,8 @@ pub(crate) mod faults {
     }
     pub(crate) fn clear() {
         FAIL_AFTER.with(|value| value.set(None));
+        EXIT_ON_HIT.with(|value| value.set(false));
+        ERROR_KIND.with(|value| value.set(io::ErrorKind::Other));
     }
     pub(crate) fn active() -> bool {
         FAIL_AFTER.with(|value| value.get().is_some())
@@ -590,7 +603,10 @@ pub(crate) mod faults {
                 if EXIT_ON_HIT.with(Cell::get) {
                     std::process::exit(73);
                 }
-                Err(io::Error::other("injected maintenance boundary failure"))
+                Err(io::Error::new(
+                    ERROR_KIND.with(Cell::get),
+                    "injected maintenance boundary failure",
+                ))
             }
             Some(left) => {
                 value.set(Some(left - 1));

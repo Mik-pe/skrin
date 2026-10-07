@@ -441,4 +441,83 @@ mod managed {
             false,
         );
     }
+    #[test]
+    fn full_survival_projection_keeps_multi_table_rows_and_indexes_coherent() {
+        use crate::persistence_model::{self as model, Omission};
+        for migration in [false, true] {
+            let path = Temp::new();
+            let db = CatalogDatabase::<Banking>::create_dir(&path.0).unwrap();
+            seed(&db).unwrap();
+            model::start_full(&path.0, Omission::None, 1);
+            db.write(|tx| transfer(tx, 7, 1, 2, 25)).unwrap();
+            model::acknowledged(2);
+            if migration {
+                let next = db
+                    .migrate::<banking_v2::BankingV2>("full-active", banking_v2::migrate_row)
+                    .unwrap();
+                model::published(next.generation_info().unwrap().unwrap().generation);
+                drop(next);
+            } else {
+                let cp = db.checkpoint().unwrap();
+                model::published(cp.generation);
+                drop(db);
+            }
+            let images = model::finish();
+            assert!(images.iter().any(|image| image.partial_append));
+            for (cut, image) in images.iter().enumerate() {
+                image.restore(&path.0);
+                match CatalogDatabase::<Banking>::open_dir(&path.0) {
+                    Ok(db) => {
+                        let sequence = db.stats().unwrap().commits;
+                        assert!(
+                            (image.acknowledged_sequence.unwrap()..=2).contains(&sequence),
+                            "cut {cut}"
+                        );
+                        verify(&db, sequence == 2);
+                        if let Some(generation) = image.published_generation {
+                            assert!(!migration);
+                            assert_eq!(
+                                db.generation_info().unwrap().unwrap().generation,
+                                generation
+                            );
+                        }
+                    }
+                    Err(Error::SchemaMismatch { .. }) if migration => {
+                        let db =
+                            CatalogDatabase::<banking_v2::BankingV2>::open_dir(&path.0).unwrap();
+                        let read = db.read().unwrap();
+                        assert_eq!(read.sequence(), 2);
+                        assert_eq!(read.get::<Transfers>(7).unwrap().unwrap().amount, 25);
+                        assert_eq!(
+                            read.get::<banking_v2::AccountsV2>(1)
+                                .unwrap()
+                                .unwrap()
+                                .balance,
+                            75
+                        );
+                        assert_eq!(
+                            read.get::<banking_v2::AccountsV2>(2)
+                                .unwrap()
+                                .unwrap()
+                                .balance,
+                            125
+                        );
+                        assert_eq!(
+                            read.lookup::<banking_v2::AccountsV2>(2, &75u64.to_be_bytes())
+                                .unwrap()[0]
+                                .0,
+                            1
+                        );
+                        if let Some(generation) = image.published_generation {
+                            assert_eq!(
+                                db.generation_info().unwrap().unwrap().generation,
+                                generation
+                            );
+                        }
+                    }
+                    Err(error) => panic!("migration={migration} cut={cut}: {error}"),
+                }
+            }
+        }
+    }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unsynced survival and storage-full evidence
+
+- Expand the test-only production persistence projection with unsynced namespace subsets, observed file-write survival, exhaustive bounded WAL append prefixes and explicit acknowledgment/publication tracking.
+- Detect eight independently omitted file/directory sync guarantees; recover coherent catalog rows/indexes through checkpoints, migrations and restartable retained-generation cleanup.
+- Exercise `StorageFull` append, sync and maintenance failures, preserving clean preparation refusal versus poisoned uncertain outcomes; document the bounded model's limits.
+
 ## Catalog maintenance controls
 
 - Expose encoded checkpoint/backup/migration budgets, exact preflight, explicit checkpoint thresholds, inventory and generation history to catalog applications.

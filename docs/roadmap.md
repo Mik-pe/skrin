@@ -8,7 +8,7 @@ Typed native records, stable schema codecs, atomic staged writes, borrowed reads
 
 ## Next: strengthen the operational boundary
 
-Delivered in the next maintenance milestone: single-row streaming snapshot verification, bounded encoded record/new-file bytes and row count, read-only estimates/inventory, conservative recognized-orphan reclamation, caller-driven checkpoint thresholds, and a persistence projection that separates file syncs, directory syncs and independently surviving manifest renames. The same verified scale workload measures the actual before/after engine changes.
+Delivered in the next maintenance milestone: single-row streaming snapshot verification, bounded encoded record/new-file bytes and row count, read-only estimates/inventory, conservative recognized-orphan reclamation, caller-driven checkpoint thresholds, and a persistence projection that separates file contents and namespace survival. Bounded tests enumerate unsynced namespace subsets and WAL append prefixes, track acknowledgments/publications, exercise ENOSPC-equivalent errors, and detect eight omitted sync guarantees. The same verified scale workload measures the actual before/after engine changes.
 
 Remaining release work: allocator/application-memory accounting and enforced native-memory budgets, true filesystem reservation policies where supported, operator handling of malformed/unclaimed stages, exhaustive device/filesystem fault coverage, macOS hardware-flush review, and identified real-device long-duration/power-loss measurements. The current encoded budgets and projection are not substitutes for those guarantees. Preserve existing format fixtures and keep the legacy import path non-destructive.
 

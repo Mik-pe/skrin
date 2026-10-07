@@ -89,10 +89,11 @@ pub(crate) fn write<R: Record>(
         // Partial-record fault injection is test-only. The production writer
         // never drains its buffer per row, and still syncs before publication.
         #[cfg(all(test, unix))]
-        if crate::directory::faults::active() {
+        if crate::directory::faults::active() || crate::persistence_model::observe_writes() {
             let middle = encoded.len() / 2;
             writer.write_all(&encoded[..middle])?;
             writer.flush()?;
+            crate::persistence_model::file_written(&file);
             boundary()?;
             writer.write_all(&encoded[middle..])?;
         } else {
@@ -103,6 +104,8 @@ pub(crate) fn write<R: Record>(
         writer.write_all(&crc.finish().to_le_bytes())?;
     }
     writer.flush()?;
+    #[cfg(all(test, unix))]
+    crate::persistence_model::file_written(&file);
     boundary()?;
     file.sync_all()?;
     #[cfg(all(test, unix))]
