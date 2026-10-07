@@ -1,0 +1,329 @@
+[
+  {
+    "run": 1,
+    "commit": {
+      "p50_ms": {
+        "median": 21.7735,
+        "min": 16.608,
+        "max": 27.903,
+        "samples": 16
+      },
+      "p95_ms": {
+        "median": 29.0015,
+        "min": 22.33,
+        "max": 68.195,
+        "samples": 16
+      },
+      "p99_ms": {
+        "median": 37.302,
+        "min": 23.716,
+        "max": 100.168,
+        "samples": 16
+      },
+      "tx_per_s": {
+        "median": 45.295,
+        "min": 28.496,
+        "max": 59.038,
+        "samples": 16
+      }
+    },
+    "maintenance": {
+      "checkpoint_ms": {
+        "median": 936.7255,
+        "min": 586.375,
+        "max": 1443.721,
+        "samples": 16
+      },
+      "reclaim_ms": {
+        "median": 39.295,
+        "min": 29.455,
+        "max": 80.211,
+        "samples": 16
+      }
+    },
+    "reopen": {
+      "snapshot_plus_wal_warm": {
+        "median": 132.1345,
+        "min": 120.29,
+        "max": 378.833,
+        "samples": 48,
+        "read_bytes_range": [
+          0,
+          116334592
+        ]
+      },
+      "snapshot_plus_wal_advisory_evicted": {
+        "median": 159.4395,
+        "min": 152.963,
+        "max": 216.246,
+        "samples": 48,
+        "read_bytes_range": [
+          107798528,
+          107798528
+        ]
+      },
+      "snapshot_warm": {
+        "median": 78.0375,
+        "min": 64.054,
+        "max": 103.816,
+        "samples": 48,
+        "read_bytes_range": [
+          0,
+          0
+        ]
+      },
+      "snapshot_advisory_evicted": {
+        "median": 82.696,
+        "min": 76.309,
+        "max": 240.577,
+        "samples": 48,
+        "read_bytes_range": [
+          54001664,
+          54001664
+        ]
+      }
+    },
+    "disk": {
+      "staged_logical": {
+        "median": 269588464.0,
+        "min": 215498464.0,
+        "max": 269588464.0,
+        "samples": 16
+      },
+      "retained_logical": {
+        "median": 161794332.0,
+        "min": 161794332.0,
+        "max": 161794332.0,
+        "samples": 16
+      },
+      "staged_allocated": {
+        "min": 215535616,
+        "max": 269623296
+      },
+      "retained_allocated": {
+        "min": 161820672,
+        "max": 161820672
+      }
+    },
+    "parent_peak_rss_kib": 64168,
+    "elapsed_s": 112.648
+  },
+  {
+    "run": 2,
+    "commit": {
+      "p50_ms": {
+        "median": 20.100499999999997,
+        "min": 10.985,
+        "max": 26.964,
+        "samples": 16
+      },
+      "p95_ms": {
+        "median": 29.024,
+        "min": 17.447,
+        "max": 123.293,
+        "samples": 16
+      },
+      "p99_ms": {
+        "median": 34.164,
+        "min": 19.191,
+        "max": 154.78,
+        "samples": 16
+      },
+      "tx_per_s": {
+        "median": 48.2575,
+        "min": 29.238,
+        "max": 81.609,
+        "samples": 16
+      }
+    },
+    "maintenance": {
+      "checkpoint_ms": {
+        "median": 1070.436,
+        "min": 405.734,
+        "max": 2187.752,
+        "samples": 16
+      },
+      "reclaim_ms": {
+        "median": 32.4835,
+        "min": 26.141,
+        "max": 52.686,
+        "samples": 16
+      }
+    },
+    "reopen": {
+      "snapshot_plus_wal_warm": {
+        "median": 122.6665,
+        "min": 120.635,
+        "max": 138.166,
+        "samples": 48,
+        "read_bytes_range": [
+          0,
+          524288
+        ]
+      },
+      "snapshot_plus_wal_advisory_evicted": {
+        "median": 158.534,
+        "min": 155.035,
+        "max": 995.499,
+        "samples": 48,
+        "read_bytes_range": [
+          107798528,
+          107798528
+        ]
+      },
+      "snapshot_warm": {
+        "median": 65.5935,
+        "min": 63.582,
+        "max": 118.937,
+        "samples": 48,
+        "read_bytes_range": [
+          0,
+          0
+        ]
+      },
+      "snapshot_advisory_evicted": {
+        "median": 81.6885,
+        "min": 79.265,
+        "max": 86.101,
+        "samples": 48,
+        "read_bytes_range": [
+          54001664,
+          54001664
+        ]
+      }
+    },
+    "disk": {
+      "staged_logical": {
+        "median": 269588464.0,
+        "min": 215498464.0,
+        "max": 269588464.0,
+        "samples": 16
+      },
+      "retained_logical": {
+        "median": 161794332.0,
+        "min": 161794332.0,
+        "max": 161794332.0,
+        "samples": 16
+      },
+      "staged_allocated": {
+        "min": 215535616,
+        "max": 269623296
+      },
+      "retained_allocated": {
+        "min": 161820672,
+        "max": 161820672
+      }
+    },
+    "parent_peak_rss_kib": 64192,
+    "elapsed_s": 107.468
+  },
+  {
+    "run": 3,
+    "commit": {
+      "p50_ms": {
+        "median": 27.234499999999997,
+        "min": 14.881,
+        "max": 43.372,
+        "samples": 16
+      },
+      "p95_ms": {
+        "median": 46.169,
+        "min": 20.443,
+        "max": 2397.494,
+        "samples": 16
+      },
+      "p99_ms": {
+        "median": 65.92699999999999,
+        "min": 22.179,
+        "max": 5186.622,
+        "samples": 16
+      },
+      "tx_per_s": {
+        "median": 25.5815,
+        "min": 3.433,
+        "max": 67.514,
+        "samples": 16
+      }
+    },
+    "maintenance": {
+      "checkpoint_ms": {
+        "median": 1641.952,
+        "min": 584.309,
+        "max": 9706.421,
+        "samples": 16
+      },
+      "reclaim_ms": {
+        "median": 54.9445,
+        "min": 31.092,
+        "max": 110.161,
+        "samples": 16
+      }
+    },
+    "reopen": {
+      "snapshot_plus_wal_warm": {
+        "median": 135.585,
+        "min": 120.928,
+        "max": 1547.048,
+        "samples": 48,
+        "read_bytes_range": [
+          0,
+          97447936
+        ]
+      },
+      "snapshot_plus_wal_advisory_evicted": {
+        "median": 157.84300000000002,
+        "min": 150.369,
+        "max": 1945.005,
+        "samples": 48,
+        "read_bytes_range": [
+          107798528,
+          109486080
+        ]
+      },
+      "snapshot_warm": {
+        "median": 73.27250000000001,
+        "min": 63.735,
+        "max": 8059.946,
+        "samples": 48,
+        "read_bytes_range": [
+          0,
+          53964800
+        ]
+      },
+      "snapshot_advisory_evicted": {
+        "median": 82.4585,
+        "min": 74.758,
+        "max": 302.667,
+        "samples": 48,
+        "read_bytes_range": [
+          54001664,
+          54001664
+        ]
+      }
+    },
+    "disk": {
+      "staged_logical": {
+        "median": 269588464.0,
+        "min": 215498464.0,
+        "max": 269588464.0,
+        "samples": 16
+      },
+      "retained_logical": {
+        "median": 161794332.0,
+        "min": 161794332.0,
+        "max": 161794332.0,
+        "samples": 16
+      },
+      "staged_allocated": {
+        "min": 215535616,
+        "max": 269623296
+      },
+      "retained_allocated": {
+        "min": 161820672,
+        "max": 161820672
+      }
+    },
+    "parent_peak_rss_kib": 64128,
+    "elapsed_s": 208.531
+  }
+]

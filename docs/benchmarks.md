@@ -16,7 +16,7 @@ Do not publish shared CI-runner output as a performance claim. Record the exact 
 
 Before comparing with redb, SQLite, SpacetimeDB or another engine, match durability and transaction semantics. Compare embedded storage paths with embedded storage paths, not a local pointer lookup with a network/backend benchmark. Include realistic record sizes, multiple dataset sizes, allocation/memory usage and recovery work.
 
-Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. The [catalog workload](catalog.md#resources-and-evidence) now measures typed multi-table transactions and secondary-index overhead separately. Concurrent readers/writers and controlled cold-cache recovery remain follow-on benchmarks.
+Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. The [catalog workload](catalog.md#resources-and-evidence) measures typed multi-table transactions and secondary-index overhead separately. The resource harness adds repeated churn and advisory file-cache eviction. Concurrent readers/writers and device-cold recovery remain follow-on benchmarks.
 
 ## Managed maintenance
 
@@ -35,3 +35,21 @@ These are smoke measurements on the actual selected filesystem, not proof of har
 ## Catalog transactions and indexes
 
 `cargo bench -p skrin --bench catalog -- /local/scratch/parent 10000` measures equivalent synced two-row transactions with plain records, schema-bound rows and mandatory indexes, then a separate three-row transfer workload. Modes `plain`, `unindexed`, `indexed` permit separate-process Linux RSS measurements. [The recorded NVMe runs](measurements/catalog-2026-10-07.md) report repeated latency distributions and exact workload differences. They do not establish a speedup or saturation/cold-cache/power-loss result.
+
+## Sustained resources and cache state
+
+```sh
+cargo +1.89.0 bench -p skrin --bench resources -- /local/scratch/parent 100000 16 512 1000 --advisory-evict
+```
+
+Arguments specify existing scratch parent, rows, rounds, payload bytes and rows per transaction. Limits are 10..1M rows, 1..10k rounds, 1..4096 payload bytes and 1..1000 rows per transaction; they are workload controls, not process-memory or disk reservations. Each process exclusively creates/removes its own directory. The harness seeds deterministic pseudorandom byte payloads, checkpoints, then updates 90% of rows and deletes/reinserts 10% under alternate keys in every round. Every commit uses `sync_all`. Every row, payload and sequence is verified outside timed commit/open regions, without a second resident reference table or live backup.
+
+Each round measures transaction p50/p95/p99 and transaction rate (commits divided by summed timed commit durations), blocking verified checkpoint and reclamation pauses, and disk totals before checkpoint, after publication/before reclamation, and with active/previous retention. The staging total captures complete old/new generation overlap; it excludes a transient manifest already renamed during publication. Logical lengths and the sum of regular-file `st_blocks * 512` are reported separately. The latter includes per-inode block accounting/rounding; compressed/reflink extents may be shared, filesystem/directory metadata is excluded, and it is not unique device occupancy or a reservation.
+
+Linux `/proc/self/status` reports sampled RSS and whole-process VmHWM. The workload process includes allocator retention, row regeneration and recovery, with one live database at a time. Each reopen runs in a fresh child, which reports its own RSS/high-water mark before application verification; child memory is not added to the parent high-water mark. Linux documents these proc RSS counters as approximate; this is observable process memory, not allocator accounting or an enforced native-memory budget. Other platforms report unavailable counters rather than zeros.
+
+There are three fresh-process reopen samples for each of snapshot-plus-WAL and post-checkpoint snapshot, first warm and then optionally advisory-evicted. Timed `open_dir` includes mandatory recovery synchronization and excludes process startup and subsequent application verification. Keep the first warm sample: it can include a slower first recovery sync than later samples.
+
+`--advisory-evict` requires Linux and Python3. With all database handles closed, the helper requests `os.posix_fadvise(..., POSIX_FADV_DONTNEED)` on only the benchmark's regular files before **each** advised sample. It never drops global caches. Reopen additionally reports the delta of Linux `/proc/self/io` `read_bytes` during open, to distinguish actual filesystem reads from cached reads. Nonzero counters support successful file-cache eviction for that sample; they do not imply an empty device cache or hardware power-loss durability. Treat unsupported/failed advice as an error, and do not relabel ordinary warm opens as cold.
+
+References: [Python file-cache advice](https://docs.python.org/3/library/os.html#os.posix_fadvise) and [Linux proc memory/I/O counters](https://www.kernel.org/doc/html/latest/filesystems/proc.html). These measurements leave hardware-flush review, real power cuts, allocator budgets, physical-space reservation and long-duration production stability as separate gates.

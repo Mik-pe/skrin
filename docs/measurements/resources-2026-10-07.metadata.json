@@ -1,0 +1,7 @@
+{
+  "engine_base": "e88a3ed8b9282a2d3893a5a1ef675be700c7a2df",
+  "engine_sha256": "a04b57f2bcde66db8d2719912a82a7e2117fb0938252e9e7a82dda93efd829c8",
+  "harness_sha256": "311e517010763bbbe6a42f17e29b1b83dfc182c7ee89bf5bd53b6bab77cf7b62",
+  "recorded_utc": "2026-10-07T16:22:40.633451+00:00",
+  "command": "resources EXISTING_DIRECTORY 100000 16 512 1000 --advisory-evict"
+}

@@ -100,3 +100,7 @@ jobs:
       - name: Smoke equivalent-durability catalog workloads
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench catalog --locked -- "$RUNNER_TEMP" 1000
+
+      - name: Smoke sustained maintenance and independent reopen metrics
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench resources --locked -- "$RUNNER_TEMP" 1000 3 128 100 --advisory-evict
