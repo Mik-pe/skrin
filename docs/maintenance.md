@@ -82,6 +82,23 @@ The [Linux allocation contract](https://man7.org/linux/man-pages/man2/fallocate.
 
 Tests check real allocated blocks with unchanged logical EOF, each failed required allocation (including unsupported operation), acknowledged crash images, exact encoded sizes, single-table/catalog backup/migration and once-only conversion. The bounded-tmpfs wrapper executes both allocation policies against real ENOSPC. Unknown stages retain the inspection/reclamation contract below.
 
+## Application memory and process containment
+
+Use trusted codecs and conversion/transaction callbacks with deliberately bounded allocations. Encoded maintenance limits and [snapshot reader accounting](snapshots.md) do not intercept arbitrary Rust allocations. Native tables, indexes, staging, thread stacks, allocator overhead and independently decoded backups all need application headroom. Skrin does not install a global allocator or expose a hard native-memory reservation.
+
+On Linux, an application can place its database process in a dedicated cgroup v2 with `memory.max` and `memory.swap.max`, including descendants. This contains excessive allocations through kernel reclaim/OOM handling. The accounting includes more than process RSS, and the kernel can temporarily exceed the limit; it is not an exact per-operation allocator cap. See the [kernel memory controller contract](https://docs.kernel.org/admin-guide/cgroup-v2.html#memory). Choose a budget from the complete application workload and reserve headroom for maintenance/backup; the 64 MiB below is only a disposable regression-test limit.
+
+Allocation failure can abort or kill the process rather than return a Skrin error. An unanswered commit/maintenance operation has an uncertain outcome: reopen with the recorded schema, follow CURRENT, reconcile durable operation IDs and inspect/reclaim recognized stages. Never infer absence from a killed caller, manufacture a manifest or select the newest generation name. An application that needs the rest of its service to survive codec OOM must use a separate constrained process and communicate acknowledged outcomes across that boundary.
+
+`scripts/test-memory-budget.sh` runs an opt-in production checkpoint test in its own short-lived systemd service with `MemoryMax=64M`, `MemorySwapMax=0`, `OOMPolicy=kill`, no core dump and a 30-second timeout. Before any storage work or deliberate allocation, the worker verifies its own cgroup limits and private unit name. It acknowledges one real synced write, then the real snapshot verifier's codec touches 128 MiB of scratch memory. The wrapper requires systemd's **actual `oom-kill` result** and the decoder-entry marker; a timeout, assertion failure or unsupported environment fails the test. The unbounded parent then verifies unchanged CURRENT, the acknowledged row/sequence, released ownership, conservative orphan reclamation, a subsequent commit/checkpoint and independently reopened backup. The recovery codec has the same schema and explicit bytes, with no oversized scratch. No mock engine or caller/host memory limit is involved.
+
+```sh
+scripts/test-memory-budget.sh
+scripts/test-memory-budget.sh --release
+```
+
+Normal tests report both environment-specific worker/recovery tests as ignored; Linux/MSRV CI explicitly runs debug and release using `--privileged-manager`. That mode asks the system manager to launch the constrained child as the invoking user; local default uses the user manager. Both require cgroup v2 memory enforcement and systemd, fail rather than skip unavailable enforcement, and remove only their owned test evidence after successful recovery. Failed evidence paths are printed for inspection. This is process-resource/recovery evidence, not physical power-loss testing or a library allocator budget.
+
 ## Inventory and safe reclamation
 
 `storage_inventory()` scans immediate entries while holding the stable directory owner and a read guard. It validates CURRENT against the owning handle and performs no explicit writes, repair, sync or deletion. It classifies metadata, active/retained generations, obsolete generations, unpublished future generations, valid temporary manifests, and unknown contents. Paths are relative and sorted.

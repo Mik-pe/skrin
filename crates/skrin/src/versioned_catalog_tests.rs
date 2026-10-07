@@ -569,6 +569,212 @@ mod managed {
         }
     }
     #[test]
+    fn snapshots_read_coherent_indexes_while_checkpoint_verification_blocks_writers() {
+        use std::cell::RefCell;
+        use std::sync::mpsc::{self, Receiver, Sender};
+        thread_local! {
+            static PAUSE: RefCell<Option<(Sender<()>, Receiver<()>)>> = const { RefCell::new(None) };
+        }
+        struct Gate;
+        impl Catalog for Gate {
+            const SCHEMA: Schema = Banking::SCHEMA;
+            const TABLES: &'static [Schema] = Banking::TABLES;
+            const INDEXES: &'static [IndexDefinition] = Banking::INDEXES;
+            type Row = Row;
+            fn table_id(r: &Row) -> u64 {
+                Banking::table_id(r)
+            }
+            fn encode(r: &Row, e: &mut Encoder) -> Result<()> {
+                Banking::encode(r, e)
+            }
+            fn decode(id: u64, d: &mut Decoder<'_>) -> Result<Row> {
+                // Pause the real production snapshot verifier on its first row,
+                // only on the checkpoint thread. All other codecs are unchanged.
+                PAUSE.with(|pause| {
+                    if let Some((entered, release)) = pause.borrow_mut().take() {
+                        entered.send(()).unwrap();
+                        release.recv().unwrap();
+                    }
+                });
+                Banking::decode(id, d)
+            }
+            fn index_key(id: u64, r: &Row) -> Result<Vec<u8>> {
+                Banking::index_key(id, r)
+            }
+        }
+        impl Table<Gate> for Accounts {
+            type Record = Account;
+            fn into_row(r: Account) -> Row {
+                Row::Account(r)
+            }
+            fn borrow(r: &Row) -> Option<&Account> {
+                <Accounts as Table<Banking>>::borrow(r)
+            }
+        }
+        impl Table<Gate> for Transfers {
+            type Record = Transfer;
+            fn into_row(r: Transfer) -> Row {
+                Row::Transfer(r)
+            }
+            fn borrow(r: &Row) -> Option<&Transfer> {
+                <Transfers as Table<Banking>>::borrow(r)
+            }
+        }
+        fn verify_gate(view: &CatalogSnapshot<Gate>, sequence: u64, email: &str, balance: u64) {
+            assert_eq!(view.sequence().unwrap(), sequence);
+            assert_eq!(view.get::<Accounts>(1).unwrap().unwrap().email, email);
+            assert_eq!(view.get::<Accounts>(1).unwrap().unwrap().balance, balance);
+            assert_eq!(
+                view.lookup::<Accounts>(1, email.as_bytes()).unwrap()[0].0,
+                1
+            );
+            assert_eq!(
+                view.lookup::<Accounts>(2, &balance.to_be_bytes()).unwrap()[0].0,
+                1
+            );
+            assert_eq!(
+                view.scan::<Transfers>().unwrap().count(),
+                usize::from(sequence > 1)
+            );
+            assert_eq!(view.scan::<Accounts>().unwrap().count(), 1);
+            for index in [1, 2] {
+                assert_eq!(
+                    view.index_range::<Accounts>(index, ..)
+                        .unwrap()
+                        .iter()
+                        .map(|(key, _)| *key)
+                        .collect::<Vec<_>>(),
+                    [1]
+                );
+            }
+            if sequence > 1 {
+                let transfer = view.get::<Transfers>(7).unwrap().unwrap();
+                assert_eq!((transfer.from, transfer.to, transfer.amount), (1, 2, 10));
+            }
+        }
+        struct Release(Option<Sender<()>>);
+        impl Drop for Release {
+            fn drop(&mut self) {
+                if let Some(sender) = self.0.take() {
+                    let _ = sender.send(());
+                }
+            }
+        }
+        let path = Temp::new();
+        let db = CatalogDatabase::<Gate>::create_dir(&path.0).unwrap();
+        db.write(|tx| {
+            tx.insert::<Accounts>(
+                1,
+                Account {
+                    email: "old".into(),
+                    balance: 100,
+                },
+            )
+        })
+        .unwrap();
+        let db = db.into_snapshots(options(), footprint).unwrap();
+        let old = db.snapshot().unwrap();
+        db.write(|tx| {
+            tx.put::<Accounts>(
+                1,
+                Account {
+                    email: "new".into(),
+                    balance: 90,
+                },
+            )?;
+            tx.insert::<Transfers>(
+                7,
+                Transfer {
+                    from: 1,
+                    to: 2,
+                    amount: 10,
+                },
+            )
+        })
+        .unwrap();
+        let (entered_tx, entered_rx) = mpsc::channel();
+        let (release_tx, release_rx) = mpsc::channel();
+        let release = Release(Some(release_tx));
+        let checkpointer = db.clone();
+        let checkpoint = std::thread::spawn(move || {
+            PAUSE.with(|pause| *pause.borrow_mut() = Some((entered_tx, release_rx)));
+            checkpointer.checkpoint().unwrap()
+        });
+        entered_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        verify_gate(&old, 1, "old", 100);
+        let reader = db.clone();
+        let (read_tx, read_rx) = mpsc::channel();
+        let reading = std::thread::spawn(move || {
+            let current = reader.snapshot().unwrap();
+            verify_gate(&current, 2, "new", 90);
+            assert!(current.lookup::<Accounts>(1, b"old").unwrap().is_empty());
+            read_tx.send(current).unwrap();
+        });
+        // Completing before release proves capture, rows and every index avoid
+        // the source writer/maintenance guards, rather than merely surviving CP.
+        let during = read_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        reading.join().unwrap();
+        assert!(matches!(
+            CatalogDatabase::<Gate>::open_dir(&path.0),
+            Err(Error::Busy)
+        ));
+        let writer = db.clone();
+        let (started_tx, started_rx) = mpsc::channel();
+        let (written_tx, written_rx) = mpsc::channel();
+        let writing = std::thread::spawn(move || {
+            started_tx.send(()).unwrap();
+            writer
+                .write(|tx| {
+                    tx.put::<Accounts>(
+                        1,
+                        Account {
+                            email: "latest".into(),
+                            balance: 80,
+                        },
+                    )
+                })
+                .unwrap();
+            written_tx.send(()).unwrap();
+        });
+        started_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        assert!(matches!(
+            written_rx.recv_timeout(Duration::from_millis(20)),
+            Err(mpsc::RecvTimeoutError::Timeout)
+        ));
+        drop(release);
+        assert_eq!(checkpoint.join().unwrap().sequence, 2);
+        written_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        writing.join().unwrap();
+        verify_gate(&old, 1, "old", 100);
+        verify_gate(&during, 2, "new", 90);
+        verify_gate(&db.snapshot().unwrap(), 3, "latest", 80);
+        db.reclaim().unwrap();
+        drop(old);
+        drop(during);
+        drop(db);
+        let restored = CatalogDatabase::<Gate>::open_dir(&path.0).unwrap();
+        assert_eq!(restored.read().unwrap().sequence(), 3);
+        assert_eq!(
+            restored
+                .read()
+                .unwrap()
+                .lookup::<Accounts>(1, b"latest")
+                .unwrap()[0]
+                .0,
+            1
+        );
+        assert_eq!(
+            restored
+                .read()
+                .unwrap()
+                .get::<Transfers>(7)
+                .unwrap()
+                .unwrap()
+                .amount,
+            10
+        );
+    }
+    #[test]
     fn checkpoint_backup_reclaim_and_offline_migration_preserve_old_memory_pins() {
         let path = Temp::new();
         let backup = Temp::new();

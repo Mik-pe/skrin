@@ -121,6 +121,14 @@ jobs:
           scripts/test-storage-full.sh --privileged-namespace
           scripts/test-storage-full.sh --release --privileged-namespace
 
+      - name: Actual kernel OOM during production checkpoint verification
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        env:
+          SKRIN_TEST_TOOLCHAIN: ${{ matrix.rust }}
+        run: |
+          scripts/test-memory-budget.sh --privileged-manager
+          scripts/test-memory-budget.sh --release --privileged-manager
+
       - name: Run independent group commit, operation retry and managed lifecycle
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash
