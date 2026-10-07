@@ -1,0 +1,51 @@
+round=1 mode=plain
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3221517-1791387415980694343
+plain_two_row_synced: n=1000 p50_us=9525.214 p95_us=19421.411 p99_us=99727.099 tx_per_s=84.452
+plain_checkpoint_ms=70.168
+plain_warm_reopen_ms=12.359
+mode=plain VmHWM:	    4304 kB
+round=1 mode=unindexed
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3221573-1791387428749657831
+catalog_two_row_synced_no_indexes: n=1000 p50_us=10610.936 p95_us=23944.449 p99_us=27330.087 tx_per_s=78.407
+mode=unindexed VmHWM:	    4940 kB
+round=1 mode=indexed
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3221646-1791387442671200061
+catalog_two_row_synced_two_indexes: n=1000 p50_us=14987.746 p95_us=24852.474 p99_us=62534.206 tx_per_s=60.733
+catalog_transfer_synced_two_indexes: n=1000 p50_us=14413.963 p95_us=20799.522 p99_us=25692.335 tx_per_s=72.646
+catalog_checkpoint_ms=132.503
+catalog_warm_reopen_ms=20.995
+mode=indexed VmHWM:	    8812 kB
+round=2 mode=indexed
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3221798-1791387474248431509
+catalog_two_row_synced_two_indexes: n=1000 p50_us=15532.594 p95_us=22950.984 p99_us=151448.778 tx_per_s=51.560
+catalog_transfer_synced_two_indexes: n=1000 p50_us=14328.899 p95_us=20534.094 p99_us=178531.500 tx_per_s=64.541
+catalog_checkpoint_ms=132.845
+catalog_warm_reopen_ms=19.238
+mode=indexed VmHWM:	    8876 kB
+round=2 mode=plain
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3222089-1791387512164658220
+plain_two_row_synced: n=1000 p50_us=15953.678 p95_us=20913.347 p99_us=28275.653 tx_per_s=61.427
+plain_checkpoint_ms=106.344
+plain_warm_reopen_ms=17.302
+mode=plain VmHWM:	    4244 kB
+round=2 mode=unindexed
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3222145-1791387530302349271
+catalog_two_row_synced_no_indexes: n=1000 p50_us=18928.642 p95_us=37970.471 p99_us=54270.089 tx_per_s=42.840
+mode=unindexed VmHWM:	    4860 kB
+round=3 mode=unindexed
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3222223-1791387555920912900
+catalog_two_row_synced_no_indexes: n=1000 p50_us=16996.783 p95_us=26222.533 p99_us=76620.665 tx_per_s=50.196
+mode=unindexed VmHWM:	    4812 kB
+round=3 mode=indexed
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3222263-1791387577873163130
+catalog_two_row_synced_two_indexes: n=1000 p50_us=18497.488 p95_us=39081.615 p99_us=234016.042 tx_per_s=36.509
+catalog_transfer_synced_two_indexes: n=1000 p50_us=15775.966 p95_us=23046.451 p99_us=37106.697 tx_per_s=67.047
+catalog_checkpoint_ms=190.712
+catalog_warm_reopen_ms=35.212
+mode=indexed VmHWM:	    9072 kB
+round=3 mode=plain
+rows=10000 samples_per_phase=1000 durability=sync_all root=/home/mikpe/.cache/skrin-validation.0Mvk4J/skrin-catalog-bench-3222695-1791387622431603039
+plain_two_row_synced: n=1000 p50_us=16429.361 p95_us=28358.407 p99_us=144172.731 tx_per_s=46.439
+plain_checkpoint_ms=77.204
+plain_warm_reopen_ms=16.043
+mode=plain VmHWM:	    4240 kB

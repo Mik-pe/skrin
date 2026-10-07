@@ -50,11 +50,12 @@ fn summary(name: &str, samples: &[Duration]) {
     samples.sort();
     let percentile = |p: usize| samples[(samples.len() * p).div_ceil(100).saturating_sub(1)];
     println!(
-        "{name}: n={} p50_us={:.3} p95_us={:.3} p99_us={:.3}",
+        "{name}: n={} p50_us={:.3} p95_us={:.3} p99_us={:.3} tx_per_s={:.3}",
         samples.len(),
         percentile(50).as_secs_f64() * 1e6,
         percentile(95).as_secs_f64() * 1e6,
-        percentile(99).as_secs_f64() * 1e6
+        percentile(99).as_secs_f64() * 1e6,
+        samples.len() as f64 / samples.iter().sum::<Duration>().as_secs_f64()
     );
 }
 fn measure(name: &str, mut action: impl FnMut(u64) -> Result<()>) -> Result<()> {
@@ -263,6 +264,12 @@ fn main() -> Result<()> {
             "mode must be plain, unindexed, indexed or all".into(),
         )),
     };
+    #[cfg(target_os = "linux")]
+    if let Ok(status) = fs::read_to_string("/proc/self/status")
+        && let Some(hwm) = status.lines().find(|line| line.starts_with("VmHWM:"))
+    {
+        println!("mode={mode} {hwm}");
+    }
     fs::remove_dir_all(root)?;
     outcome
 }

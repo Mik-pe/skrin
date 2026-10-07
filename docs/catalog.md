@@ -75,3 +75,5 @@ cargo bench -p skrin --bench catalog --locked -- /path/to/scratch-parent 10000
 ```
 
 It compares plain two-row synced transactions, catalog transactions without indexes, catalog transactions with two indexes, and two-table transfers with operation IDs. Each phase verifies results and reports 1,000 sequential latency samples. The transfer phase writes an additional row and is a separate workload. Modes `plain`, `unindexed`, `indexed` allow per-process RSS measurement. These are low-load measurements; no saturation, concurrency or cross-engine speed claim follows from them.
+
+[Recorded local NVMe latency and RSS](measurements/catalog-2026-10-07.md) include repeated process runs, exact compiler/source metadata and the limits of a sync-dominated workstation workload.
