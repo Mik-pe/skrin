@@ -44,7 +44,10 @@ impl Read for LockedFile {
 
 impl Write for LockedFile {
     fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
-        self.file.write(bytes)
+        let written = self.file.write(bytes)?;
+        #[cfg(all(test, unix))]
+        crate::persistence_model::file_written(&self.file);
+        Ok(written)
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -64,7 +67,10 @@ impl Storage for LockedFile {
     }
 
     fn truncate(&mut self, len: u64) -> io::Result<()> {
-        self.file.set_len(len)
+        self.file.set_len(len)?;
+        #[cfg(all(test, unix))]
+        crate::persistence_model::file_written(&self.file);
+        Ok(())
     }
 
     fn sync(&self) -> io::Result<()> {

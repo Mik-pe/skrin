@@ -294,3 +294,40 @@ fn deterministic_transactions_match_an_independent_reference_model() {
         assert_eq!(actual, expected, "round {round}");
     }
 }
+
+#[test]
+fn enospc_during_append_or_sync_is_uncertain_and_preserves_error_kind() {
+    let (db, disk) = durable::<Item>();
+    seed(&db);
+    let baseline = disk.image();
+    drop(db);
+    let changes = BTreeMap::from([(1, Some(Item(15))), (2, None), (3, Some(Item(15)))]);
+    let length = encode_transaction(2, &changes).unwrap().len();
+    for cutoff in 0..=length {
+        let disk = TestStorage::new(baseline.clone());
+        let db = reopen::<Item>(disk.clone()).unwrap();
+        if cutoff == length {
+            disk.fail_sync_enospc();
+        } else {
+            disk.fail_enospc_after(cutoff);
+        }
+        match change(&db) {
+            Err(Error::CommitUncertain(error)) => {
+                assert_eq!(error.kind(), std::io::ErrorKind::StorageFull)
+            }
+            result => panic!("cutoff {cutoff}: {result:?}"),
+        }
+        assert!(matches!(db.read(), Err(Error::Poisoned)));
+        drop(db);
+        disk.clear_faults();
+        let db = reopen::<Item>(disk).unwrap();
+        assert_eq!(
+            rows(&db),
+            if cutoff == length {
+                vec![(1, 15), (3, 15)]
+            } else {
+                vec![(1, 10), (2, 20)]
+            }
+        );
+    }
+}

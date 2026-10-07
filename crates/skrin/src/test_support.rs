@@ -24,7 +24,8 @@ impl Record for Item {
 struct Disk {
     cursor: Cursor<Vec<u8>>,
     write_remaining: Option<usize>,
-    sync_error: bool,
+    sync_error: Option<io::ErrorKind>,
+    write_error: io::ErrorKind,
     read_error: bool,
     truncate_error: bool,
     syncs: usize,
@@ -39,7 +40,8 @@ impl TestStorage {
         Self(Arc::new(Mutex::new(Disk {
             cursor: Cursor::new(bytes),
             write_remaining: None,
-            sync_error: false,
+            sync_error: None,
+            write_error: io::ErrorKind::Other,
             read_error: false,
             truncate_error: false,
             syncs: 0,
@@ -51,11 +53,22 @@ impl TestStorage {
     }
 
     pub(crate) fn fail_write_after(&self, bytes: usize) {
-        self.0.lock().unwrap().write_remaining = Some(bytes);
+        let mut disk = self.0.lock().unwrap();
+        disk.write_remaining = Some(bytes);
+        disk.write_error = io::ErrorKind::Other;
     }
 
     pub(crate) fn fail_sync(&self) {
-        self.0.lock().unwrap().sync_error = true;
+        self.0.lock().unwrap().sync_error = Some(io::ErrorKind::Other);
+    }
+
+    pub(crate) fn fail_enospc_after(&self, bytes: usize) {
+        let mut disk = self.0.lock().unwrap();
+        disk.write_remaining = Some(bytes);
+        disk.write_error = io::ErrorKind::StorageFull;
+    }
+    pub(crate) fn fail_sync_enospc(&self) {
+        self.0.lock().unwrap().sync_error = Some(io::ErrorKind::StorageFull);
     }
 
     pub(crate) fn fail_read(&self) {
@@ -69,7 +82,7 @@ impl TestStorage {
     pub(crate) fn clear_faults(&self) {
         let mut disk = self.0.lock().unwrap();
         disk.write_remaining = None;
-        disk.sync_error = false;
+        disk.sync_error = None;
         disk.read_error = false;
         disk.truncate_error = false;
     }
@@ -94,7 +107,7 @@ impl Write for TestStorage {
         let mut disk = self.0.lock().unwrap();
         let count = if let Some(remaining) = &mut disk.write_remaining {
             if *remaining == 0 && !bytes.is_empty() {
-                return Err(io::Error::other("injected short-write failure"));
+                return Err(io::Error::new(disk.write_error, "injected write failure"));
             }
             let count = bytes.len().min(*remaining);
             *remaining -= count;
@@ -132,8 +145,8 @@ impl Storage for TestStorage {
 
     fn sync(&self) -> io::Result<()> {
         let mut disk = self.0.lock().unwrap();
-        if disk.sync_error {
-            return Err(io::Error::other("injected sync failure"));
+        if let Some(kind) = disk.sync_error {
+            return Err(io::Error::new(kind, "injected sync failure"));
         }
         disk.syncs += 1;
         Ok(())

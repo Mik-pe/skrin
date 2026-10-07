@@ -619,3 +619,234 @@ fn persistence_projection_cleanup_is_restartable_without_losing_retained_generat
         assert!(path.0.join(generation_name(4)).is_dir());
     }
 }
+
+#[test]
+fn full_projection_preserves_commit_and_publication_across_unsynced_survival() {
+    use crate::persistence_model::{self as model, Omission};
+    for migration in [false, true] {
+        let (path, db) = seed();
+        model::start_full(&path.0, Omission::None, 1);
+        db.write(|tx| tx.update(1, |_| Ok(Item(11)))).unwrap();
+        model::acknowledged(2);
+        if migration {
+            let new = db
+                .migrate::<NewItem>("survival-v2", |_, old| Ok(NewItem(old.0 + 100)))
+                .unwrap();
+            model::published(new.generation_info().unwrap().unwrap().generation);
+            drop(new);
+        } else {
+            let cp = db.checkpoint().unwrap();
+            model::published(cp.generation);
+            drop(db);
+        }
+        let images = model::finish();
+        assert!(images.iter().any(|i| i.unsynced_file));
+        assert!(images.iter().any(|i| i.partial_append));
+        assert!(images.iter().any(|i| i.early_manifest));
+        for (cut, image) in images.iter().enumerate() {
+            image.restore(&path.0);
+            match Database::<Item>::open_dir(&path.0) {
+                Ok(db) => {
+                    let sequence = db.stats().unwrap().commits;
+                    assert!(
+                        (image.acknowledged_sequence.unwrap()..=2).contains(&sequence),
+                        "cut {cut}"
+                    );
+                    if let Some(generation) = image.published_generation {
+                        assert!(!migration, "acknowledged migration reverted at cut {cut}");
+                        assert_eq!(
+                            db.generation_info().unwrap().unwrap().generation,
+                            generation
+                        );
+                    }
+                    let read = db.read().unwrap();
+                    assert_eq!(read.get(1).unwrap().0, if sequence == 1 { 10 } else { 11 });
+                    assert_eq!(read.get(2).unwrap().0, 20);
+                }
+                Err(Error::SchemaMismatch { .. }) if migration => {
+                    let db = Database::<NewItem>::open_dir(&path.0).unwrap();
+                    assert_eq!(db.stats().unwrap().commits, 2, "cut {cut}");
+                    let read = db.read().unwrap();
+                    assert_eq!(read.get(1).unwrap().0, 111);
+                    assert_eq!(read.get(2).unwrap().0, 120);
+                    if let Some(generation) = image.published_generation {
+                        assert_eq!(
+                            db.generation_info().unwrap().unwrap().generation,
+                            generation
+                        );
+                    }
+                }
+                Err(error) => panic!(
+                    "migration={migration} cut={cut} unsynced={} partial={}: {error}",
+                    image.unsynced_file, image.partial_append
+                ),
+            }
+        }
+    }
+}
+
+#[test]
+fn full_projection_negative_controls_detect_each_required_sync_guarantee() {
+    use crate::persistence_model::{self as model, Omission};
+    for omission in [
+        Omission::SnapshotSync,
+        Omission::NewWalSync,
+        Omission::AppendWalSync,
+        Omission::OwnerSync,
+        Omission::ManifestSync,
+        Omission::GenerationSync,
+        Omission::PrepublicationParentSync,
+        Omission::PublicationParentSync,
+    ] {
+        let (path, db) = seed();
+        model::start_full(&path.0, omission, 1);
+        db.write(|tx| tx.update(1, |_| Ok(Item(11)))).unwrap();
+        model::acknowledged(2);
+        let cp = db.checkpoint().unwrap();
+        model::published(cp.generation);
+        drop(db);
+        let images = model::finish();
+        let mut violation = false;
+        for image in &images {
+            image.restore(&path.0);
+            match Database::<Item>::open_dir(&path.0) {
+                Err(_) => {
+                    violation = true;
+                }
+                Ok(db) => {
+                    if db.stats().unwrap().commits < image.acknowledged_sequence.unwrap()
+                        || image
+                            .published_generation
+                            .is_some_and(|g| db.generation_info().unwrap().unwrap().generation != g)
+                    {
+                        violation = true;
+                    }
+                }
+            }
+        }
+        assert!(violation, "negative control must detect {omission:?}");
+    }
+}
+
+#[test]
+fn enospc_at_every_checkpoint_boundary_keeps_old_or_new_generation_usable() {
+    let mut clean = 0;
+    let mut uncertain = 0;
+    for cutoff in 0..100 {
+        let (path, db) = seed();
+        let current = fs::read(path.0.join("CURRENT")).unwrap();
+        faults::enospc_after(cutoff);
+        let result = db.checkpoint();
+        faults::clear();
+        assert!(matches!(
+            Database::<Item>::open_dir(&path.0),
+            Err(Error::Busy)
+        ));
+        match result {
+            Err(Error::Io(error)) => {
+                clean += 1;
+                assert_eq!(error.kind(), io::ErrorKind::StorageFull);
+                check(&db);
+                assert_eq!(fs::read(path.0.join("CURRENT")).unwrap(), current);
+                db.reclaim().unwrap();
+            }
+            Err(Error::MaintenanceUncertain(error)) => {
+                uncertain += 1;
+                assert_eq!(error.kind(), io::ErrorKind::StorageFull);
+                assert!(matches!(db.read(), Err(Error::Poisoned)));
+            }
+            Ok(_) => {
+                assert!(clean > 20 && uncertain >= 3);
+                return;
+            }
+            result => panic!("cutoff {cutoff}: {result:?}"),
+        }
+        drop(db);
+        check(&Database::<Item>::open_dir(&path.0).unwrap());
+    }
+    panic!("did not cover every ENOSPC boundary");
+}
+
+#[test]
+fn full_projection_cleanup_retains_active_previous_and_all_acknowledged_rows() {
+    use crate::persistence_model::{self as model, Omission};
+    let (path, db) = seed();
+    for _ in 0..3 {
+        db.checkpoint().unwrap();
+    }
+    model::start_full(&path.0, Omission::None, 1);
+    db.reclaim().unwrap();
+    drop(db);
+    let images = model::finish();
+    assert!(images.len() > 10);
+    for image in images {
+        image.restore(&path.0);
+        let db = Database::<Item>::open_dir(&path.0).unwrap();
+        check(&db);
+        assert!(path.0.join(generation_name(3)).is_dir());
+        assert!(path.0.join(generation_name(4)).is_dir());
+        db.reclaim().unwrap();
+        assert_eq!(
+            db.storage_inventory()
+                .unwrap()
+                .entries
+                .iter()
+                .filter(|e| e.reclaimable)
+                .count(),
+            0
+        );
+    }
+}
+
+#[test]
+fn enospc_migrations_preserve_old_current_or_select_only_the_complete_new_schema() {
+    let mut clean = 0;
+    let mut uncertain = 0;
+    for cutoff in 0..100 {
+        let (path, db) = seed();
+        let current = fs::read(path.0.join("CURRENT")).unwrap();
+        faults::enospc_after(cutoff);
+        let result = db.migrate::<NewItem>("space-v2", |_, old| Ok(NewItem(old.0 + 100)));
+        faults::clear();
+        let done = match result {
+            Err(Error::Io(error)) => {
+                clean += 1;
+                assert_eq!(error.kind(), io::ErrorKind::StorageFull);
+                assert_eq!(fs::read(path.0.join("CURRENT")).unwrap(), current);
+                false
+            }
+            Err(Error::MaintenanceUncertain(error)) => {
+                uncertain += 1;
+                assert_eq!(error.kind(), io::ErrorKind::StorageFull);
+                false
+            }
+            Ok(db) => {
+                drop(db);
+                true
+            }
+            result => panic!(
+                "unexpected migration result at cutoff {cutoff}: {}",
+                result.err().unwrap()
+            ),
+        };
+        match Database::<Item>::open_dir(&path.0) {
+            Ok(db) => {
+                assert!(!done);
+                check(&db);
+            }
+            Err(Error::SchemaMismatch { .. }) => {
+                let db = Database::<NewItem>::open_dir(&path.0).unwrap();
+                let read = db.read().unwrap();
+                assert_eq!(read.sequence(), 1);
+                assert_eq!(read.get(1).unwrap().0, 110);
+                assert_eq!(read.get(2).unwrap().0, 120);
+            }
+            Err(error) => panic!("cutoff {cutoff}: {error}"),
+        }
+        if done {
+            assert!(clean > 20 && uncertain >= 3);
+            return;
+        }
+    }
+    panic!("did not cover every migration ENOSPC boundary");
+}
