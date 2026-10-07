@@ -1,5 +1,12 @@
 # Changelog
 
+## Bounded immutable read versions
+
+- Add opt-in coherent immutable row/index snapshots for single tables and catalogs, reusing immediate/shared sync boundaries and independent group framing.
+- Bound reader admission by live leases and conservative full-root native-memory accounting; expose oldest pin, versions and bytes without claiming an allocator/RSS cap.
+- Preserve explicit checkpoint/cleanup with old memory pins and independently decoded backup; require released pins and exclusive clients for native offline migration.
+- Add retained-version/index reference tests, production append/sync/maintenance faults and survival images, an executable lifecycle, and equivalent durable held-reader benchmark modes.
+
 ## Bounded independent group commit
 
 - Add opt-in persistent single-table/catalog queues with bounded admission and collection delay, separate transaction frames and shared synchronization before row/index visibility or successful responses.
@@ -71,4 +78,4 @@
 
 ### Boundaries
 
-Experimental API, typed single-table and schema-bound multi-table modes, lock-based readers and one writer. No MVCC, encryption or replication. Persistence currently requires Unix. Publishing is disabled pending owner release decisions.
+Experimental API, typed single-table and schema-bound multi-table modes, borrowed lock-based readers or opt-in immutable row/index snapshots, and one writer. No encryption or replication. Persistence currently requires Unix. Publishing is disabled pending owner release decisions.

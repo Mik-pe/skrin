@@ -102,7 +102,7 @@ Skrin validates schema identity before decoding and rejects trailing record byte
 
 ## Tables and indexes in one transaction
 
-`catalog::CatalogDatabase<C>` adds schema-owned typed tables and mandatory unique/non-unique indexes. A transaction validates all final constraints, syncs one WAL frame and publishes rows/indexes together. Indexes rebuild and validate before recovery can repair a tail. Borrowed reads still block writers.
+`catalog::CatalogDatabase<C>` adds schema-owned typed tables and mandatory unique/non-unique indexes. A transaction validates all final constraints, syncs one WAL frame and publishes rows/indexes together. Indexes rebuild and validate before recovery can repair a tail. Baseline borrowed reads block writers; opt-in immutable snapshots preserve one coherent row/index version.
 
 The executable banking example debits/credits Accounts, records an operation ID in Transfers, checks duplicate rollback, then checkpoints and migrates to a real V2 Account codec:
 
@@ -182,18 +182,23 @@ Read [durability](docs/durability.md) and the [managed storage protocol](docs/ma
 | Area | Current boundary |
 | --- | --- |
 | Data model | `Database<R>` for one table; `CatalogDatabase<C>` for typed schemas; u64 keys per table; rows and all indexes fit in RAM |
-| Reads | Borrowed values, ordered iteration, primary-key ranges; read guards block writers |
+| Reads | Borrowed baseline guards block writers; opt-in immutable row/index snapshots have explicit reader retention limits |
 | Writes | One serialized writer; staged deltas, not whole-database copies on each commit |
 | Maintenance | Explicit and serialized; one decoded verification row at a time; encoded-size/count budgets and opt-in Linux file-data reservation; no process-memory or filesystem-metadata reservation |
 | Retention | Call `checkpoint_if_needed` and `reclaim` (or `checkpoint`/`prune`); no automatic background service |
 | Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
 | Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |
 | Group commit | Opt-in bounded independent requests; shared sync before row/index visibility and successful responses |
-| Not implemented | MVCC, derive macros, encryption, replication |
+| Not implemented | Derive macros, encryption, replication |
 
 Never nest transactions, hold guards across `await`, or perform external side effects in transaction/migration closures. Records must have immutable value semantics. A Rust-only API and advisory locks are not access control against another process with filesystem permissions.
 
-Opt-in [bounded independent group commit](docs/group-commit.md) shares synchronization across queued single-table or catalog transactions. The immediate-sync API remains the baseline; readers still block writers. The executable `group_commit` example covers dropped responses, operation-ID retry and managed maintenance.
+Opt-in [bounded independent group commit](docs/group-commit.md) shares synchronization across queued single-table or catalog transactions. The immediate-sync API remains the baseline; its borrowed readers block writers.
+[Immutable snapshots](docs/snapshots.md) provide opt-in nonblocking old read versions
+with coherent indexes, observed oldest pins and explicit admission limits. Their
+cooperative native-memory accounting is not an allocator/process cap.
+[Repeated device comparisons](docs/measurements/snapshots-2026-10-07.md) record
+reader availability alongside writer contention tails and memory costs. The executable `group_commit` example covers dropped responses, operation-ID retry and managed maintenance.
 
 ## Measure the right thing
 

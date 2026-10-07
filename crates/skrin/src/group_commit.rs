@@ -270,7 +270,7 @@ impl<E: Engine> Runtime<E> {
             worker: Mutex::new(Some(worker)),
         }))
     }
-    fn into_engine(self: Arc<Self>) -> Result<E> {
+    pub(crate) fn into_engine(self: Arc<Self>) -> Result<E> {
         let runtime = Arc::try_unwrap(self).map_err(|_| Error::Busy)?;
         let engine = Arc::clone(&runtime.engine);
         drop(runtime); // Close admission, drain and join before releasing ownership.

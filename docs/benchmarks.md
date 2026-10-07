@@ -61,3 +61,49 @@ References: [Python file-cache advice](https://docs.python.org/3/library/os.html
 The harness reports client call-to-result latency and call-to-callback waiting p50/p95/p99, group admission-to-callback waiting, wall-clock throughput (including requested pacing), synchronization groups and their size histogram. Immediate mode's queue time is unavailable as a separate admission metric; both modes' call-to-callback metric includes acquisition/queue/collection waiting. Capture parent RSS/HWM and independent child reopen RSS before row reconciliation. They are whole-process observations, including benchmark samples and resident tables, not allocator caps. `retained_versions=0` records the current lock-based reader contract.
 
 Checkpoint/reclaim pause and before/staging/retained logical and inode-allocation bytes follow the verified transaction phase. Fresh-process reopen has no cache advice and includes mandatory recovery synchronization. This does not establish cold-device performance. Directory/filesystem metadata and shared-extent accounting are outside the disk totals. Low load (one paced producer) and saturation (multiple unpaced producers) must be reported separately; grouping can add low-load latency while reducing synchronization count at saturation. See [the API/failure contract](group-commit.md) and [the recorded repeated NVMe comparison](measurements/group-commit-2026-10-07.md).
+
+## Synced writes with held read views
+
+```sh
+cargo bench -p skrin --bench snapshots -- /local/scratch snapshot 1 500 10000 1000 1 1000 1000
+cargo bench -p skrin --bench snapshots -- /local/scratch group_snapshot 8 200 0 1000 2 1000 0
+```
+
+The four modes `immediate`, `group`, `snapshot`, `group_snapshot` use identical
+synced indexed transfers, producer counts and held coherent reader work. CLI
+arguments are existing parent, mode, producers, transactions per producer,
+inter-request microseconds, group collection microseconds, readers, held-view
+microseconds, then between-read microseconds. Read checks use both account
+rows and mandatory unique/non-unique indexes at one committed sequence. Every
+operation ID and transfer is reconciled after the workload and in a fresh child
+process after checkpoint/reclaim. No callback replay or sync downgrade is used.
+
+Each reader captures an initial view before the timing barrier; its acquisition
+time is reported, but barrier waiting is excluded. All modes start with those
+same views held. Readers capture/verify, hold for the configured duration, then
+release before their next interval. Producer throughput/latencies cover all
+commits plus configured inter-request delays, exclude final reader shutdown and
+maintenance, and include no implicit replay. The harness reports writer/read
+p50/p95/p99/max, groups/queue time, observed RSS/HWM and sampled oldest pin,
+current bytes, pinned versions/whole-root bytes. Sampling at reader verification
+and writer acknowledgment is not a continuous peak-retention profiler. Reader
+sample count/rate is reported because concurrency modes can complete different
+amounts of read work during the same writer workload. A one-million-sample cap
+per reader fails the run rather than silently dropping samples.
+
+Both modes preserve acknowledged-write durability while old snapshot freshness
+differs from borrowed reads that wait for the writer. Held views are immutable
+in both modes. Current snapshot state has extra immutable row/posting trees and
+Arc allocations; RSS comparisons include this overhead, threads and samples.
+Native row accounting is cooperative and excludes allocator/global-process
+overhead. All reader leases are released before the timed maintenance stage,
+which reports checkpoint/reclaim, regular-file logical/inode-allocated disk
+bytes and fresh-process unadvised recovery. Maintenance runs through the current controller while its published immutable
+root still exists; conversion/drain back to the native baseline is reported
+separately and excluded from workload/maintenance timings. Neither filesystem
+nor device cache is declared cold. Use repeated paired runs on the same identified device; keep
+tails and read rates when judging whether the added version machinery is useful.
+
+[Recorded 24-run NVMe comparison](measurements/snapshots-2026-10-07.md) preserves
+all low-load/saturated writer/read tails and sample counts, including sparse
+starved borrowed-reader observations and worse snapshot writer contention tails.

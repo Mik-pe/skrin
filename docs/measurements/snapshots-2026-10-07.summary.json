@@ -1,0 +1,2687 @@
+{
+  "source_commit": "75fc6181aae0f7f8390de32df2c1e815b32b8e79",
+  "groups": {
+    "low-immediate": {
+      "transactions_per_second": 54.745,
+      "read_samples": [
+        2497,
+        2497,
+        2497
+      ],
+      "reads_per_second": 273.399,
+      "writer_latency_us": {
+        "p50_us": 7158.392,
+        "p95_us": 13073.481,
+        "p99_us": 14382.194
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.781,
+        "p95_us": 9318.908,
+        "p99_us": 12311.903
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 5.084,
+        "p95_us": 9322.371,
+        "p99_us": 12314.562
+      },
+      "callback_wait_us": {
+        "p50_us": 0.478,
+        "p95_us": 0.703,
+        "p99_us": 36.875
+      },
+      "process_hwm_kib": [
+        3924,
+        3912,
+        3928
+      ],
+      "sampled_pin_bytes": [
+        0,
+        0,
+        0
+      ],
+      "sampled_pin_versions": [
+        0,
+        0,
+        0
+      ],
+      "checkpoint_ms": [
+        52.925,
+        55.333,
+        57.853
+      ],
+      "reopen_ms": [
+        9.44,
+        10.106,
+        5.989
+      ],
+      "sync_groups": [
+        500,
+        500,
+        500
+      ]
+    },
+    "low-group": {
+      "transactions_per_second": 48.472,
+      "read_samples": [
+        2995,
+        2992,
+        2995
+      ],
+      "reads_per_second": 290.346,
+      "writer_latency_us": {
+        "p50_us": 10099.08,
+        "p95_us": 14835.053,
+        "p99_us": 17475.001
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.422,
+        "p95_us": 8712.541,
+        "p99_us": 11641.211
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 4.766,
+        "p95_us": 8716.761,
+        "p99_us": 11645.466
+      },
+      "callback_wait_us": {
+        "p50_us": 2030.393,
+        "p95_us": 2222.651,
+        "p99_us": 2294.844
+      },
+      "process_hwm_kib": [
+        4000,
+        4000,
+        4000
+      ],
+      "sampled_pin_bytes": [
+        0,
+        0,
+        0
+      ],
+      "sampled_pin_versions": [
+        0,
+        0,
+        0
+      ],
+      "checkpoint_ms": [
+        49.914,
+        62.062,
+        72.541
+      ],
+      "reopen_ms": [
+        10.192,
+        9.065,
+        6.131
+      ],
+      "sync_groups": [
+        500,
+        500,
+        500
+      ]
+    },
+    "low-snapshot": {
+      "transactions_per_second": 54.316,
+      "read_samples": [
+        4083,
+        4196,
+        4267
+      ],
+      "reads_per_second": 455.82,
+      "writer_latency_us": {
+        "p50_us": 7757.389,
+        "p95_us": 12517.75,
+        "p99_us": 14314.765
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.864,
+        "p95_us": 30.203,
+        "p99_us": 34.284
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 4.961,
+        "p95_us": 37.321,
+        "p99_us": 42.942
+      },
+      "callback_wait_us": {
+        "p50_us": 1.016,
+        "p95_us": 1.661,
+        "p99_us": 1.911
+      },
+      "process_hwm_kib": [
+        4580,
+        4428,
+        4452
+      ],
+      "sampled_pin_bytes": [
+        68804,
+        68804,
+        68668
+      ],
+      "sampled_pin_versions": [
+        1,
+        1,
+        1
+      ],
+      "checkpoint_ms": [
+        50.452,
+        55.808,
+        60.981
+      ],
+      "reopen_ms": [
+        9.961,
+        5.856,
+        10.3
+      ],
+      "sync_groups": [
+        500,
+        500,
+        500
+      ]
+    },
+    "low-group_snapshot": {
+      "transactions_per_second": 49.622,
+      "read_samples": [
+        4361,
+        4602,
+        4640
+      ],
+      "reads_per_second": 456.722,
+      "writer_latency_us": {
+        "p50_us": 9149.876,
+        "p95_us": 13516.793,
+        "p99_us": 15664.629
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.823,
+        "p95_us": 29.889,
+        "p99_us": 33.216
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 4.505,
+        "p95_us": 36.833,
+        "p99_us": 42.283
+      },
+      "callback_wait_us": {
+        "p50_us": 1097.519,
+        "p95_us": 1128.127,
+        "p99_us": 1160.618
+      },
+      "process_hwm_kib": [
+        4464,
+        4488,
+        4500
+      ],
+      "sampled_pin_bytes": [
+        68804,
+        68804,
+        68668
+      ],
+      "sampled_pin_versions": [
+        1,
+        1,
+        1
+      ],
+      "checkpoint_ms": [
+        48.255,
+        57.943,
+        54.063
+      ],
+      "reopen_ms": [
+        5.321,
+        8.883,
+        5.659
+      ],
+      "sync_groups": [
+        500,
+        500,
+        500
+      ]
+    },
+    "saturation-immediate": {
+      "transactions_per_second": 104.764,
+      "read_samples": [
+        6,
+        4,
+        4
+      ],
+      "reads_per_second": 0.321,
+      "writer_latency_us": {
+        "p50_us": 7903.073,
+        "p95_us": 13494.513,
+        "p99_us": 111898.153
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.469,
+        "p95_us": 15270027.028,
+        "p99_us": 15270027.028
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 2.669,
+        "p95_us": 15270030.403,
+        "p99_us": 15270030.403
+      },
+      "callback_wait_us": {
+        "p50_us": 0.564,
+        "p95_us": 0.821,
+        "p99_us": 42.37
+      },
+      "process_hwm_kib": [
+        4272,
+        4264,
+        4296
+      ],
+      "sampled_pin_bytes": [
+        0,
+        0,
+        0
+      ],
+      "sampled_pin_versions": [
+        0,
+        0,
+        0
+      ],
+      "checkpoint_ms": [
+        53.978,
+        61.33,
+        54.707
+      ],
+      "reopen_ms": [
+        5.885,
+        7.241,
+        6.638
+      ],
+      "sync_groups": [
+        1600,
+        1600,
+        1600
+      ]
+    },
+    "saturation-group": {
+      "transactions_per_second": 756.983,
+      "read_samples": [
+        661,
+        681,
+        693
+      ],
+      "reads_per_second": 312.728,
+      "writer_latency_us": {
+        "p50_us": 10228.863,
+        "p95_us": 14548.841,
+        "p99_us": 17195.858
+      },
+      "reader_acquisition_us": {
+        "p50_us": 6204.311,
+        "p95_us": 11997.332,
+        "p99_us": 14215.697
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 6206.353,
+        "p95_us": 12002.13,
+        "p99_us": 14221.215
+      },
+      "callback_wait_us": {
+        "p50_us": 2161.647,
+        "p95_us": 4488.021,
+        "p99_us": 6624.442
+      },
+      "process_hwm_kib": [
+        4412,
+        4460,
+        4416
+      ],
+      "sampled_pin_bytes": [
+        0,
+        0,
+        0
+      ],
+      "sampled_pin_versions": [
+        0,
+        0,
+        0
+      ],
+      "checkpoint_ms": [
+        54.779,
+        56.735,
+        49.405
+      ],
+      "reopen_ms": [
+        8.835,
+        6.333,
+        6.523
+      ],
+      "sync_groups": [
+        200,
+        200,
+        200
+      ]
+    },
+    "saturation-snapshot": {
+      "transactions_per_second": 124.725,
+      "read_samples": [
+        24319,
+        23578,
+        22975
+      ],
+      "reads_per_second": 1837.973,
+      "writer_latency_us": {
+        "p50_us": 7109.712,
+        "p95_us": 12449.014,
+        "p99_us": 1255494.468
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.56,
+        "p95_us": 11.455,
+        "p99_us": 34.011
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 1.516,
+        "p95_us": 31.6,
+        "p99_us": 41.076
+      },
+      "callback_wait_us": {
+        "p50_us": 0.226,
+        "p95_us": 0.632,
+        "p99_us": 1249497.083
+      },
+      "process_hwm_kib": [
+        9068,
+        8988,
+        8872
+      ],
+      "sampled_pin_bytes": [
+        436536,
+        436672,
+        436536
+      ],
+      "sampled_pin_versions": [
+        2,
+        2,
+        2
+      ],
+      "checkpoint_ms": [
+        348.843,
+        68.508,
+        50.917
+      ],
+      "reopen_ms": [
+        6.165,
+        14.51,
+        7.603
+      ],
+      "sync_groups": [
+        1600,
+        1600,
+        1600
+      ]
+    },
+    "saturation-group_snapshot": {
+      "transactions_per_second": 860.588,
+      "read_samples": [
+        3426,
+        5469,
+        3342
+      ],
+      "reads_per_second": 1842.488,
+      "writer_latency_us": {
+        "p50_us": 9125.605,
+        "p95_us": 13724.096,
+        "p99_us": 19102.208
+      },
+      "reader_acquisition_us": {
+        "p50_us": 0.457,
+        "p95_us": 12.321,
+        "p99_us": 34.946
+      },
+      "reader_acquire_verify_us": {
+        "p50_us": 1.324,
+        "p95_us": 31.301,
+        "p99_us": 40.5
+      },
+      "callback_wait_us": {
+        "p50_us": 1095.106,
+        "p95_us": 1161.044,
+        "p99_us": 1200.181
+      },
+      "process_hwm_kib": [
+        5328,
+        5696,
+        5292
+      ],
+      "sampled_pin_bytes": [
+        436808,
+        435720,
+        434632
+      ],
+      "sampled_pin_versions": [
+        2,
+        2,
+        2
+      ],
+      "checkpoint_ms": [
+        60.436,
+        56.709,
+        50.358
+      ],
+      "reopen_ms": [
+        11.829,
+        10.328,
+        6.007
+      ],
+      "sync_groups": [
+        200,
+        200,
+        200
+      ]
+    }
+  },
+  "runs": [
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "8.990504",
+        "tx_per_s": "55.614",
+        "read_samples": "2497",
+        "reads_per_s": "277.737"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "6241.248",
+        "p95_us": "12735.411",
+        "p99_us": "14466.521",
+        "max_us": "15575.944"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "0.478",
+        "p95_us": "0.705",
+        "p99_us": "36.875",
+        "max_us": "1325.105"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "2497",
+        "p50_us": "0.816",
+        "p95_us": "9318.908",
+        "p99_us": "11980.161",
+        "max_us": "14577.334"
+      },
+      "read_acquire_verify": {
+        "samples": "2497",
+        "p50_us": "5.084",
+        "p95_us": "9322.371",
+        "p99_us": "11983.389",
+        "max_us": "14580.121"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "52.925",
+        "reclaim_ms": "5.979",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.000",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "9.440",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-low-immediate.txt",
+      "repeat": 1,
+      "load": "low",
+      "mode": "immediate",
+      "peak_hwm_kib": 3924,
+      "child_open_hwm_kib": 3036,
+      "memory_hwm_samples_kib": [
+        3916,
+        3924,
+        3924,
+        3036
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "8.951063",
+        "tx_per_s": "55.859",
+        "read_samples": "4083",
+        "reads_per_s": "456.147"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "6093.600",
+        "p95_us": "12517.750",
+        "p99_us": "14314.765",
+        "max_us": "29729.528"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "0.844",
+        "p95_us": "1.668",
+        "p99_us": "1.830",
+        "max_us": "43.646"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "4083",
+        "p50_us": "0.818",
+        "p95_us": "29.902",
+        "p99_us": "33.643",
+        "max_us": "76.928"
+      },
+      "read_acquire_verify": {
+        "samples": "4083",
+        "p50_us": "4.648",
+        "p95_us": "36.167",
+        "p99_us": "42.165",
+        "max_us": "90.051"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "1",
+        "sampled_max_versions": "1",
+        "sampled_max_pinned_bytes": "68804",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 502",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "50.452",
+        "reclaim_ms": "7.733",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.154",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "9.961",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-low-snapshot.txt",
+      "repeat": 1,
+      "load": "low",
+      "mode": "snapshot",
+      "peak_hwm_kib": 4580,
+      "child_open_hwm_kib": 3048,
+      "memory_hwm_samples_kib": [
+        4572,
+        4576,
+        4580,
+        3048
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "10.315282",
+        "tx_per_s": "48.472",
+        "read_samples": "2995",
+        "reads_per_s": "290.346"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "8327.197",
+        "p95_us": "14842.661",
+        "p99_us": "17475.001",
+        "max_us": "109343.446"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "2026.397",
+        "p95_us": "2180.250",
+        "p99_us": "2248.280",
+        "max_us": "2287.080"
+      },
+      "admission_to_callback": {
+        "samples": "500",
+        "p50_us": "2024.663",
+        "p95_us": "2178.998",
+        "p99_us": "2247.095",
+        "max_us": "2285.907"
+      },
+      "read_acquire": {
+        "samples": "2995",
+        "p50_us": "0.462",
+        "p95_us": "9080.416",
+        "p99_us": "11702.786",
+        "max_us": "106490.646"
+      },
+      "read_acquire_verify": {
+        "samples": "2995",
+        "p50_us": "4.654",
+        "p95_us": "9084.373",
+        "p99_us": "11706.358",
+        "max_us": "106500.002"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "49.914",
+        "reclaim_ms": "5.104",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.116",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "10.192",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-low-group.txt",
+      "repeat": 1,
+      "load": "low",
+      "mode": "group",
+      "peak_hwm_kib": 4000,
+      "child_open_hwm_kib": 3044,
+      "memory_hwm_samples_kib": [
+        3992,
+        4000,
+        4000,
+        3044
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "9.554823",
+        "tx_per_s": "52.330",
+        "read_samples": "4361",
+        "reads_per_s": "456.419"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "7370.222",
+        "p95_us": "13684.062",
+        "p99_us": "15899.803",
+        "max_us": "21961.453"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "1098.605",
+        "p95_us": "1128.127",
+        "p99_us": "1160.618",
+        "max_us": "1217.695"
+      },
+      "admission_to_callback": {
+        "samples": "500",
+        "p50_us": "1097.584",
+        "p95_us": "1126.783",
+        "p99_us": "1159.114",
+        "max_us": "1215.977"
+      },
+      "read_acquire": {
+        "samples": "4361",
+        "p50_us": "0.823",
+        "p95_us": "30.120",
+        "p99_us": "34.243",
+        "max_us": "54.124"
+      },
+      "read_acquire_verify": {
+        "samples": "4361",
+        "p50_us": "4.505",
+        "p95_us": "36.626",
+        "p99_us": "42.033",
+        "max_us": "93.377"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "1",
+        "sampled_max_versions": "1",
+        "sampled_max_pinned_bytes": "68804",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 502",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "48.255",
+        "reclaim_ms": "5.355",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.225",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "5.321",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-low-group_snapshot.txt",
+      "repeat": 1,
+      "load": "low",
+      "mode": "group_snapshot",
+      "peak_hwm_kib": 4464,
+      "child_open_hwm_kib": 3052,
+      "memory_hwm_samples_kib": [
+        4424,
+        4464,
+        4464,
+        3052
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "15.272444",
+        "tx_per_s": "104.764",
+        "read_samples": "6",
+        "reads_per_s": "0.393"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "7903.073",
+        "p95_us": "13494.513",
+        "p99_us": "111898.153",
+        "max_us": "11773796.391"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "0.564",
+        "p95_us": "0.894",
+        "p99_us": "42.370",
+        "max_us": "11765543.361"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "6",
+        "p50_us": "0.292",
+        "p95_us": "15270027.028",
+        "p99_us": "15270027.028",
+        "max_us": "15270027.028"
+      },
+      "read_acquire_verify": {
+        "samples": "6",
+        "p50_us": "2.443",
+        "p95_us": "15270030.403",
+        "p99_us": "15270030.403",
+        "max_us": "15270030.403"
+      },
+      "groups": {
+        "sync_groups": "1600",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 1600}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "53.978",
+        "reclaim_ms": "7.447",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.001",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "5.885",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-saturation-immediate.txt",
+      "repeat": 1,
+      "load": "saturation",
+      "mode": "immediate",
+      "peak_hwm_kib": 4272,
+      "child_open_hwm_kib": 3296,
+      "memory_hwm_samples_kib": [
+        4216,
+        4272,
+        4272,
+        3296
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "13.232068",
+        "tx_per_s": "120.918",
+        "read_samples": "24319",
+        "reads_per_s": "1837.884"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "7542.676",
+        "p95_us": "12449.014",
+        "p99_us": "1255494.468",
+        "max_us": "9478334.644"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "0.226",
+        "p95_us": "0.614",
+        "p99_us": "1249497.083",
+        "max_us": "9468744.343"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "24319",
+        "p50_us": "0.560",
+        "p95_us": "11.455",
+        "p99_us": "34.011",
+        "max_us": "81.899"
+      },
+      "read_acquire_verify": {
+        "samples": "24319",
+        "p50_us": "1.516",
+        "p95_us": "31.600",
+        "p99_us": "41.076",
+        "max_us": "90.017"
+      },
+      "groups": {
+        "sync_groups": "1600",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 1600}"
+      },
+      "retention": {
+        "sampled_max_pins": "2",
+        "sampled_max_versions": "2",
+        "sampled_max_pinned_bytes": "436536",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 1602",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "348.843",
+        "reclaim_ms": "5.464",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.263",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "6.165",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-saturation-snapshot.txt",
+      "repeat": 1,
+      "load": "saturation",
+      "mode": "snapshot",
+      "peak_hwm_kib": 9068,
+      "child_open_hwm_kib": 3268,
+      "memory_hwm_samples_kib": [
+        9064,
+        9064,
+        9068,
+        3268
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "2.113655",
+        "tx_per_s": "756.983",
+        "read_samples": "661",
+        "reads_per_s": "312.728"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "10228.863",
+        "p95_us": "14392.558",
+        "p99_us": "16168.853",
+        "max_us": "16382.950"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "2165.940",
+        "p95_us": "2407.975",
+        "p99_us": "4561.080",
+        "max_us": "5538.431"
+      },
+      "admission_to_callback": {
+        "samples": "1600",
+        "p50_us": "2162.986",
+        "p95_us": "2404.000",
+        "p99_us": "4560.719",
+        "max_us": "5537.552"
+      },
+      "read_acquire": {
+        "samples": "661",
+        "p50_us": "6524.048",
+        "p95_us": "11997.332",
+        "p99_us": "13990.301",
+        "max_us": "15245.725"
+      },
+      "read_acquire_verify": {
+        "samples": "661",
+        "p50_us": "6526.203",
+        "p95_us": "12002.130",
+        "p99_us": "13993.786",
+        "max_us": "15248.444"
+      },
+      "groups": {
+        "sync_groups": "200",
+        "mean_frames": "8.000",
+        "max_frames": "8",
+        "histogram": "{8: 200}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "54.779",
+        "reclaim_ms": "9.287",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.163",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "8.835",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-saturation-group.txt",
+      "repeat": 1,
+      "load": "saturation",
+      "mode": "group",
+      "peak_hwm_kib": 4412,
+      "child_open_hwm_kib": 3304,
+      "memory_hwm_samples_kib": [
+        4376,
+        4412,
+        4412,
+        3304
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "1.859194",
+        "tx_per_s": "860.588",
+        "read_samples": "3426",
+        "reads_per_s": "1842.734"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "9125.605",
+        "p95_us": "12956.277",
+        "p99_us": "13996.556",
+        "max_us": "14304.546"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "1095.106",
+        "p95_us": "1161.044",
+        "p99_us": "1200.181",
+        "max_us": "1282.195"
+      },
+      "admission_to_callback": {
+        "samples": "1600",
+        "p50_us": "1093.144",
+        "p95_us": "1160.567",
+        "p99_us": "1198.878",
+        "max_us": "1281.499"
+      },
+      "read_acquire": {
+        "samples": "3426",
+        "p50_us": "0.457",
+        "p95_us": "12.321",
+        "p99_us": "34.946",
+        "max_us": "51.341"
+      },
+      "read_acquire_verify": {
+        "samples": "3426",
+        "p50_us": "1.294",
+        "p95_us": "31.301",
+        "p99_us": "40.133",
+        "max_us": "74.398"
+      },
+      "groups": {
+        "sync_groups": "200",
+        "mean_frames": "8.000",
+        "max_frames": "8",
+        "histogram": "{8: 200}"
+      },
+      "retention": {
+        "sampled_max_pins": "2",
+        "sampled_max_versions": "2",
+        "sampled_max_pinned_bytes": "436808",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 1602",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "60.436",
+        "reclaim_ms": "7.018",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.436",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "11.829",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run1-saturation-group_snapshot.txt",
+      "repeat": 1,
+      "load": "saturation",
+      "mode": "group_snapshot",
+      "peak_hwm_kib": 5328,
+      "child_open_hwm_kib": 3284,
+      "memory_hwm_samples_kib": [
+        5292,
+        5296,
+        5328,
+        3284
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "10.076155",
+        "tx_per_s": "49.622",
+        "read_samples": "4602",
+        "reads_per_s": "456.722"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "9149.876",
+        "p95_us": "13072.418",
+        "p99_us": "15301.100",
+        "max_us": "298166.718"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "1096.763",
+        "p95_us": "1124.647",
+        "p99_us": "1156.603",
+        "max_us": "1200.844"
+      },
+      "admission_to_callback": {
+        "samples": "500",
+        "p50_us": "1094.033",
+        "p95_us": "1123.562",
+        "p99_us": "1155.125",
+        "max_us": "1195.837"
+      },
+      "read_acquire": {
+        "samples": "4602",
+        "p50_us": "0.770",
+        "p95_us": "29.778",
+        "p99_us": "33.216",
+        "max_us": "76.983"
+      },
+      "read_acquire_verify": {
+        "samples": "4602",
+        "p50_us": "3.552",
+        "p95_us": "37.022",
+        "p99_us": "42.283",
+        "max_us": "98.725"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "1",
+        "sampled_max_versions": "1",
+        "sampled_max_pinned_bytes": "68804",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 502",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "57.943",
+        "reclaim_ms": "5.324",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.153",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "8.883",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-low-group_snapshot.txt",
+      "repeat": 2,
+      "load": "low",
+      "mode": "group_snapshot",
+      "peak_hwm_kib": 4488,
+      "child_open_hwm_kib": 3128,
+      "memory_hwm_samples_kib": [
+        4448,
+        4488,
+        4488,
+        3128
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "10.501910",
+        "tx_per_s": "47.610",
+        "read_samples": "2992",
+        "reads_per_s": "284.901"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "10099.080",
+        "p95_us": "14835.053",
+        "p99_us": "18599.059",
+        "max_us": "142507.350"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "2078.085",
+        "p95_us": "2259.235",
+        "p99_us": "2313.988",
+        "max_us": "2436.138"
+      },
+      "admission_to_callback": {
+        "samples": "500",
+        "p50_us": "2076.965",
+        "p95_us": "2258.238",
+        "p99_us": "2312.709",
+        "max_us": "2434.938"
+      },
+      "read_acquire": {
+        "samples": "2992",
+        "p50_us": "0.422",
+        "p95_us": "8712.541",
+        "p99_us": "11641.211",
+        "max_us": "139736.870"
+      },
+      "read_acquire_verify": {
+        "samples": "2992",
+        "p50_us": "4.766",
+        "p95_us": "8716.761",
+        "p99_us": "11645.466",
+        "max_us": "139741.097"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "62.062",
+        "reclaim_ms": "6.963",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.217",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "9.065",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-low-group.txt",
+      "repeat": 2,
+      "load": "low",
+      "mode": "group",
+      "peak_hwm_kib": 4000,
+      "child_open_hwm_kib": 3040,
+      "memory_hwm_samples_kib": [
+        3992,
+        4000,
+        4000,
+        3040
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "9.205392",
+        "tx_per_s": "54.316",
+        "read_samples": "4196",
+        "reads_per_s": "455.820"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "7757.389",
+        "p95_us": "11732.628",
+        "p99_us": "13042.145",
+        "max_us": "28746.217"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "1.016",
+        "p95_us": "1.646",
+        "p99_us": "1.917",
+        "max_us": "39.745"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "4196",
+        "p50_us": "0.864",
+        "p95_us": "30.203",
+        "p99_us": "34.557",
+        "max_us": "71.311"
+      },
+      "read_acquire_verify": {
+        "samples": "4196",
+        "p50_us": "5.172",
+        "p95_us": "37.941",
+        "p99_us": "42.942",
+        "max_us": "94.618"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "1",
+        "sampled_max_versions": "1",
+        "sampled_max_pinned_bytes": "68804",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 502",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "55.808",
+        "reclaim_ms": "11.233",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.108",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "5.856",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-low-snapshot.txt",
+      "repeat": 2,
+      "load": "low",
+      "mode": "snapshot",
+      "peak_hwm_kib": 4428,
+      "child_open_hwm_kib": 2996,
+      "memory_hwm_samples_kib": [
+        4388,
+        4428,
+        4428,
+        2996
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "9.133172",
+        "tx_per_s": "54.745",
+        "read_samples": "2497",
+        "reads_per_s": "273.399"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "7158.392",
+        "p95_us": "13073.481",
+        "p99_us": "14243.423",
+        "max_us": "21224.240"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "0.497",
+        "p95_us": "0.703",
+        "p99_us": "39.021",
+        "max_us": "1317.511"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "2497",
+        "p50_us": "0.781",
+        "p95_us": "9105.887",
+        "p99_us": "12311.903",
+        "max_us": "20618.698"
+      },
+      "read_acquire_verify": {
+        "samples": "2497",
+        "p50_us": "5.064",
+        "p95_us": "9108.791",
+        "p99_us": "12314.562",
+        "max_us": "20621.529"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "55.333",
+        "reclaim_ms": "5.562",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.000",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "10.106",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-low-immediate.txt",
+      "repeat": 2,
+      "load": "low",
+      "mode": "immediate",
+      "peak_hwm_kib": 3912,
+      "child_open_hwm_kib": 3064,
+      "memory_hwm_samples_kib": [
+        3904,
+        3912,
+        3912,
+        3064
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "2.986667",
+        "tx_per_s": "535.714",
+        "read_samples": "5469",
+        "reads_per_s": "1831.138"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "9865.886",
+        "p95_us": "39209.385",
+        "p99_us": "106425.919",
+        "max_us": "243494.355"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "1101.511",
+        "p95_us": "1182.831",
+        "p99_us": "1226.588",
+        "max_us": "1307.667"
+      },
+      "admission_to_callback": {
+        "samples": "1600",
+        "p50_us": "1100.332",
+        "p95_us": "1181.127",
+        "p99_us": "1222.034",
+        "max_us": "1292.581"
+      },
+      "read_acquire": {
+        "samples": "5469",
+        "p50_us": "0.607",
+        "p95_us": "13.977",
+        "p99_us": "36.910",
+        "max_us": "139.768"
+      },
+      "read_acquire_verify": {
+        "samples": "5469",
+        "p50_us": "2.075",
+        "p95_us": "34.377",
+        "p99_us": "42.228",
+        "max_us": "141.515"
+      },
+      "groups": {
+        "sync_groups": "200",
+        "mean_frames": "8.000",
+        "max_frames": "8",
+        "histogram": "{8: 200}"
+      },
+      "retention": {
+        "sampled_max_pins": "2",
+        "sampled_max_versions": "2",
+        "sampled_max_pinned_bytes": "435720",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 1602",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "56.709",
+        "reclaim_ms": "6.347",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.425",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "10.328",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-saturation-group_snapshot.txt",
+      "repeat": 2,
+      "load": "saturation",
+      "mode": "group_snapshot",
+      "peak_hwm_kib": 5696,
+      "child_open_hwm_kib": 3280,
+      "memory_hwm_samples_kib": [
+        5688,
+        5692,
+        5696,
+        3280
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "2.400389",
+        "tx_per_s": "666.559",
+        "read_samples": "681",
+        "reads_per_s": "283.704"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "10248.277",
+        "p95_us": "16564.474",
+        "p99_us": "19547.144",
+        "max_us": "230200.878"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "2152.865",
+        "p95_us": "4488.021",
+        "p99_us": "6624.442",
+        "max_us": "8888.658"
+      },
+      "admission_to_callback": {
+        "samples": "1600",
+        "p50_us": "2148.837",
+        "p95_us": "4487.653",
+        "p99_us": "6620.126",
+        "max_us": "8886.914"
+      },
+      "read_acquire": {
+        "samples": "681",
+        "p50_us": "6204.311",
+        "p95_us": "13726.739",
+        "p99_us": "16218.047",
+        "max_us": "229121.292"
+      },
+      "read_acquire_verify": {
+        "samples": "681",
+        "p50_us": "6206.353",
+        "p95_us": "13731.131",
+        "p99_us": "16223.026",
+        "max_us": "229123.715"
+      },
+      "groups": {
+        "sync_groups": "200",
+        "mean_frames": "8.000",
+        "max_frames": "8",
+        "histogram": "{8: 200}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "56.735",
+        "reclaim_ms": "5.671",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.049",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "6.333",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-saturation-group.txt",
+      "repeat": 2,
+      "load": "saturation",
+      "mode": "group",
+      "peak_hwm_kib": 4460,
+      "child_open_hwm_kib": 3328,
+      "memory_hwm_samples_kib": [
+        4424,
+        4460,
+        4460,
+        3328
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "12.828262",
+        "tx_per_s": "124.725",
+        "read_samples": "23578",
+        "reads_per_s": "1837.973"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "7109.712",
+        "p95_us": "13861.790",
+        "p99_us": "1647049.685",
+        "max_us": "5600044.530"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "0.219",
+        "p95_us": "0.632",
+        "p99_us": "1641663.164",
+        "max_us": "5594481.050"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "23578",
+        "p50_us": "0.581",
+        "p95_us": "12.268",
+        "p99_us": "35.230",
+        "max_us": "61.424"
+      },
+      "read_acquire_verify": {
+        "samples": "23578",
+        "p50_us": "1.544",
+        "p95_us": "33.140",
+        "p99_us": "41.639",
+        "max_us": "106.939"
+      },
+      "groups": {
+        "sync_groups": "1600",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 1600}"
+      },
+      "retention": {
+        "sampled_max_pins": "2",
+        "sampled_max_versions": "2",
+        "sampled_max_pinned_bytes": "436672",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 1602",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "68.508",
+        "reclaim_ms": "7.247",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.240",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "14.510",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-saturation-snapshot.txt",
+      "repeat": 2,
+      "load": "saturation",
+      "mode": "snapshot",
+      "peak_hwm_kib": 8988,
+      "child_open_hwm_kib": 3292,
+      "memory_hwm_samples_kib": [
+        8988,
+        8988,
+        8988,
+        3292
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "18.015622",
+        "tx_per_s": "88.812",
+        "read_samples": "4",
+        "reads_per_s": "0.222"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "9460.929",
+        "p95_us": "13819.900",
+        "p99_us": "232881.864",
+        "max_us": "16091316.009"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "0.582",
+        "p95_us": "0.794",
+        "p99_us": "47.194",
+        "max_us": "16084086.881"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "4",
+        "p50_us": "0.469",
+        "p95_us": "18014104.531",
+        "p99_us": "18014104.531",
+        "max_us": "18014104.531"
+      },
+      "read_acquire_verify": {
+        "samples": "4",
+        "p50_us": "2.669",
+        "p95_us": "18014107.775",
+        "p99_us": "18014107.775",
+        "max_us": "18014107.775"
+      },
+      "groups": {
+        "sync_groups": "1600",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 1600}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "61.330",
+        "reclaim_ms": "5.928",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.000",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "7.241",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run2-saturation-immediate.txt",
+      "repeat": 2,
+      "load": "saturation",
+      "mode": "immediate",
+      "peak_hwm_kib": 4264,
+      "child_open_hwm_kib": 3272,
+      "memory_hwm_samples_kib": [
+        4264,
+        4264,
+        4264,
+        3272
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "9.362113",
+        "tx_per_s": "53.407",
+        "read_samples": "4267",
+        "reads_per_s": "455.773"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "7847.901",
+        "p95_us": "12716.791",
+        "p99_us": "14688.628",
+        "max_us": "50129.974"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "1.080",
+        "p95_us": "1.661",
+        "p99_us": "1.911",
+        "max_us": "4.006"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "4267",
+        "p50_us": "0.870",
+        "p95_us": "30.249",
+        "p99_us": "34.284",
+        "max_us": "47.958"
+      },
+      "read_acquire_verify": {
+        "samples": "4267",
+        "p50_us": "4.961",
+        "p95_us": "37.321",
+        "p99_us": "42.979",
+        "max_us": "84.350"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "1",
+        "sampled_max_versions": "1",
+        "sampled_max_pinned_bytes": "68668",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 502",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "60.981",
+        "reclaim_ms": "5.675",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.109",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "10.300",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-low-snapshot.txt",
+      "repeat": 3,
+      "load": "low",
+      "mode": "snapshot",
+      "peak_hwm_kib": 4452,
+      "child_open_hwm_kib": 3040,
+      "memory_hwm_samples_kib": [
+        4408,
+        4448,
+        4452,
+        3040
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "9.445653",
+        "tx_per_s": "52.934",
+        "read_samples": "2497",
+        "reads_per_s": "264.354"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "9126.267",
+        "p95_us": "13094.668",
+        "p99_us": "14382.194",
+        "max_us": "45322.510"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "0.461",
+        "p95_us": "0.677",
+        "p99_us": "22.826",
+        "max_us": "1132.526"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "2497",
+        "p50_us": "0.630",
+        "p95_us": "9381.710",
+        "p99_us": "12382.694",
+        "max_us": "44482.503"
+      },
+      "read_acquire_verify": {
+        "samples": "2497",
+        "p50_us": "5.152",
+        "p95_us": "9384.541",
+        "p99_us": "12385.230",
+        "max_us": "44485.262"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "57.853",
+        "reclaim_ms": "10.364",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.001",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "5.989",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-low-immediate.txt",
+      "repeat": 3,
+      "load": "low",
+      "mode": "immediate",
+      "peak_hwm_kib": 3928,
+      "child_open_hwm_kib": 3044,
+      "memory_hwm_samples_kib": [
+        3920,
+        3928,
+        3928,
+        3044
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "10.152971",
+        "tx_per_s": "49.247",
+        "read_samples": "4640",
+        "reads_per_s": "457.009"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "9293.810",
+        "p95_us": "13516.793",
+        "p99_us": "15664.629",
+        "max_us": "311701.461"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "1097.519",
+        "p95_us": "1129.026",
+        "p99_us": "1162.641",
+        "max_us": "1181.758"
+      },
+      "admission_to_callback": {
+        "samples": "500",
+        "p50_us": "1094.880",
+        "p95_us": "1124.468",
+        "p99_us": "1160.083",
+        "max_us": "1180.755"
+      },
+      "read_acquire": {
+        "samples": "4640",
+        "p50_us": "0.823",
+        "p95_us": "29.889",
+        "p99_us": "32.884",
+        "max_us": "77.395"
+      },
+      "read_acquire_verify": {
+        "samples": "4640",
+        "p50_us": "4.630",
+        "p95_us": "36.833",
+        "p99_us": "43.681",
+        "max_us": "88.125"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "1",
+        "sampled_max_versions": "1",
+        "sampled_max_pinned_bytes": "68668",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 502",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "54.063",
+        "reclaim_ms": "11.276",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.336",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "5.659",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-low-group_snapshot.txt",
+      "repeat": 3,
+      "load": "low",
+      "mode": "group_snapshot",
+      "peak_hwm_kib": 4500,
+      "child_open_hwm_kib": 3064,
+      "memory_hwm_samples_kib": [
+        4460,
+        4500,
+        4500,
+        3064
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "500",
+        "elapsed_s": "10.299224",
+        "tx_per_s": "48.547",
+        "read_samples": "2995",
+        "reads_per_s": "290.799"
+      },
+      "latency": {
+        "samples": "500",
+        "p50_us": "10144.153",
+        "p95_us": "13951.493",
+        "p99_us": "15566.079",
+        "max_us": "53330.640"
+      },
+      "call_to_callback": {
+        "samples": "500",
+        "p50_us": "2030.393",
+        "p95_us": "2222.651",
+        "p99_us": "2294.844",
+        "max_us": "2323.785"
+      },
+      "admission_to_callback": {
+        "samples": "500",
+        "p50_us": "2029.201",
+        "p95_us": "2221.641",
+        "p99_us": "2292.348",
+        "max_us": "2322.971"
+      },
+      "read_acquire": {
+        "samples": "2995",
+        "p50_us": "0.395",
+        "p95_us": "8617.155",
+        "p99_us": "10734.594",
+        "max_us": "50494.031"
+      },
+      "read_acquire_verify": {
+        "samples": "2995",
+        "p50_us": "4.803",
+        "p95_us": "8618.905",
+        "p99_us": "10738.862",
+        "max_us": "50532.171"
+      },
+      "groups": {
+        "sync_groups": "500",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 500}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "502",
+        "checkpoint_ms": "72.541",
+        "reclaim_ms": "7.975",
+        "snapshot_bytes": "29282",
+        "before": "(108069",
+        "staged": "(137435",
+        "retained": "(137435",
+        "readers_released": "true",
+        "before_logical_bytes": 108069,
+        "before_inode_allocated_bytes": 126976,
+        "staged_logical_bytes": 137435,
+        "staged_inode_allocated_bytes": 167936,
+        "retained_logical_bytes": 137435,
+        "retained_inode_allocated_bytes": 167936
+      },
+      "conversion": {
+        "native_ms": "0.228",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "6.131",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-low-group.txt",
+      "repeat": 3,
+      "load": "low",
+      "mode": "group",
+      "peak_hwm_kib": 4000,
+      "child_open_hwm_kib": 3052,
+      "memory_hwm_samples_kib": [
+        3992,
+        4000,
+        4000,
+        3052
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "12.471849",
+        "tx_per_s": "128.289",
+        "read_samples": "22975",
+        "reads_per_s": "1842.149"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "7030.311",
+        "p95_us": "12209.866",
+        "p99_us": "1033052.176",
+        "max_us": "7643331.646"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "0.227",
+        "p95_us": "0.663",
+        "p99_us": "1027431.036",
+        "max_us": "7637294.113"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "22975",
+        "p50_us": "0.549",
+        "p95_us": "3.866",
+        "p99_us": "33.164",
+        "max_us": "109.855"
+      },
+      "read_acquire_verify": {
+        "samples": "22975",
+        "p50_us": "1.495",
+        "p95_us": "30.195",
+        "p99_us": "40.758",
+        "max_us": "110.784"
+      },
+      "groups": {
+        "sync_groups": "1600",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 1600}"
+      },
+      "retention": {
+        "sampled_max_pins": "2",
+        "sampled_max_versions": "2",
+        "sampled_max_pinned_bytes": "436536",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 1602",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "50.917",
+        "reclaim_ms": "5.701",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.258",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "7.603",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-saturation-snapshot.txt",
+      "repeat": 3,
+      "load": "saturation",
+      "mode": "snapshot",
+      "peak_hwm_kib": 8872,
+      "child_open_hwm_kib": 3268,
+      "memory_hwm_samples_kib": [
+        8872,
+        8872,
+        8872,
+        3268
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "12.451828",
+        "tx_per_s": "128.495",
+        "read_samples": "4",
+        "reads_per_s": "0.321"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "6381.033",
+        "p95_us": "12514.236",
+        "p99_us": "24257.407",
+        "max_us": "10871086.751"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "0.525",
+        "p95_us": "0.821",
+        "p99_us": "40.453",
+        "max_us": "10862447.280"
+      },
+      "admission_to_callback": {},
+      "read_acquire": {
+        "samples": "4",
+        "p50_us": "0.722",
+        "p95_us": "12450599.231",
+        "p99_us": "12450599.231",
+        "max_us": "12450599.231"
+      },
+      "read_acquire_verify": {
+        "samples": "4",
+        "p50_us": "3.505",
+        "p95_us": "12450601.753",
+        "p99_us": "12450601.753",
+        "max_us": "12450601.753"
+      },
+      "groups": {
+        "sync_groups": "1600",
+        "mean_frames": "1.000",
+        "max_frames": "1",
+        "histogram": "{1: 1600}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "54.707",
+        "reclaim_ms": "9.266",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.000",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "6.638",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-saturation-immediate.txt",
+      "repeat": 3,
+      "load": "saturation",
+      "mode": "immediate",
+      "peak_hwm_kib": 4296,
+      "child_open_hwm_kib": 3276,
+      "memory_hwm_samples_kib": [
+        4216,
+        4296,
+        4296,
+        3276
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "1.813852",
+        "tx_per_s": "882.101",
+        "read_samples": "3342",
+        "reads_per_s": "1842.488"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "8329.217",
+        "p95_us": "13724.096",
+        "p99_us": "19102.208",
+        "max_us": "37089.008"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "1084.892",
+        "p95_us": "1153.698",
+        "p99_us": "1188.659",
+        "max_us": "1234.952"
+      },
+      "admission_to_callback": {
+        "samples": "1600",
+        "p50_us": "1083.373",
+        "p95_us": "1152.136",
+        "p99_us": "1181.715",
+        "max_us": "1234.593"
+      },
+      "read_acquire": {
+        "samples": "3342",
+        "p50_us": "0.343",
+        "p95_us": "2.271",
+        "p99_us": "32.073",
+        "max_us": "48.265"
+      },
+      "read_acquire_verify": {
+        "samples": "3342",
+        "p50_us": "1.324",
+        "p95_us": "24.461",
+        "p99_us": "40.500",
+        "max_us": "77.321"
+      },
+      "groups": {
+        "sync_groups": "200",
+        "mean_frames": "8.000",
+        "max_frames": "8",
+        "histogram": "{8: 200}"
+      },
+      "retention": {
+        "sampled_max_pins": "2",
+        "sampled_max_versions": "2",
+        "sampled_max_pinned_bytes": "434632",
+        "sampled_oldest_sequence": "Some(2)",
+        "final": "Some(RetentionStats { published_sequence: 1602",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "50.358",
+        "reclaim_ms": "6.152",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.447",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "6.007",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-saturation-group_snapshot.txt",
+      "repeat": 3,
+      "load": "saturation",
+      "mode": "group_snapshot",
+      "peak_hwm_kib": 5292,
+      "child_open_hwm_kib": 3276,
+      "memory_hwm_samples_kib": [
+        5252,
+        5256,
+        5292,
+        3276
+      ]
+    },
+    {
+      "workload": {
+        "transactions": "1600",
+        "elapsed_s": "1.928291",
+        "tx_per_s": "829.750",
+        "read_samples": "693",
+        "reads_per_s": "359.386"
+      },
+      "latency": {
+        "samples": "1600",
+        "p50_us": "8766.899",
+        "p95_us": "14548.841",
+        "p99_us": "17195.858",
+        "max_us": "18486.379"
+      },
+      "call_to_callback": {
+        "samples": "1600",
+        "p50_us": "2161.647",
+        "p95_us": "4646.462",
+        "p99_us": "6832.660",
+        "max_us": "7990.790"
+      },
+      "admission_to_callback": {
+        "samples": "1600",
+        "p50_us": "2157.570",
+        "p95_us": "4646.356",
+        "p99_us": "6831.605",
+        "max_us": "7989.562"
+      },
+      "read_acquire": {
+        "samples": "693",
+        "p50_us": "5861.528",
+        "p95_us": "11416.881",
+        "p99_us": "14215.697",
+        "max_us": "17303.291"
+      },
+      "read_acquire_verify": {
+        "samples": "693",
+        "p50_us": "5863.801",
+        "p95_us": "11420.574",
+        "p99_us": "14221.215",
+        "max_us": "17307.459"
+      },
+      "groups": {
+        "sync_groups": "200",
+        "mean_frames": "8.000",
+        "max_frames": "8",
+        "histogram": "{8: 200}"
+      },
+      "retention": {
+        "sampled_max_pins": "0",
+        "sampled_max_versions": "0",
+        "sampled_max_pinned_bytes": "0",
+        "sampled_oldest_sequence": "None",
+        "final": "None",
+        "accounting": "whole_root_per_lease_allocator_overhead_excluded"
+      },
+      "maintenance": {
+        "sequence": "1602",
+        "checkpoint_ms": "49.405",
+        "reclaim_ms": "5.848",
+        "snapshot_bytes": "93082",
+        "before": "(344569",
+        "staged": "(437735",
+        "retained": "(437735",
+        "readers_released": "true",
+        "before_logical_bytes": 344569,
+        "before_inode_allocated_bytes": 364544,
+        "staged_logical_bytes": 437735,
+        "staged_inode_allocated_bytes": 466944,
+        "retained_logical_bytes": 437735,
+        "retained_inode_allocated_bytes": 466944
+      },
+      "conversion": {
+        "native_ms": "0.266",
+        "outside_workload_and_maintenance": "true"
+      },
+      "reopen": {
+        "open_ms": "6.523",
+        "cache_policy": "no_advice",
+        "includes_recovery_sync": "true"
+      },
+      "file": "snapshots-2026-10-07-run3-saturation-group.txt",
+      "repeat": 3,
+      "load": "saturation",
+      "mode": "group",
+      "peak_hwm_kib": 4416,
+      "child_open_hwm_kib": 3272,
+      "memory_hwm_samples_kib": [
+        4376,
+        4416,
+        4416,
+        3272
+      ]
+    }
+  ]
+}
