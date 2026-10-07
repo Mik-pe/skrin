@@ -31,6 +31,7 @@ fn main() -> Result<()> {
         max_new_file_bytes: 1024 * 1024,
         max_record_bytes: 8,
         max_rows: 128,
+        reserve_file_data: cfg!(target_os = "linux"),
     };
     let policy = CheckpointPolicy {
         wal_bytes: Some(32 * 1024),

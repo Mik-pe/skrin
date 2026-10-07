@@ -1,5 +1,11 @@
 # Changelog
 
+## Required Linux file-data reservation
+
+- Add opt-in `reserve_file_data` maintenance policy using safe Linux allocation bindings for all new generation-file data; require allocation success without sparse/unsupported fallback.
+- Preflight exact snapshot length with one additional encoding pass, keep conversion callbacks single-use, preserve logical formats/locks/sync/publication, and reject changed encoded sizes before publication.
+- Test allocation refusal, physical blocks versus logical EOF, recovery images, single-table/catalog lifecycles and both policies under actual ENOSPC; expose the mode in executable examples/resource benchmarking.
+
 ## Real storage-full regression and unknown-stage operation
 
 - Fill a private 4 MiB Linux tmpfs to exercise actual kernel ENOSPC beneath production checkpoint/WAL code; require clean preparation refusal, poisoned append, selected recovery and a verified independent backup.

@@ -22,13 +22,14 @@ The new-file limit is checked before each affected snapshot write, with remainin
 
 These are **encoded-size/count limits, not a filesystem or process-memory reservation**. They do not limit allocator capacity/slack, user codec allocations, native tables/indexes, filesystem metadata, block rounding, snapshots outside the new generation, old files or other processes' writes. ENOSPC and I/O failures still need normal handling. No racy free-space measurement is interpreted as a promise that publication will succeed.
 
-`estimate_checkpoint(options)` traverses the current rows using the real encoder, without mutating storage. It returns the exact snapshot/new-file lengths, row count, committed sequence and largest encoded record for that view. Estimation is optional: ordinary checkpoints do **not** serialize twice for a preflight. Because another transaction may run after the estimate's read guard ends, pass the limits to the actual checkpoint as well.
+`estimate_checkpoint(options)` traverses the current rows using the real encoder, without mutating storage. It returns the exact snapshot/new-file lengths, row count, committed sequence and largest encoded record for that view. Estimation is optional for ordinary one-pass checkpoints; required file-data reservation adds its own exact snapshot preflight under the maintenance lock. Because another transaction may run after an explicit estimate's read guard ends, pass the limits to the actual checkpoint as well.
 
 ```rust
 let options = MaintenanceOptions {
     max_new_file_bytes: 64 * 1024 * 1024,
     max_record_bytes: 64 * 1024,
     max_rows: 100_000,
+    ..Default::default()
 };
 let estimate = db.estimate_checkpoint(options)?;
 let checkpoint = db.checkpoint_with_options(options)?;
@@ -42,7 +43,7 @@ A checkpoint drops each verification row before decoding the next one and keeps 
 
 Offline migration consumes old rows and builds the destination table. Its verification also keeps only one additional decoded row alive. The destination table and arbitrary conversion allocations are still application-sized. A returned backup handle, by contrast, must own its independently decoded table: it necessarily adds that resident data while the source exists. Neither API claims a process-wide RSS cap.
 
-Reusable bounded record/payload buffers and a portable slicing-by-eight IEEE CRC-32 path reduce repeated allocation/checksum work. No `unsafe`, intrinsics, new dependencies, format change or synchronization downgrade is involved. Existing independently encoded format fixtures remain unchanged.
+Reusable bounded record/payload buffers and a portable slicing-by-eight IEEE CRC-32 path reduce repeated allocation/checksum work. Those buffer/CRC optimizations introduce no `unsafe`, intrinsics, dependencies, format change or synchronization downgrade. The later Linux allocation policy has the separate dependency described below. Existing independently encoded format fixtures remain unchanged.
 
 ## Thresholds without hidden commit work
 
@@ -60,6 +61,26 @@ if let Some(checkpoint) = db.checkpoint_if_needed(policy, options)? {
 ```
 
 The application controls the pause. Readers/writers are blocked while maintenance runs. Cleanup is deliberately a separate call: a cleanup error cannot turn an already successful checkpoint or write into an apparent rollback. Keep independent backups; retained generations are not a disaster-recovery policy.
+
+## Required file-data reservation
+
+On Linux, set `MaintenanceOptions::reserve_file_data` to `true` for checkpoint, backup or migration. It defaults to false. The engine requires `fallocate(FALLOC_FL_KEEP_SIZE)` through safe `rustix` bindings for the new snapshot, OWNER, WAL prelude and CURRENT manifest, plus LOCK for a new backup. Each file's complete data range is allocated before writing it. Logical lengths and codecs stay unchanged; preallocation never creates trailing zero bytes in the snapshot format. The permanent directory owner and new WAL locks remain held during allocation.
+
+```rust
+let options = MaintenanceOptions {
+    reserve_file_data: true,
+    ..Default::default()
+};
+db.checkpoint_with_options(options)?;
+```
+
+Required mode performs one extra snapshot encoding pass to determine its full data extent before the first snapshot write. It keeps one encoder buffer and adds no native table copy. Migration conversion callbacks still run once per row. Actual encoding must produce the preflight's size; growth/shrink is a codec refusal before publication. Codecs must remain deterministic even when an explicit estimate/preflight calls them more than once.
+
+Allocation failure, including ENOSPC or unsupported filesystem operations, is a preparation error with no fallback to sparse length extension or unreserved writes. The existing source generation stays selected and usable. Backups can leave a partial create-only destination; migrations consume their old handle and require reopening it. Non-Linux platforms refuse the required option before destination/stage creation. The flag is an operation policy, not a persisted format/schema change or an allocation guarantee for later WAL commits.
+
+The [Linux allocation contract](https://man7.org/linux/man-pages/man2/fallocate.2.html) covers the requested file-data range; block rounding can allocate more. It does not reserve other files, retained generations, filesystem/directory/journal metadata, quotas for other work or application RAM. Additional files are allocated as their preparation starts. This is no global filesystem transaction or promise that publication cannot fail. File/directory syncs and uncertain-outcome handling remain mandatory. Use a filesystem whose allocation/flush behavior meets the application's requirements; no device power-loss certification follows from preallocation. [The safe binding](https://docs.rs/rustix/1.1.5/rustix/fs/fn.fallocate.html) is the sole new Linux dependency purpose.
+
+Tests check real allocated blocks with unchanged logical EOF, each failed required allocation (including unsupported operation), acknowledged crash images, exact encoded sizes, single-table/catalog backup/migration and once-only conversion. The bounded-tmpfs wrapper executes both allocation policies against real ENOSPC. Unknown stages retain the inspection/reclamation contract below.
 
 ## Inventory and safe reclamation
 

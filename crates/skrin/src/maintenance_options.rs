@@ -1,4 +1,4 @@
-//! Explicit encoded-resource limits, not a reservation of filesystem blocks or RAM.
+//! Encoded-resource limits and explicit optional file-data reservation.
 use crate::{Encoder, Error, Result, codec::MAX_RECORD_BYTES};
 
 /// Limits for one checkpoint, backup or offline migration.
@@ -6,7 +6,8 @@ use crate::{Encoder, Error, Result, codec::MAX_RECORD_BYTES};
 /// Limits are enforced before writing the affected bytes or decoding a record.
 /// They bound logical encoded file/record sizes and row count, **not** allocator
 /// capacity, application codec allocations, resident data, filesystem metadata,
-/// physical blocks, or available free space. Existing generations are excluded.
+/// physical blocks, or available free space. Optional file-data reservation is
+/// separate from these limits. Existing generations are excluded.
 /// A refusal may leave an unpublished stage; inspect/reclaim it explicitly.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct MaintenanceOptions {
@@ -18,6 +19,11 @@ pub struct MaintenanceOptions {
     pub max_record_bytes: usize,
     /// Maximum number of records in the resulting snapshot.
     pub max_rows: u64,
+    /// Require Linux file-data preallocation before generation writes. Default
+    /// false. Unsupported platforms/filesystems refuse instead of falling back.
+    /// Reserves snapshot/metadata/fresh-WAL data, not filesystem metadata, future
+    /// commits, retained files or application RAM. Other I/O errors remain possible.
+    pub reserve_file_data: bool,
 }
 
 impl Default for MaintenanceOptions {
@@ -26,12 +32,18 @@ impl Default for MaintenanceOptions {
             max_new_file_bytes: u64::MAX,
             max_record_bytes: MAX_RECORD_BYTES,
             max_rows: u64::MAX,
+            reserve_file_data: false,
         }
     }
 }
 
 impl MaintenanceOptions {
     pub(crate) fn validate(self) -> Result<()> {
+        if self.reserve_file_data && !cfg!(target_os = "linux") {
+            return Err(Error::InvalidOperation(
+                "file-data reservation requires Linux".into(),
+            ));
+        }
         if self.max_record_bytes > MAX_RECORD_BYTES {
             return Err(Error::InvalidOperation(
                 "maintenance record limit exceeds the file-format maximum".into(),

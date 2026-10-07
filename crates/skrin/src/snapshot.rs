@@ -64,8 +64,18 @@ pub(crate) fn write<R: Record>(
     options.validate()?;
     options.check_rows(rows.len() as u64)?;
     options.check_bytes((HEADER_LEN as u64).saturating_add(overhead))?;
+    let reserved_bytes = if options.reserve_file_data {
+        // Required mode reserves the complete snapshot data before its first
+        // write. Codecs are deterministic; conversion callbacks are not replayed.
+        Some(estimate::<R>(rows, sequence, overhead, options)?.snapshot_bytes)
+    } else {
+        None
+    };
     boundary()?;
     let file = File::create_new(path)?;
+    if let Some(bytes) = reserved_bytes {
+        crate::reservation::reserve(&file, 0, bytes)?;
+    }
     let mut writer = BufWriter::with_capacity(BUFFER_BYTES, &file);
     writer.write_all(&header::<R>(generation, sequence, rows.len() as u64))?;
     boundary()?;
@@ -79,6 +89,11 @@ pub(crate) fn write<R: Record>(
             .checked_add(encoded.len() as u64 + 16)
             .ok_or(Error::SequenceExhausted)?;
         options.check_bytes(written.saturating_add(overhead))?;
+        if reserved_bytes.is_some_and(|bytes| written > bytes) {
+            return Err(Error::Codec(
+                "snapshot size changed after reservation preflight".into(),
+            ));
+        }
         let mut prefix = [0; 12];
         prefix[..8].copy_from_slice(&key.to_le_bytes());
         prefix[8..].copy_from_slice(&(encoded.len() as u32).to_le_bytes());
@@ -104,6 +119,11 @@ pub(crate) fn write<R: Record>(
         writer.write_all(&crc.finish().to_le_bytes())?;
     }
     writer.flush()?;
+    if reserved_bytes.is_some_and(|bytes| written != bytes) {
+        return Err(Error::Codec(
+            "snapshot size changed after reservation preflight".into(),
+        ));
+    }
     #[cfg(all(test, unix))]
     crate::persistence_model::file_written(&file);
     boundary()?;

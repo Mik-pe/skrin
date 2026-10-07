@@ -105,6 +105,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench resources --locked -- "$RUNNER_TEMP" 1000 3 128 100 --advisory-evict
 
+      - name: Smoke required file-data reservations and verified reopen
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench resources --locked -- "$RUNNER_TEMP" 1000 3 128 100 --advisory-evict --reserve-file-data
+
       - name: Actual ENOSPC in an isolated bounded filesystem
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         env:

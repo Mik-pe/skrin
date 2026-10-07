@@ -5,7 +5,8 @@
 //! verified checkpoints, backups and explicit offline schema migrations.
 //! Reads borrow native Rust values. Read guards block writers; they are not MVCC
 //! snapshots. Persistent databases currently require a local Unix filesystem.
-//! No SQL, network service, unsafe code, or external dependencies are involved.
+//! No SQL, network service or local unsafe code is involved. Linux file-data
+//! reservations use safe syscall bindings.
 
 #![forbid(unsafe_code)]
 
@@ -21,6 +22,7 @@ mod log;
 mod maintenance_options;
 #[cfg(all(test, unix))]
 mod persistence_model;
+mod reservation;
 mod snapshot;
 #[cfg(test)]
 mod test_support;

@@ -151,6 +151,7 @@ let options = MaintenanceOptions {
     max_new_file_bytes: 64 * 1024 * 1024,
     max_record_bytes: 64 * 1024,
     max_rows: 100_000,
+    ..Default::default()
 };
 let policy = CheckpointPolicy {
     wal_bytes: Some(32 * 1024 * 1024),
@@ -164,7 +165,7 @@ let inventory = db.storage_inventory()?;
 
 Import `MaintenanceOptions` and `CheckpointPolicy` alongside `Database`. Run the [complete example](crates/skrin/examples/maintenance.rs) with `cargo run -p skrin --example maintenance -- /tmp/skrin-maintenance-demo` (a **new** path). Limits also work with `backup_to_with_options` and `migrate_with_options`.
 
-The limits bound newly encoded file bytes, record bytes and row count—not application allocations or available disk space. Checkpoint verification no longer constructs a second resident table. Unknown/corrupt ownership markers are preserved, not guessed away. Read [the maintenance contract](docs/maintenance.md) for exact accounting, failure handling and persistence-order tests.
+The limits bound newly encoded file bytes, record bytes and row count. On Linux, `reserve_file_data: true` additionally requires real preallocation of each new generation file's data before writing; unsupported allocation is refused. It adds a snapshot encoding preflight and leaves filesystem metadata, future commits and application memory outside the reservation. Checkpoint verification no longer constructs a second resident table. Unknown/corrupt ownership markers are preserved. Read [the maintenance contract](docs/maintenance.md) for accounting, failure handling and persistence-order tests.
 
 ## Safety is a contract, not a badge
 
@@ -183,7 +184,7 @@ Read [durability](docs/durability.md) and the [managed storage protocol](docs/ma
 | Data model | `Database<R>` for one table; `CatalogDatabase<C>` for typed schemas; u64 keys per table; rows and all indexes fit in RAM |
 | Reads | Borrowed values, ordered iteration, primary-key ranges; read guards block writers |
 | Writes | One serialized writer; staged deltas, not whole-database copies on each commit |
-| Maintenance | Explicit and serialized; checkpoint verification retains one decoded row at a time; enforceable encoded-size/count budgets, not a process-memory or disk-space reservation |
+| Maintenance | Explicit and serialized; one decoded verification row at a time; encoded-size/count budgets and opt-in Linux file-data reservation; no process-memory or filesystem-metadata reservation |
 | Retention | Call `checkpoint_if_needed` and `reclaim` (or `checkpoint`/`prune`); no automatic background service |
 | Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
 | Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |

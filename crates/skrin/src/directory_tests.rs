@@ -850,3 +850,129 @@ fn enospc_migrations_preserve_old_current_or_select_only_the_complete_new_schema
     }
     panic!("did not cover every migration ENOSPC boundary");
 }
+
+#[cfg(target_os = "linux")]
+#[test]
+fn allocation_reserves_blocks_without_extending_logical_file_or_format() {
+    use std::os::unix::fs::MetadataExt;
+    let path = Temp::new();
+    fs::create_dir(&path.0).unwrap();
+    let file = File::create_new(path.0.join("reserved")).unwrap();
+    crate::reservation::reserve(&file, 0, 256 * 1024).unwrap();
+    let metadata = file.metadata().unwrap();
+    assert_eq!(metadata.len(), 0);
+    assert!(metadata.blocks() * 512 >= 256 * 1024);
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn required_allocation_failure_never_falls_back_or_publishes() {
+    let options = MaintenanceOptions {
+        reserve_file_data: true,
+        ..Default::default()
+    };
+    for kind in [io::ErrorKind::StorageFull, io::ErrorKind::Unsupported] {
+        for allocation in 0..4 {
+            let (path, db) = seed();
+            let current = fs::read(path.0.join("CURRENT")).unwrap();
+            crate::reservation::faults::arm(allocation, kind);
+            let result = db.checkpoint_with_options(options);
+            crate::reservation::faults::clear();
+            match result {
+                Err(Error::Io(error)) => assert_eq!(error.kind(), kind),
+                result => panic!("allocation {allocation}: {result:?}"),
+            }
+            check(&db);
+            assert_eq!(fs::read(path.0.join("CURRENT")).unwrap(), current);
+            assert!(matches!(
+                Database::<Item>::open_dir(&path.0),
+                Err(Error::Busy)
+            ));
+            db.reclaim().unwrap();
+            drop(db);
+            check(&Database::<Item>::open_dir(&path.0).unwrap());
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn required_reservation_preserves_acknowledgments_in_real_recovery_images() {
+    use crate::persistence_model::{self as model, Omission};
+    let (path, db) = seed();
+    let estimate = db
+        .estimate_checkpoint(MaintenanceOptions::default())
+        .unwrap();
+    model::start_full(&path.0, Omission::None, 1);
+    db.write(|tx| tx.update(1, |_| Ok(Item(11)))).unwrap();
+    model::acknowledged(2);
+    let cp = db
+        .checkpoint_with_options(MaintenanceOptions {
+            reserve_file_data: true,
+            max_new_file_bytes: estimate.new_file_bytes,
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(cp.snapshot_bytes, estimate.snapshot_bytes);
+    model::published(cp.generation);
+    drop(db);
+    for image in model::finish() {
+        image.restore(&path.0);
+        let db = Database::<Item>::open_dir(&path.0).unwrap();
+        let read = db.read().unwrap();
+        let sequence = read.sequence();
+        assert!((image.acknowledged_sequence.unwrap()..=2).contains(&sequence));
+        assert_eq!(read.get(1).unwrap().0, if sequence == 1 { 10 } else { 11 });
+        assert_eq!(read.get(2).unwrap().0, 20);
+        if let Some(generation) = image.published_generation {
+            assert_eq!(
+                db.generation_info().unwrap().unwrap().generation,
+                generation
+            );
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn reservation_refuses_nondeterministic_growth_and_shrink_before_publication() {
+    use crate::{Decoder, Encoder};
+    use std::cell::Cell;
+    thread_local! { static LENGTHS: Cell<(usize,usize,usize)> = const { Cell::new((1,1,0)) }; }
+    struct Changing;
+    impl Record for Changing {
+        const SCHEMA: Schema = Schema {
+            table_id: 91234,
+            version: 1,
+        };
+        fn encode(&self, encoder: &mut Encoder) -> Result<()> {
+            let length = LENGTHS.with(|cell| {
+                let (first, second, calls) = cell.get();
+                cell.set((first, second, calls + 1));
+                if calls == 0 { first } else { second }
+            });
+            encoder.bytes(&vec![1; length])
+        }
+        fn decode(decoder: &mut Decoder<'_>) -> Result<Self> {
+            decoder.bytes()?;
+            Ok(Self)
+        }
+    }
+    for (first, second) in [(1, 2), (2, 1)] {
+        let path = Temp::new();
+        let db = Database::<Changing>::in_memory();
+        db.write(|tx| tx.insert(1, Changing)).unwrap();
+        LENGTHS.with(|cell| cell.set((first, second, 0)));
+        let result = db.backup_to_with_options(
+            &path.0,
+            MaintenanceOptions {
+                reserve_file_data: true,
+                ..Default::default()
+            },
+        );
+        assert!(matches!(result, Err(Error::Codec(_))));
+        assert!(!path.0.join("CURRENT").exists());
+        assert_eq!(db.read().unwrap().sequence(), 1);
+        assert_eq!(db.read().unwrap().len(), 1);
+    }
+}

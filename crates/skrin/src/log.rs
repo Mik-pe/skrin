@@ -92,9 +92,13 @@ impl Wal {
         path: &Path,
         generation: u64,
         sequence: u64,
+        reserve_file_data: bool,
     ) -> Result<Self> {
         supported_platform()?;
         let mut file = LockedFile::acquire(File::create_new(path)?)?;
+        if reserve_file_data {
+            file.reserve_data((HEADER_LEN + 24) as u64)?;
+        }
         file.write_all(&header_with_format(R::SCHEMA, 2))?;
         file.write_all(&segment_header(generation, sequence))?;
         file.sync()?;
