@@ -27,7 +27,7 @@ impl<R: Record> Database<R> {
         Ok(Self::from_directory(directory, wal, recovered))
     }
 
-    fn from_directory(directory: Directory, wal: Wal, recovered: Recovered<R>) -> Self {
+    pub(crate) fn from_directory(directory: Directory, wal: Wal, recovered: Recovered<R>) -> Self {
         let mut database = Self::from_recovered(wal, recovered);
         database
             .state
@@ -59,7 +59,7 @@ impl<R: Record> Database<R> {
     pub fn checkpoint_with_options(&self, options: MaintenanceOptions) -> Result<Checkpoint> {
         options.validate()?;
         let mut state = self.state.write().map_err(|_| Error::Poisoned)?;
-        Self::checkpoint_locked(&mut state, options)
+        Self::checkpoint_locked(&mut state, options, |_, _, _| Ok(()))
     }
 
     /// Measure the current snapshot's exact encoded requirements without disk
@@ -105,10 +105,22 @@ impl<R: Record> Database<R> {
         {
             return Ok(None);
         }
-        Self::checkpoint_locked(&mut state, options).map(Some)
+        Self::checkpoint_locked(&mut state, options, |_, _, _| Ok(())).map(Some)
     }
 
-    fn checkpoint_locked(state: &mut State<R>, options: MaintenanceOptions) -> Result<Checkpoint> {
+    pub(crate) fn checkpoint_checked(
+        &self,
+        mut validate: impl FnMut(u64, &BTreeMap<u64, R>, &R) -> Result<()>,
+    ) -> Result<Checkpoint> {
+        let mut state = self.state.write().map_err(|_| Error::Poisoned)?;
+        Self::checkpoint_locked(&mut state, MaintenanceOptions::default(), &mut validate)
+    }
+
+    fn checkpoint_locked(
+        state: &mut State<R>,
+        options: MaintenanceOptions,
+        mut validate: impl FnMut(u64, &BTreeMap<u64, R>, &R) -> Result<()>,
+    ) -> Result<Checkpoint> {
         if state.failed {
             return Err(Error::Poisoned);
         }
@@ -125,7 +137,9 @@ impl<R: Record> Database<R> {
             )
         })?;
         let history = directory.info().migrations;
-        match directory.install::<R>(rows, *sequence, history, options, 0, |_, _| Ok(())) {
+        match directory.install::<R>(rows, *sequence, history, options, 0, |key, decoded| {
+            validate(key, rows, &decoded)
+        }) {
             Ok((wal, checkpoint)) => {
                 // Keep the original native rows; decoding is validation, not a
                 // reason to replace every object during checkpoint publication.
@@ -208,18 +222,28 @@ impl<R: Record> Database<R> {
         path: impl AsRef<Path>,
         options: MaintenanceOptions,
     ) -> Result<Self> {
+        self.backup_checked(path.as_ref(), options, |_, _| Ok(()))
+    }
+
+    pub(crate) fn backup_checked(
+        &self,
+        path: &Path,
+        options: MaintenanceOptions,
+        validate: impl FnMut(u64, &R) -> Result<()>,
+    ) -> Result<Self> {
         let read = self.read()?;
         let history = read
             .state
             .directory
             .as_ref()
             .map_or_else(Vec::new, |directory| directory.info().migrations);
-        let (directory, wal, recovered) = Directory::create::<R>(
-            path.as_ref(),
+        let (directory, wal, recovered) = Directory::create_checked::<R>(
+            path,
             &read.state.rows,
             read.state.sequence,
             history,
             options,
+            validate,
         )?;
         Ok(Self::from_directory(directory, wal, recovered))
     }
@@ -249,7 +273,17 @@ impl<R: Record> Database<R> {
         self,
         id: &str,
         options: MaintenanceOptions,
+        convert: impl FnMut(u64, R) -> Result<N>,
+    ) -> Result<Database<N>> {
+        self.migrate_checked(id, options, convert, |_, _| Ok(()))
+    }
+
+    pub(crate) fn migrate_checked<N: Record>(
+        self,
+        id: &str,
+        options: MaintenanceOptions,
         mut convert: impl FnMut(u64, R) -> Result<N>,
+        mut validate: impl FnMut(u64, &N) -> Result<()>,
     ) -> Result<Database<N>> {
         options.validate()?;
         let state = self.state.into_inner().map_err(|_| Error::Poisoned)?;
@@ -275,7 +309,9 @@ impl<R: Record> Database<R> {
             migrated.insert(key, convert(key, row)?);
         }
         let (new_wal, _) =
-            directory.install::<N>(&migrated, sequence, history, options, 0, |_, _| Ok(()))?;
+            directory.install::<N>(&migrated, sequence, history, options, 0, |key, row| {
+                validate(key, &row)
+            })?;
         let recovered = Recovered {
             rows: migrated,
             sequence,

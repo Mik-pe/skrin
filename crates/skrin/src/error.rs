@@ -31,6 +31,8 @@ pub enum Error {
     DuplicateKey(u64),
     /// An update requires an existing key; it never silently inserts a row.
     MissingKey(u64),
+    /// Final transaction view contains duplicate keys for a unique index.
+    UniqueViolation { index_id: u64 },
     /// An application codec rejected a value or input.
     Codec(String),
     /// A record or transaction exceeded a documented byte limit.
@@ -82,6 +84,7 @@ impl fmt::Display for Error {
             Self::SchemaMismatch { expected, found } => {
                 write!(f, "schema mismatch: expected {expected:?}, found {found:?}")
             }
+            Self::UniqueViolation { index_id } => write!(f, "unique index {index_id} violation"),
             Self::MissingKey(key) => write!(f, "missing primary key {key}"),
             Self::DuplicateKey(key) => write!(f, "duplicate primary key {key}"),
             Self::Codec(reason) => write!(f, "record codec: {reason}"),

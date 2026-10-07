@@ -1,5 +1,13 @@
 # Changelog
 
+## Schema-bound tables and atomic indexes
+
+- Add a catalog-owned native row enum, typed table markers and persisted table/index definitions.
+- Commit heterogeneous row and unique/non-unique index changes under one WAL sync/publication boundary; validate final-view swaps and staged queries without whole-database commit copies.
+- Rebuild/validate indexes at snapshot and every WAL transaction before tail repair; reject changed catalogs and complete constraint corruption without mutation.
+- Integrate verified checkpoints, backups, real V2 catalog migration and explicit non-destructive legacy-table import.
+- Add independent catalog codec fixture, row/index reference model, production I/O faults, persistence images, process exits, executable banking example and equivalent-durability latency/RSS benchmark.
+
 ## Bounded maintenance and recovery performance
 
 - Stream checkpoint/migration verification without a second native table; preserve original checkpoint rows.
@@ -24,4 +32,4 @@
 
 ### Boundaries
 
-Experimental API, one in-memory typed table, lock-based readers and one writer. No secondary indexes, multi-table schemas, MVCC, group commit, encryption or replication. Persistence currently requires Unix. Publishing is disabled pending owner release decisions.
+Experimental API, typed single-table and schema-bound multi-table modes, lock-based readers and one writer. No MVCC, group commit, encryption or replication. Persistence currently requires Unix. Publishing is disabled pending owner release decisions.

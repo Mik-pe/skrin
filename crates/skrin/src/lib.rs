@@ -1,6 +1,7 @@
 //! Skrin: typed records, atomic transactions, and an explicit durable log.
 //!
-//! Implements one table per database with `u64` keys. Managed directories add
+//! `Database` implements one table; `catalog` adds schema-bound tables and atomic
+//! derived indexes with `u64` keys per table. Managed directories add
 //! verified checkpoints, backups and explicit offline schema migrations.
 //! Reads borrow native Rust values. Read guards block writers; they are not MVCC
 //! snapshots. Persistent databases currently require a local Unix filesystem.
@@ -8,6 +9,10 @@
 
 #![forbid(unsafe_code)]
 
+#[cfg(test)]
+extern crate self as skrin;
+
+pub mod catalog;
 pub mod codec;
 mod database;
 mod directory;

@@ -18,3 +18,7 @@ harness = false
 [[bench]]
 name = "storage_scale"
 harness = false
+
+[[bench]]
+name = "catalog"
+harness = false

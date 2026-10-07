@@ -303,6 +303,17 @@ impl Directory {
         history: Vec<Migration>,
         options: MaintenanceOptions,
     ) -> Result<(Self, Wal, Recovered<R>)> {
+        Self::create_checked(path, rows, sequence, history, options, |_, _| Ok(()))
+    }
+
+    pub(crate) fn create_checked<R: Record>(
+        path: &Path,
+        rows: &BTreeMap<u64, R>,
+        sequence: u64,
+        history: Vec<Migration>,
+        options: MaintenanceOptions,
+        mut validate: impl FnMut(u64, &R) -> Result<()>,
+    ) -> Result<(Self, Wal, Recovered<R>)> {
         supported_platform()?;
         options.validate()?;
         options.check_rows(rows.len() as u64)?;
@@ -333,6 +344,7 @@ impl Directory {
         let mut decoded = BTreeMap::new();
         let (wal, _) =
             directory.install::<R>(rows, sequence, history, options, 8, |key, row| {
+                validate(key, &row)?;
                 decoded.insert(key, row);
                 Ok(())
             })?;
@@ -348,6 +360,13 @@ impl Directory {
     }
 
     pub(crate) fn open<R: Record>(path: &Path) -> Result<(Self, Wal, Recovered<R>)> {
+        Self::open_checked(path, |_, _| Ok(()))
+    }
+
+    pub(crate) fn open_checked<R: Record>(
+        path: &Path,
+        validate: impl FnMut(&BTreeMap<u64, R>, &BTreeMap<u64, Option<R>>) -> Result<()>,
+    ) -> Result<(Self, Wal, Recovered<R>)> {
         supported_platform()?;
         let root = fs::canonicalize(path)?;
         require_regular(&root.join("LOCK"))?;
@@ -388,11 +407,12 @@ impl Directory {
             manifest.info.checkpoint_sequence,
             manifest.rows,
         )?;
-        let (wal, recovered) = Wal::open_segment::<R>(
+        let (wal, recovered) = Wal::open_segment_checked::<R>(
             &dir.join("wal"),
             rows,
             manifest.info.checkpoint_sequence,
             generation,
+            validate,
         )?;
         // Reconfirm publication durability, including an earlier uncertain rename.
         sync_directory(&root)?;

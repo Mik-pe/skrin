@@ -16,7 +16,7 @@ Do not publish shared CI-runner output as a performance claim. Record the exact 
 
 Before comparing with redb, SQLite, SpacetimeDB or another engine, match durability and transaction semantics. Compare embedded storage paths with embedded storage paths, not a local pointer lookup with a network/backend benchmark. Include realistic record sizes, multiple dataset sizes, allocation/memory usage and recovery work.
 
-Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. Multi-table workloads, secondary indexes, concurrent readers/writers and controlled cold-cache recovery are follow-on benchmarks, not hidden assumptions in these results.
+Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. The [catalog workload](catalog.md#resources-and-evidence) now measures typed multi-table transactions and secondary-index overhead separately. Concurrent readers/writers and controlled cold-cache recovery remain follow-on benchmarks.
 
 ## Managed maintenance
 
@@ -31,3 +31,7 @@ These are smoke measurements on the actual selected filesystem, not proof of har
 `cargo bench -p skrin --bench storage_scale -- /tmp 100000` accepts 1..=1,000,000 rows. It uses 108-byte encoded records, 1,000-row synced seed transactions, seven complete WAL replays, one independent backup, and seven checkpoint/prune/reopen cycles. Every reopened row is checked outside the timed regions. Output reports per-process sample medians/min/max; it does not mislabel seven samples as a robust p99 estimate.
 
 [The recorded comparison](measurements/maintenance-2026-10-07.md) includes identical-harness runs against the pre-change engine, three interleaved process pairs at 100k rows, larger/smaller workload checks, visible environment details, and the limitations of overlayfs/warm-cache measurements. The complete harness includes a live backup copy, so its process peak RSS is not a checkpoint-only memory measurement.
+
+## Catalog transactions and indexes
+
+`cargo bench -p skrin --bench catalog -- /local/scratch/parent 10000` measures equivalent synced two-row transactions with plain records, schema-bound rows and mandatory indexes, then a separate three-row transfer workload. Modes `plain`, `unindexed`, `indexed` permit separate-process Linux RSS measurements. [The recorded NVMe runs](measurements/catalog-2026-10-07.md) report repeated latency distributions and exact workload differences. They do not establish a speedup or saturation/cold-cache/power-loss result.
