@@ -2,17 +2,17 @@ use crate::directory::Directory;
 use crate::log::{Recovered, Wal, encode_transaction};
 use crate::{Error, Record, Result};
 use std::collections::BTreeMap;
-use std::ops::RangeBounds;
+use std::ops::{Deref, DerefMut, RangeBounds};
 use std::path::Path;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub(crate) struct State<R> {
     pub(crate) rows: BTreeMap<u64, R>,
-    wal: Option<Wal>,
+    pub(crate) wal: Option<Wal>,
     directory: Option<Directory>,
-    sequence: u64,
+    pub(crate) sequence: u64,
     recovered_tail_bytes: u64,
-    failed: bool,
+    pub(crate) failed: bool,
 }
 
 /// A single typed table with atomic transactions and `u64` primary keys.
@@ -21,7 +21,7 @@ pub(crate) struct State<R> {
 /// open its file. Never nest transactions or acquire another transaction while
 /// holding a guard: this initial lock-based implementation can deadlock.
 pub struct Database<R: Record> {
-    state: RwLock<State<R>>,
+    pub(crate) state: RwLock<State<R>>,
 }
 
 /// An inexpensive inspection of the current engine state.
@@ -110,7 +110,7 @@ impl<R: Record> Database<R> {
             return Err(Error::Poisoned);
         }
         Ok(WriteTransaction {
-            state,
+            state: WriteState::Owned(state),
             changes: BTreeMap::new(),
         })
     }
@@ -186,8 +186,30 @@ impl<R: Record> ReadTransaction<'_, R> {
 /// API may still commit earlier staging. `Database::write` rolls everything
 /// back when an error is propagated out of its closure.
 pub struct WriteTransaction<'a, R: Record> {
-    pub(crate) state: RwLockWriteGuard<'a, State<R>>,
+    pub(crate) state: WriteState<'a, R>,
     pub(crate) changes: BTreeMap<u64, Option<R>>,
+}
+
+pub(crate) enum WriteState<'a, R> {
+    Owned(RwLockWriteGuard<'a, State<R>>),
+    Borrowed(&'a mut State<R>),
+}
+impl<R> Deref for WriteState<'_, R> {
+    type Target = State<R>;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Self::Owned(state) => state,
+            Self::Borrowed(state) => state,
+        }
+    }
+}
+impl<R> DerefMut for WriteState<'_, R> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        match self {
+            Self::Owned(state) => state,
+            Self::Borrowed(state) => state,
+        }
+    }
 }
 
 impl<R: Record> WriteTransaction<'_, R> {
@@ -245,7 +267,22 @@ impl<R: Record> WriteTransaction<'_, R> {
     /// An I/O error poisons the handle and returns `CommitUncertain`: reopening
     /// can reveal that the transaction committed. Retrying external operations
     /// requires an application-level idempotency key.
-    pub fn commit(mut self) -> Result<u64> {
+    pub fn commit(self) -> Result<u64> {
+        self.commit_inner(false)
+    }
+
+    // Only the group worker calls this while retaining the exclusive guard.
+    // It releases neither the response nor the guard until the shared sync.
+    pub(crate) fn commit_unsynced(self) -> Result<u64> {
+        if !matches!(self.state, WriteState::Borrowed(_)) {
+            return Err(Error::InvalidOperation(
+                "deferred commit requires an enclosing publication guard".into(),
+            ));
+        }
+        self.commit_inner(true)
+    }
+
+    fn commit_inner(mut self, grouped: bool) -> Result<u64> {
         if self.changes.is_empty() {
             return Ok(self.state.sequence);
         }
@@ -259,7 +296,11 @@ impl<R: Record> WriteTransaction<'_, R> {
             // poison the handle. No whole-database copy occurs here.
             let frame = encode_transaction(sequence, &self.changes)?;
             if let Some(wal) = &mut self.state.wal
-                && let Err(error) = wal.append(&frame)
+                && let Err(error) = if grouped {
+                    wal.append_unsynced(&frame)
+                } else {
+                    wal.append(&frame)
+                }
             {
                 self.state.failed = true;
                 return Err(Error::CommitUncertain(error));

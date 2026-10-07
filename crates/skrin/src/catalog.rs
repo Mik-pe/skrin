@@ -798,3 +798,56 @@ impl<C: Catalog> CatalogWrite<'_, C> {
 #[cfg(test)]
 #[path = "catalog_tests.rs"]
 mod tests;
+
+pub(crate) struct CatalogBatch<'a, C: Catalog> {
+    indexes: std::sync::RwLockWriteGuard<'a, Indexes>,
+    state: std::sync::RwLockWriteGuard<'a, crate::database::State<Stored<C>>>,
+}
+impl<C: Catalog> crate::group_commit::Engine for CatalogDatabase<C> {
+    type Transaction<'a> = CatalogWrite<'a, C>;
+    type Batch<'a> = CatalogBatch<'a, C>;
+    fn persistent(&self) -> Result<bool> {
+        Ok(self.stats()?.persistent)
+    }
+    fn begin(&self) -> Result<Self::Batch<'_>> {
+        let indexes = self.indexes.write().map_err(|_| Error::Poisoned)?;
+        let state = self.database.state.write().map_err(|_| Error::Poisoned)?;
+        if state.failed {
+            return Err(Error::Poisoned);
+        }
+        Ok(CatalogBatch { indexes, state })
+    }
+    fn execute<T>(
+        batch: &mut Self::Batch<'_>,
+        operation: impl FnOnce(&mut CatalogWrite<'_, C>) -> Result<T>,
+    ) -> Result<(T, u64)> {
+        let (value, sequence, delta) = {
+            let mut tx = CatalogWrite {
+                indexes: &batch.indexes,
+                transaction: crate::WriteTransaction {
+                    state: crate::database::WriteState::Borrowed(&mut batch.state),
+                    changes: BTreeMap::new(),
+                },
+                staged: BTreeMap::new(),
+                next_slot: batch.indexes.next_slot,
+            };
+            let value = operation(&mut tx)?;
+            let delta = batch
+                .indexes
+                .prepare(&tx.transaction.state.rows, &tx.transaction.changes)?;
+            let sequence = tx.transaction.commit_unsynced()?;
+            (value, sequence, delta)
+        };
+        batch.indexes.apply(delta);
+        Ok((value, sequence))
+    }
+    fn failed(batch: &Self::Batch<'_>) -> bool {
+        batch.state.failed
+    }
+    fn sequence(batch: &Self::Batch<'_>) -> u64 {
+        batch.state.sequence
+    }
+    fn finish(batch: &mut Self::Batch<'_>) -> Result<()> {
+        crate::group_commit::finish_state(&mut batch.state)
+    }
+}

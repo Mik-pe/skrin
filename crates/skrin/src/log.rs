@@ -149,6 +149,21 @@ impl Wal {
         ))
     }
 
+    // The caller holds its exclusive publication guard through sync_group.
+    pub(crate) fn append_unsynced(&mut self, frame: &[u8]) -> io::Result<()> {
+        let bytes = self
+            .bytes
+            .checked_add(frame.len() as u64)
+            .ok_or_else(|| io::Error::other("log size exhausted"))?;
+        self.io.write_all(frame)?;
+        self.bytes = bytes;
+        Ok(())
+    }
+
+    pub(crate) fn sync_group(&self) -> io::Result<()> {
+        self.io.sync()
+    }
+
     pub(crate) fn append(&mut self, frame: &[u8]) -> io::Result<()> {
         let bytes = self
             .bytes

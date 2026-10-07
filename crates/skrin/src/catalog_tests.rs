@@ -521,3 +521,143 @@ mod managed {
         }
     }
 }
+
+#[test]
+fn grouped_transactions_keep_final_uniqueness_and_all_indexes_coherent() {
+    use crate::group_commit::GroupCommitOptions;
+    use std::sync::mpsc;
+    let disk = TestStorage::new(initial());
+    let group = reopen(&disk)
+        .into_group_commit(GroupCommitOptions {
+            queue_capacity: 3,
+            max_transactions: 3,
+            max_delay: std::time::Duration::ZERO,
+        })
+        .unwrap();
+    let (started, start) = mpsc::channel();
+    let (resume, wait) = mpsc::channel();
+    let paused = group
+        .submit(move |_| {
+            started.send(()).unwrap();
+            wait.recv().unwrap();
+            Ok(())
+        })
+        .unwrap();
+    start.recv().unwrap();
+    let first = group.submit(|tx| transfer(tx, 7, 1, 2, 25)).unwrap();
+    let conflict = group
+        .submit(|tx| {
+            tx.insert::<Accounts>(
+                3,
+                Account {
+                    email: "alice@example.test".into(),
+                    balance: 100,
+                },
+            )
+        })
+        .unwrap();
+    let last = group
+        .submit(|tx| {
+            assert_eq!(tx.lookup::<Accounts>(2, &75u64.to_be_bytes())?[0].0, 1);
+            transfer(tx, 8, 1, 2, 5)
+        })
+        .unwrap();
+    resume.send(()).unwrap();
+    paused.wait().unwrap();
+    let first = first.wait().unwrap();
+    assert!(matches!(
+        conflict.wait(),
+        Err(Error::UniqueViolation { index_id: 1 })
+    ));
+    let last = last.wait().unwrap();
+    assert_eq!((first.sequence, last.sequence), (3, 4));
+    assert_eq!(
+        (first.transactions_in_group, last.transactions_in_group),
+        (2, 2)
+    );
+    let db = group.into_database().unwrap();
+    let read = db.read().unwrap();
+    assert_eq!(read.get::<Accounts>(1).unwrap().unwrap().balance, 70);
+    assert_eq!(
+        read.lookup::<Accounts>(2, &130u64.to_be_bytes()).unwrap()[0].0,
+        2
+    );
+    assert!(read.get::<Accounts>(3).unwrap().is_none());
+    drop(read);
+    drop(db);
+    let db = reopen(&disk);
+    assert_eq!(db.read().unwrap().sequence(), 4);
+    let read = db.read().unwrap();
+    assert!(read.get::<Transfers>(7).unwrap().is_some());
+    assert!(read.get::<Transfers>(8).unwrap().is_some());
+}
+
+#[test]
+fn grouped_catalog_short_writes_and_shared_sync_recover_only_coherent_prefixes() {
+    use crate::group_commit::GroupCommitOptions;
+    use std::sync::mpsc;
+    let before = initial();
+    let probe = TestStorage::new(before.clone());
+    let db = reopen(&probe);
+    db.write(|tx| transfer(tx, 7, 1, 2, 25)).unwrap();
+    let first = probe.image().len() - before.len();
+    db.write(|tx| transfer(tx, 8, 1, 2, 5)).unwrap();
+    let length = probe.image().len() - before.len();
+    drop(db);
+    for cutoff in 0..=length {
+        let disk = TestStorage::new(before.clone());
+        let db = reopen(&disk);
+        let group = db
+            .into_group_commit(GroupCommitOptions {
+                queue_capacity: 2,
+                max_transactions: 2,
+                max_delay: std::time::Duration::ZERO,
+            })
+            .unwrap();
+        let (started, start) = mpsc::channel();
+        let (resume, wait) = mpsc::channel();
+        let paused = group
+            .submit(move |_| {
+                started.send(()).unwrap();
+                wait.recv().unwrap();
+                Ok(())
+            })
+            .unwrap();
+        start.recv().unwrap();
+        let a = group.submit(|tx| transfer(tx, 7, 1, 2, 25)).unwrap();
+        let b = group.submit(|tx| transfer(tx, 8, 1, 2, 5)).unwrap();
+        if cutoff == length {
+            disk.fail_sync_enospc();
+        } else {
+            disk.fail_enospc_after(cutoff);
+        }
+        resume.send(()).unwrap();
+        paused.wait().unwrap();
+        assert!(matches!(a.wait(), Err(Error::CommitUncertain(_))));
+        assert!(matches!(
+            b.wait(),
+            Err(Error::CommitUncertain(_)) | Err(Error::Poisoned)
+        ));
+        assert!(matches!(group.read(), Err(Error::Poisoned)));
+        drop(group);
+        disk.clear_faults();
+        let db = reopen(&disk);
+        let read = db.read().unwrap();
+        let committed = if cutoff < first {
+            0
+        } else if cutoff < length {
+            1
+        } else {
+            2
+        };
+        assert_eq!(read.sequence(), 2 + committed);
+        let balance = [100u64, 75, 70][committed as usize];
+        assert_eq!(read.get::<Accounts>(1).unwrap().unwrap().balance, balance);
+        assert_eq!(
+            read.lookup::<Accounts>(2, &balance.to_be_bytes()).unwrap()[0].0,
+            1
+        );
+        assert_eq!(read.get::<Transfers>(7).unwrap().is_some(), committed >= 1);
+        assert_eq!(read.get::<Transfers>(8).unwrap().is_some(), committed == 2);
+    }
+}
