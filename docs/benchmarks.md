@@ -16,7 +16,7 @@ Do not publish shared CI-runner output as a performance claim. Record the exact 
 
 Before comparing with redb, SQLite, SpacetimeDB or another engine, match durability and transaction semantics. Compare embedded storage paths with embedded storage paths, not a local pointer lookup with a network/backend benchmark. Include realistic record sizes, multiple dataset sizes, allocation/memory usage and recovery work.
 
-Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. Multi-table workloads, secondary indexes, concurrent readers/writers and controlled cold-cache recovery are follow-on benchmarks, not hidden assumptions in these results.
+Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. The [catalog workload](catalog.md#resources-and-evidence) now measures typed multi-table transactions and secondary-index overhead separately. Concurrent readers/writers and controlled cold-cache recovery remain follow-on benchmarks.
 
 ## Managed maintenance
 

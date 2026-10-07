@@ -72,7 +72,7 @@ jobs:
         run: |
           for iteration in $(seq 1 10); do
             echo "Release integration regression round $iteration"
-            cargo +${{ matrix.rust }} test -p skrin --test api --test managed --test maintenance --release --locked
+            cargo +${{ matrix.rust }} test -p skrin --test api --test managed --test maintenance --test catalog --release --locked
           done
       - name: Smoke benchmark including synced commits
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
@@ -93,3 +93,10 @@ jobs:
       - name: Smoke verified scale workload
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench storage_scale --locked -- "$RUNNER_TEMP" 10000
+      - name: Run atomic multi-table workload and catalog migration
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: cargo +${{ matrix.rust }} run -p skrin --example banking --locked -- "$RUNNER_TEMP/banking-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Smoke equivalent-durability catalog workloads
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench catalog --locked -- "$RUNNER_TEMP" 1000

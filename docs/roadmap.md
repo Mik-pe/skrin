@@ -12,11 +12,11 @@ Delivered in the next maintenance milestone: single-row streaming snapshot verif
 
 Remaining release work: allocator/application-memory accounting and enforced native-memory budgets, true filesystem reservation policies where supported, operator handling of malformed/unclaimed stages, exhaustive device/filesystem fault coverage, macOS hardware-flush review, and identified real-device long-duration/power-loss measurements. The current encoded budgets and projection are not substitutes for those guarantees. Preserve existing format fixtures and keep the legacy import path non-destructive.
 
-## Then: multi-table schemas and atomic indexes
+## Delivered: multi-table schemas and atomic indexes
 
-Design a schema-bound typed transaction spanning multiple tables and their unique/secondary indexes. Table and index definitions must be present at open and validated as part of schema identity. Do not add an optional index registration step that lets writers accidentally bypass uniqueness after restart.
+`catalog::CatalogDatabase<C>` provides a schema-owned persistent catalog, native enum rows, typed table markers, atomic multi-table transactions, final-view uniqueness and derived ordered indexes. Snapshot and every WAL transaction's index validation precede tail repair. Checkpoints, backups, explicit legacy import and real old/new-codec catalog migrations execute the same managed-generation protocol. See [the catalog contract and executable banking example](catalog.md).
 
-Keep one durable transaction envelope for row and index changes; validate uniqueness on the final staged view, including key swaps. Rebuild derived indexes from validated rows, compare against an independent reference model, and cover rollback/recovery/migration with multiple tables. Start with one executable two-table example and narrow APIs, not placeholder crates.
+The original `Database<R>` remains the lock-based single-table baseline. This milestone adds no MVCC, concurrent writer, SQL or background maintenance. Index/row memory and maintenance headroom still require operational review.
 
 ## Later: concurrency justified by measurements
 

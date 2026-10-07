@@ -83,7 +83,7 @@ impl Wal {
     }
 
     pub(crate) fn recover<R: Record>(io: Box<dyn Storage>) -> Result<(Self, Recovered<R>)> {
-        Self::recover_seed(io, BTreeMap::new(), 0, None)
+        Self::recover_seed(io, BTreeMap::new(), 0, None, |_, _| Ok(()))
     }
 
     // Directory segments deliberately use format 2. Opening an internal segment
@@ -104,14 +104,15 @@ impl Wal {
         })
     }
 
-    pub(crate) fn open_segment<R: Record>(
+    pub(crate) fn open_segment_checked<R: Record>(
         path: &Path,
         rows: BTreeMap<u64, R>,
         sequence: u64,
         generation: u64,
+        validate: impl FnMut(&BTreeMap<u64, R>, &BTreeMap<u64, Option<R>>) -> Result<()>,
     ) -> Result<(Self, Recovered<R>)> {
         let file = LockedFile::acquire(File::options().read(true).write(true).open(path)?)?;
-        Self::recover_seed(Box::new(file), rows, sequence, Some(generation))
+        Self::recover_seed(Box::new(file), rows, sequence, Some(generation), validate)
     }
 
     fn recover_seed<R: Record>(
@@ -119,8 +120,10 @@ impl Wal {
         rows: BTreeMap<u64, R>,
         sequence: u64,
         generation: Option<u64>,
+        validate: impl FnMut(&BTreeMap<u64, R>, &BTreeMap<u64, Option<R>>) -> Result<()>,
     ) -> Result<(Self, Recovered<R>)> {
-        let (rows, sequence, valid_len) = replay::<R>(&mut *io, rows, sequence, generation)?;
+        let (rows, sequence, valid_len) =
+            replay::<R>(&mut *io, rows, sequence, generation, validate)?;
         let original_len = io.size()?;
         if original_len != valid_len {
             io.truncate(valid_len)?;
@@ -275,6 +278,7 @@ fn replay<R: Record>(
     mut rows: BTreeMap<u64, R>,
     mut sequence: u64,
     generation: Option<u64>,
+    mut validate: impl FnMut(&BTreeMap<u64, R>, &BTreeMap<u64, Option<R>>) -> Result<()>,
 ) -> Result<(BTreeMap<u64, R>, u64, u64)> {
     let file_len = io.size()?;
     if file_len < HEADER_LEN as u64 {
@@ -304,6 +308,7 @@ fn replay<R: Record>(
         }
         offset += 24;
     }
+    validate(&rows, &BTreeMap::new()).map_err(|e| Error::corrupt(offset, e.to_string()))?;
     let mut payload = Vec::new();
     while offset < file_len {
         let available = (file_len - offset).min(FRAME_HEADER_LEN as u64) as usize;
@@ -360,6 +365,7 @@ fn replay<R: Record>(
         }
         let changes = decode_transaction::<R>(&payload)
             .map_err(|error| Error::corrupt(offset, error.to_string()))?;
+        validate(&rows, &changes).map_err(|e| Error::corrupt(offset, e.to_string()))?;
         for (key, row) in changes {
             match row {
                 Some(row) => {

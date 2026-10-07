@@ -100,6 +100,19 @@ Skrin validates schema identity before decoding and rejects trailing record byte
 
 </details>
 
+## Tables and indexes in one transaction
+
+`catalog::CatalogDatabase<C>` adds schema-owned typed tables and mandatory unique/non-unique indexes. A transaction validates all final constraints, syncs one WAL frame and publishes rows/indexes together. Indexes rebuild and validate before recovery can repair a tail. Borrowed reads still block writers.
+
+The executable banking example debits/credits Accounts, records an operation ID in Transfers, checks duplicate rollback, then checkpoints and migrates to a real V2 Account codec:
+
+```sh
+cargo run -p skrin --example banking --locked
+cargo run -p skrin --example banking --locked -- /path/to/NEW-banking-directory
+```
+
+See [catalog definitions, transactions, format and explicit legacy import](docs/catalog.md). The original `Database<R>` API remains available as the single-table baseline.
+
 ## Keep it, compact it, evolve it
 
 | Operation | Contract |
@@ -167,14 +180,14 @@ Read [durability](docs/durability.md) and the [managed storage protocol](docs/ma
 
 | Area | Current boundary |
 | --- | --- |
-| Data model | One typed table per database; `u64` primary keys; data and primary index fit in RAM |
+| Data model | `Database<R>` for one table; `CatalogDatabase<C>` for typed schemas; u64 keys per table; rows and all indexes fit in RAM |
 | Reads | Borrowed values, ordered iteration, primary-key ranges; read guards block writers |
 | Writes | One serialized writer; staged deltas, not whole-database copies on each commit |
 | Maintenance | Explicit and serialized; checkpoint verification retains one decoded row at a time; enforceable encoded-size/count budgets, not a process-memory or disk-space reservation |
 | Retention | Call `checkpoint_if_needed` and `reclaim` (or `checkpoint`/`prune`); no automatic background service |
 | Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
 | Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |
-| Not implemented | Multi-table schemas, secondary indexes, MVCC, group commit, derive macros, encryption, replication |
+| Not implemented | MVCC, group commit, derive macros, encryption, replication |
 
 Never nest transactions, hold guards across `await`, or perform external side effects in transaction/migration closures. Records must have immutable value semantics. A Rust-only API and advisory locks are not access control against another process with filesystem permissions.
 

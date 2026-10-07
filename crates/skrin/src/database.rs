@@ -6,8 +6,8 @@ use std::ops::RangeBounds;
 use std::path::Path;
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-struct State<R> {
-    rows: BTreeMap<u64, R>,
+pub(crate) struct State<R> {
+    pub(crate) rows: BTreeMap<u64, R>,
     wal: Option<Wal>,
     directory: Option<Directory>,
     sequence: u64,
@@ -79,7 +79,7 @@ impl<R: Record> Database<R> {
         Ok(Self::from_recovered(wal, recovered))
     }
 
-    fn from_recovered(wal: Wal, recovered: Recovered<R>) -> Self {
+    pub(crate) fn from_recovered(wal: Wal, recovered: Recovered<R>) -> Self {
         Self {
             state: RwLock::new(State {
                 rows: recovered.rows,
@@ -145,7 +145,7 @@ impl<R: Record> Database<R> {
 
 /// A consistent borrowed view. Dropping this guard releases its read lock.
 pub struct ReadTransaction<'a, R: Record> {
-    state: RwLockReadGuard<'a, State<R>>,
+    pub(crate) state: RwLockReadGuard<'a, State<R>>,
 }
 
 impl<R: Record> ReadTransaction<'_, R> {
@@ -186,8 +186,8 @@ impl<R: Record> ReadTransaction<'_, R> {
 /// API may still commit earlier staging. `Database::write` rolls everything
 /// back when an error is propagated out of its closure.
 pub struct WriteTransaction<'a, R: Record> {
-    state: RwLockWriteGuard<'a, State<R>>,
-    changes: BTreeMap<u64, Option<R>>,
+    pub(crate) state: RwLockWriteGuard<'a, State<R>>,
+    pub(crate) changes: BTreeMap<u64, Option<R>>,
 }
 
 impl<R: Record> WriteTransaction<'_, R> {
