@@ -1,5 +1,11 @@
 # Changelog
 
+## Process-budget recovery and checkpoint overlap
+
+- Exercise actual kernel OOM during production checkpoint verification in a private Linux cgroup; require bounded-worker death and independently verify acknowledged recovery, orphan reclamation and backup.
+- Document trusted codec allocations, external application-process containment and uncertain outcomes without claiming a library allocator/RSS cap.
+- Pause production catalog checkpoint verification to prove coherent old/current row/index snapshots remain readable while maintenance excludes a subsequent writer.
+
 ## Bounded immutable read versions
 
 - Add opt-in coherent immutable row/index snapshots for single tables and catalogs, reusing immediate/shared sync boundaries and independent group framing.
