@@ -1,5 +1,10 @@
 # Changelog
 
+## Sustained resource measurement
+
+- Add a verified update/delete/insert maintenance benchmark with Linux process RSS, logical/per-inode allocated disk overlap, checkpoint/reclaim pauses and independent-process warm/advisory-evicted recovery.
+- Preserve mandatory syncs, report observed read bytes and cache/accounting limits, and exercise the complete harness in CI.
+
 ## Unsynced survival and storage-full evidence
 
 - Expand the test-only production persistence projection with unsynced namespace subsets, observed file-write survival, exhaustive bounded WAL append prefixes and explicit acknowledgment/publication tracking.

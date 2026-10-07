@@ -198,9 +198,12 @@ cargo bench -p skrin --bench baseline
 cargo bench -p skrin --bench baseline -- --durable /tmp
 cargo bench -p skrin --bench maintenance -- /tmp
 cargo bench -p skrin --bench storage_scale -- /tmp 100000
+cargo bench -p skrin --bench resources -- /local/scratch 100000 16 512 1000 --advisory-evict
 ```
 
 The baseline separates a plain `BTreeMap`, volatile operations and synced transactions. Maintenance measures checkpoint/prune pauses, disk footprint and warm-cache reopen with verification after every round. The scale harness exercises 10k–1M rows with the same verified storage workload. See [the measured before/after results and limitations](docs/measurements/maintenance-2026-10-07.md). Shared CI/container timings are not physical-device guarantees or cross-engine comparisons.
+
+The resource harness runs sustained updates plus delete/insert churn, measures Linux process RSS and logical/per-inode allocated disk bytes, and verifies fresh-process reopen before and after checkpoint/reclaim. Optional Linux/Python3 file-cache advice reports unadvised/advised opens and observed read bytes; device caches remain uncontrolled. Use an identified local filesystem/device and an existing scratch parent. See [methodology](docs/benchmarks.md#sustained-resources-and-cache-state) and [recorded local NVMe results](docs/measurements/resources-2026-10-07.md).
 
 ## Work on Skrin
 
