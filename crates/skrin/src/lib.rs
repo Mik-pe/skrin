@@ -18,6 +18,7 @@ pub mod codec;
 mod database;
 mod directory;
 mod error;
+pub mod group_commit;
 mod log;
 mod maintenance_options;
 #[cfg(all(test, unix))]

@@ -120,3 +120,15 @@ jobs:
         run: |
           scripts/test-storage-full.sh --privileged-namespace
           scripts/test-storage-full.sh --release --privileged-namespace
+
+      - name: Run independent group commit, operation retry and managed lifecycle
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: cargo +${{ matrix.rust }} run -p skrin --example group_commit --locked -- "$RUNNER_TEMP/groups-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Smoke equivalent immediate/group commit at low load and saturation
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: |
+          for mode in immediate group; do
+            cargo +${{ matrix.rust }} bench -p skrin --bench group_commit --locked -- "$RUNNER_TEMP" "$mode" 1 16 1000 1000
+            cargo +${{ matrix.rust }} bench -p skrin --bench group_commit --locked -- "$RUNNER_TEMP" "$mode" 8 16 0 1000
+          done

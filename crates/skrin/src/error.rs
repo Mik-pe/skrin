@@ -19,6 +19,8 @@ pub enum Error {
     InvalidOperation(String),
     /// Another handle or process owns the database file lock.
     Busy,
+    /// Group admission queue is full; the callback was not invoked/admitted.
+    QueueFull,
     /// A prior commit failure or panic requires closing and reopening.
     Poisoned,
     /// A complete structure failed validation. No automatic repair is attempted.
@@ -73,6 +75,7 @@ impl fmt::Display for Error {
                 )
             }
             Self::InvalidOperation(reason) => write!(f, "invalid operation: {reason}"),
+            Self::QueueFull => f.write_str("group commit queue is full; request was not admitted"),
             Self::Busy => f.write_str("database is already open by another handle"),
             Self::Poisoned => f.write_str("database handle is poisoned; close and reopen"),
             Self::Corrupt { offset, reason } => {

@@ -1,0 +1,494 @@
+[
+  {
+    "file": "group-commit-2026-10-07-run1-low-group.txt",
+    "workload": {
+      "transactions": 500.0,
+      "elapsed_s": 9.817037,
+      "tx_per_s": 50.932
+    },
+    "latency": {
+      "samples": 500.0,
+      "p50_us": 7470.479,
+      "p95_us": 14080.997,
+      "p99_us": 16028.049,
+      "max_us": 140026.248
+    },
+    "call_to_callback": {
+      "samples": 500.0,
+      "p50_us": 1102.555,
+      "p95_us": 1120.49,
+      "p99_us": 1169.283,
+      "max_us": 1219.41
+    },
+    "admission_to_callback": {
+      "samples": 500.0,
+      "p50_us": 1101.028,
+      "p95_us": 1118.984,
+      "p99_us": 1167.778,
+      "max_us": 1217.624
+    },
+    "groups": "groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}",
+    "memory": [
+      "memory,VmHWM:\t    3352 kB",
+      "memory,VmRSS:\t    3352 kB",
+      "memory,VmHWM:\t    3384 kB",
+      "memory,VmRSS:\t    3384 kB",
+      "memory,VmHWM:\t    2888 kB",
+      "memory,VmRSS:\t    2888 kB"
+    ],
+    "maintenance": "maintenance,sequence=502,checkpoint_ms=49.870,reclaim_ms=12.345,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))",
+    "reopen": {
+      "open_ms": 6.14,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run1-low-immediate.txt",
+    "workload": {
+      "transactions": 500.0,
+      "elapsed_s": 9.1901,
+      "tx_per_s": 54.406
+    },
+    "latency": {
+      "samples": 500.0,
+      "p50_us": 6510.316,
+      "p95_us": 13009.227,
+      "p99_us": 15168.309,
+      "max_us": 62970.559
+    },
+    "call_to_callback": {
+      "samples": 500.0,
+      "p50_us": 0.382,
+      "p95_us": 0.594,
+      "p99_us": 0.785,
+      "max_us": 5.353
+    },
+    "admission_to_callback": {},
+    "groups": "groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}",
+    "memory": [
+      "memory,VmHWM:\t    3340 kB",
+      "memory,VmRSS:\t    3340 kB",
+      "memory,VmHWM:\t    3376 kB",
+      "memory,VmRSS:\t    3376 kB",
+      "memory,VmHWM:\t    2888 kB",
+      "memory,VmRSS:\t    2888 kB"
+    ],
+    "maintenance": "maintenance,sequence=502,checkpoint_ms=51.025,reclaim_ms=6.230,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))",
+    "reopen": {
+      "open_ms": 9.855,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run1-saturation-group.txt",
+    "workload": {
+      "transactions": 1600.0,
+      "elapsed_s": 1.779,
+      "tx_per_s": 899.382
+    },
+    "latency": {
+      "samples": 1600.0,
+      "p50_us": 7261.263,
+      "p95_us": 14362.426,
+      "p99_us": 17965.846,
+      "max_us": 19171.205
+    },
+    "call_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 1080.464,
+      "p95_us": 1153.938,
+      "p99_us": 1224.174,
+      "max_us": 1298.782
+    },
+    "admission_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 1076.429,
+      "p95_us": 1150.195,
+      "p99_us": 1211.298,
+      "max_us": 1278.232
+    },
+    "groups": "groups,sync_groups=200,mean_frames=8.000,max_frames=8,histogram={8: 200}",
+    "memory": [
+      "memory,VmHWM:\t    3784 kB",
+      "memory,VmRSS:\t    3784 kB",
+      "memory,VmHWM:\t    3824 kB",
+      "memory,VmRSS:\t    3824 kB",
+      "memory,VmHWM:\t    3120 kB",
+      "memory,VmRSS:\t    3120 kB"
+    ],
+    "maintenance": "maintenance,sequence=1602,checkpoint_ms=54.549,reclaim_ms=5.305,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944))",
+    "reopen": {
+      "open_ms": 12.642,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run1-saturation-immediate.txt",
+    "workload": {
+      "transactions": 1600.0,
+      "elapsed_s": 12.634351,
+      "tx_per_s": 126.639
+    },
+    "latency": {
+      "samples": 1600.0,
+      "p50_us": 6296.901,
+      "p95_us": 13178.95,
+      "p99_us": 611741.263,
+      "max_us": 7317450.795
+    },
+    "call_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 0.16,
+      "p95_us": 0.287,
+      "p99_us": 606074.344,
+      "max_us": 7311635.052
+    },
+    "admission_to_callback": {},
+    "groups": "groups,sync_groups=1600,mean_frames=1.000,max_frames=1,histogram={1: 1600}",
+    "memory": [
+      "memory,VmHWM:\t    3876 kB",
+      "memory,VmRSS:\t    3876 kB",
+      "memory,VmHWM:\t    3940 kB",
+      "memory,VmRSS:\t    3940 kB",
+      "memory,VmHWM:\t    3096 kB",
+      "memory,VmRSS:\t    3096 kB"
+    ],
+    "maintenance": "maintenance,sequence=1602,checkpoint_ms=60.125,reclaim_ms=10.086,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944))",
+    "reopen": {
+      "open_ms": 7.727,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run2-low-group.txt",
+    "workload": {
+      "transactions": 500.0,
+      "elapsed_s": 9.577999,
+      "tx_per_s": 52.203
+    },
+    "latency": {
+      "samples": 500.0,
+      "p50_us": 7604.483,
+      "p95_us": 14141.694,
+      "p99_us": 16043.246,
+      "max_us": 26725.919
+    },
+    "call_to_callback": {
+      "samples": 500.0,
+      "p50_us": 1103.655,
+      "p95_us": 1132.263,
+      "p99_us": 1173.877,
+      "max_us": 2358.242
+    },
+    "admission_to_callback": {
+      "samples": 500.0,
+      "p50_us": 1102.134,
+      "p95_us": 1130.404,
+      "p99_us": 1172.412,
+      "max_us": 2356.945
+    },
+    "groups": "groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}",
+    "memory": [
+      "memory,VmHWM:\t    3356 kB",
+      "memory,VmRSS:\t    3356 kB",
+      "memory,VmHWM:\t    3388 kB",
+      "memory,VmRSS:\t    3388 kB",
+      "memory,VmHWM:\t    2952 kB",
+      "memory,VmRSS:\t    2952 kB"
+    ],
+    "maintenance": "maintenance,sequence=502,checkpoint_ms=53.674,reclaim_ms=6.057,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))",
+    "reopen": {
+      "open_ms": 5.827,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run2-low-immediate.txt",
+    "workload": {
+      "transactions": 500.0,
+      "elapsed_s": 9.547789,
+      "tx_per_s": 52.368
+    },
+    "latency": {
+      "samples": 500.0,
+      "p50_us": 7328.123,
+      "p95_us": 12550.873,
+      "p99_us": 14570.918,
+      "max_us": 292129.594
+    },
+    "call_to_callback": {
+      "samples": 500.0,
+      "p50_us": 0.488,
+      "p95_us": 0.578,
+      "p99_us": 0.724,
+      "max_us": 0.844
+    },
+    "admission_to_callback": {},
+    "groups": "groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}",
+    "memory": [
+      "memory,VmHWM:\t    3340 kB",
+      "memory,VmRSS:\t    3340 kB",
+      "memory,VmHWM:\t    3376 kB",
+      "memory,VmRSS:\t    3376 kB",
+      "memory,VmHWM:\t    2952 kB",
+      "memory,VmRSS:\t    2952 kB"
+    ],
+    "maintenance": "maintenance,sequence=502,checkpoint_ms=53.141,reclaim_ms=5.869,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))",
+    "reopen": {
+      "open_ms": 6.339,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run2-saturation-group.txt",
+    "workload": {
+      "transactions": 1600.0,
+      "elapsed_s": 1.748354,
+      "tx_per_s": 915.146
+    },
+    "latency": {
+      "samples": 1600.0,
+      "p50_us": 7258.712,
+      "p95_us": 13865.805,
+      "p99_us": 16638.341,
+      "max_us": 28055.321
+    },
+    "call_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 1066.156,
+      "p95_us": 1142.939,
+      "p99_us": 1173.907,
+      "max_us": 1252.295
+    },
+    "admission_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 1062.062,
+      "p95_us": 1138.698,
+      "p99_us": 1161.9,
+      "max_us": 1251.466
+    },
+    "groups": "groups,sync_groups=200,mean_frames=8.000,max_frames=8,histogram={8: 200}",
+    "memory": [
+      "memory,VmHWM:\t    3776 kB",
+      "memory,VmRSS:\t    3776 kB",
+      "memory,VmHWM:\t    3816 kB",
+      "memory,VmRSS:\t    3816 kB",
+      "memory,VmHWM:\t    3128 kB",
+      "memory,VmRSS:\t    3128 kB"
+    ],
+    "maintenance": "maintenance,sequence=1602,checkpoint_ms=50.504,reclaim_ms=5.578,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944))",
+    "reopen": {
+      "open_ms": 6.356,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run2-saturation-immediate.txt",
+    "workload": {
+      "transactions": 1600.0,
+      "elapsed_s": 12.698842,
+      "tx_per_s": 125.996
+    },
+    "latency": {
+      "samples": 1600.0,
+      "p50_us": 7286.976,
+      "p95_us": 12089.768,
+      "p99_us": 188895.989,
+      "max_us": 9216676.57
+    },
+    "call_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 0.154,
+      "p95_us": 0.258,
+      "p99_us": 183420.115,
+      "max_us": 9206770.639
+    },
+    "admission_to_callback": {},
+    "groups": "groups,sync_groups=1600,mean_frames=1.000,max_frames=1,histogram={1: 1600}",
+    "memory": [
+      "memory,VmHWM:\t    3848 kB",
+      "memory,VmRSS:\t    3848 kB",
+      "memory,VmHWM:\t    3904 kB",
+      "memory,VmRSS:\t    3904 kB",
+      "memory,VmHWM:\t    3124 kB",
+      "memory,VmRSS:\t    3124 kB"
+    ],
+    "maintenance": "maintenance,sequence=1602,checkpoint_ms=53.078,reclaim_ms=6.186,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944))",
+    "reopen": {
+      "open_ms": 9.16,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run3-low-group.txt",
+    "workload": {
+      "transactions": 500.0,
+      "elapsed_s": 10.011376,
+      "tx_per_s": 49.943
+    },
+    "latency": {
+      "samples": 500.0,
+      "p50_us": 9776.319,
+      "p95_us": 13426.808,
+      "p99_us": 16381.931,
+      "max_us": 149368.895
+    },
+    "call_to_callback": {
+      "samples": 500.0,
+      "p50_us": 1078.59,
+      "p95_us": 1112.072,
+      "p99_us": 1132.297,
+      "max_us": 1407.661
+    },
+    "admission_to_callback": {
+      "samples": 500.0,
+      "p50_us": 1077.157,
+      "p95_us": 1109.41,
+      "p99_us": 1131.571,
+      "max_us": 1405.823
+    },
+    "groups": "groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}",
+    "memory": [
+      "memory,VmHWM:\t    3420 kB",
+      "memory,VmRSS:\t    3420 kB",
+      "memory,VmHWM:\t    3452 kB",
+      "memory,VmRSS:\t    3452 kB",
+      "memory,VmHWM:\t    3008 kB",
+      "memory,VmRSS:\t    3008 kB"
+    ],
+    "maintenance": "maintenance,sequence=502,checkpoint_ms=53.118,reclaim_ms=15.374,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))",
+    "reopen": {
+      "open_ms": 5.771,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run3-low-immediate.txt",
+    "workload": {
+      "transactions": 500.0,
+      "elapsed_s": 10.032856,
+      "tx_per_s": 49.836
+    },
+    "latency": {
+      "samples": 500.0,
+      "p50_us": 8989.067,
+      "p95_us": 12358.626,
+      "p99_us": 17071.726,
+      "max_us": 619151.601
+    },
+    "call_to_callback": {
+      "samples": 500.0,
+      "p50_us": 0.566,
+      "p95_us": 0.928,
+      "p99_us": 1.164,
+      "max_us": 5.406
+    },
+    "admission_to_callback": {},
+    "groups": "groups,sync_groups=500,mean_frames=1.000,max_frames=1,histogram={1: 500}",
+    "memory": [
+      "memory,VmHWM:\t    3340 kB",
+      "memory,VmRSS:\t    3340 kB",
+      "memory,VmHWM:\t    3376 kB",
+      "memory,VmRSS:\t    3376 kB",
+      "memory,VmHWM:\t    2952 kB",
+      "memory,VmRSS:\t    2952 kB"
+    ],
+    "maintenance": "maintenance,sequence=502,checkpoint_ms=56.574,reclaim_ms=8.862,snapshot_bytes=29282,before=(108069, Some(126976)),staged=(137435, Some(167936)),retained=(137435, Some(167936))",
+    "reopen": {
+      "open_ms": 5.464,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run3-saturation-group.txt",
+    "workload": {
+      "transactions": 1600.0,
+      "elapsed_s": 1.960823,
+      "tx_per_s": 815.984
+    },
+    "latency": {
+      "samples": 1600.0,
+      "p50_us": 8503.26,
+      "p95_us": 14079.126,
+      "p99_us": 17230.012,
+      "max_us": 54161.99
+    },
+    "call_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 1062.581,
+      "p95_us": 1155.158,
+      "p99_us": 1224.346,
+      "max_us": 1332.655
+    },
+    "admission_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 1056.707,
+      "p95_us": 1150.03,
+      "p99_us": 1222.888,
+      "max_us": 1331.781
+    },
+    "groups": "groups,sync_groups=200,mean_frames=8.000,max_frames=8,histogram={8: 200}",
+    "memory": [
+      "memory,VmHWM:\t    3764 kB",
+      "memory,VmRSS:\t    3764 kB",
+      "memory,VmHWM:\t    3804 kB",
+      "memory,VmRSS:\t    3804 kB",
+      "memory,VmHWM:\t    3192 kB",
+      "memory,VmRSS:\t    3192 kB"
+    ],
+    "maintenance": "maintenance,sequence=1602,checkpoint_ms=52.533,reclaim_ms=9.852,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944))",
+    "reopen": {
+      "open_ms": 6.512,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  },
+  {
+    "file": "group-commit-2026-10-07-run3-saturation-immediate.txt",
+    "workload": {
+      "transactions": 1600.0,
+      "elapsed_s": 15.038191,
+      "tx_per_s": 106.396
+    },
+    "latency": {
+      "samples": 1600.0,
+      "p50_us": 9006.369,
+      "p95_us": 13610.799,
+      "p99_us": 332726.792,
+      "max_us": 13228507.432
+    },
+    "call_to_callback": {
+      "samples": 1600.0,
+      "p50_us": 0.177,
+      "p95_us": 0.317,
+      "p99_us": 41.811,
+      "max_us": 13222566.224
+    },
+    "admission_to_callback": {},
+    "groups": "groups,sync_groups=1600,mean_frames=1.000,max_frames=1,histogram={1: 1600}",
+    "memory": [
+      "memory,VmHWM:\t    3784 kB",
+      "memory,VmRSS:\t    3784 kB",
+      "memory,VmHWM:\t    3844 kB",
+      "memory,VmRSS:\t    3844 kB",
+      "memory,VmHWM:\t    3116 kB",
+      "memory,VmRSS:\t    3116 kB"
+    ],
+    "maintenance": "maintenance,sequence=1602,checkpoint_ms=57.081,reclaim_ms=5.735,snapshot_bytes=93082,before=(344569, Some(364544)),staged=(437735, Some(466944)),retained=(437735, Some(466944))",
+    "reopen": {
+      "open_ms": 12.937,
+      "cache_policy": "no_advice",
+      "includes_recovery_sync": "true"
+    }
+  }
+]

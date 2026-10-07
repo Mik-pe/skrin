@@ -22,7 +22,7 @@ The original `Database<R>` remains the lock-based single-table baseline. This mi
 
 ## Later: concurrency justified by measurements
 
-Use the current lock-based engine as the correctness/performance baseline. Explore snapshot readers and group commit only after index/transaction semantics are settled. Reader version retention, low-load latency, backpressure and sync-before-publication remain first-class constraints. No normal commit should clone the complete database merely to claim MVCC.
+Use the current lock-based engine as the correctness/performance baseline. Explore snapshot readers and group commit only after index/transaction semantics are settled. [Bounded independent group commit](group-commit.md) is implemented with a maximum collection delay and explicit queue refusal, preserving shared-sync-before-publication; [repeated equivalent-durability NVMe measurements](measurements/group-commit-2026-10-07.md) report its saturation benefit and low-load waiting cost. Reader version retention and snapshot readers remain future work. No normal commit should clone the complete database merely to claim MVCC.
 
 A future fast mode may have a different durability contract, but it must be explicit in the API and benchmarks. No SQL, replication or network service is required for this roadmap.
 

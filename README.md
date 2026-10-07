@@ -188,9 +188,12 @@ Read [durability](docs/durability.md) and the [managed storage protocol](docs/ma
 | Retention | Call `checkpoint_if_needed` and `reclaim` (or `checkpoint`/`prune`); no automatic background service |
 | Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
 | Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |
-| Not implemented | MVCC, group commit, derive macros, encryption, replication |
+| Group commit | Opt-in bounded independent requests; shared sync before row/index visibility and successful responses |
+| Not implemented | MVCC, derive macros, encryption, replication |
 
 Never nest transactions, hold guards across `await`, or perform external side effects in transaction/migration closures. Records must have immutable value semantics. A Rust-only API and advisory locks are not access control against another process with filesystem permissions.
+
+Opt-in [bounded independent group commit](docs/group-commit.md) shares synchronization across queued single-table or catalog transactions. The immediate-sync API remains the baseline; readers still block writers. The executable `group_commit` example covers dropped responses, operation-ID retry and managed maintenance.
 
 ## Measure the right thing
 

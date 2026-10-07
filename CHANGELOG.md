@@ -1,5 +1,11 @@
 # Changelog
 
+## Bounded independent group commit
+
+- Add opt-in persistent single-table/catalog queues with bounded admission and collection delay, separate transaction frames and shared synchronization before row/index visibility or successful responses.
+- Preserve independent rollback, prefix recovery and uncertainty; do not replay callbacks or clone full tables. Expose receipts, dropped-response semantics and explicit drain for offline migration.
+- Add production append/sync/persistence faults, catalog constraints/index checks, queue/cancellation/panic/publication regressions, a complete managed example and equivalent durable low-load/saturation benchmark.
+
 ## Linux/macOS flush contract review
 
 - Review exact MSRV/current standard-library sources and platform contracts; document that reviewed macOS `sync_all` requests `F_FULLFSYNC` without weaker fallback.
@@ -65,4 +71,4 @@
 
 ### Boundaries
 
-Experimental API, typed single-table and schema-bound multi-table modes, lock-based readers and one writer. No MVCC, group commit, encryption or replication. Persistence currently requires Unix. Publishing is disabled pending owner release decisions.
+Experimental API, typed single-table and schema-bound multi-table modes, lock-based readers and one writer. No MVCC, encryption or replication. Persistence currently requires Unix. Publishing is disabled pending owner release decisions.
