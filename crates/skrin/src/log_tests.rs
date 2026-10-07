@@ -224,3 +224,39 @@ fn recovery_read_and_truncate_failures_are_reported_not_hidden() {
     io.clear_faults();
     assert!(recover(&io).is_ok());
 }
+
+#[test]
+fn accelerated_crc_matches_bitwise_reference_and_incremental_boundaries() {
+    fn reference(bytes: &[u8]) -> u32 {
+        let mut crc = !0u32;
+        for &byte in bytes {
+            crc ^= u32::from(byte);
+            for _ in 0..8 {
+                crc = (crc >> 1) ^ (0xedb8_8320 & 0u32.wrapping_sub(crc & 1));
+            }
+        }
+        !crc
+    }
+    let data: Vec<_> = (0u32..8192)
+        .map(|i| i.wrapping_mul(713).wrapping_add(i >> 3) as u8)
+        .collect();
+    for alignment in 0..8 {
+        for len in (0..256).chain([511, 1024, 2049, 4096]) {
+            let bytes = &data[alignment..alignment + len];
+            assert_eq!(
+                checksum(bytes),
+                reference(bytes),
+                "alignment {alignment}, length {len}"
+            );
+        }
+    }
+    for chunk in 1..65 {
+        let mut crc = Checksum::new();
+        for bytes in data.chunks(chunk) {
+            crc.update(bytes);
+            crc.update(&[]);
+        }
+        assert_eq!(crc.finish(), reference(&data));
+    }
+    assert_eq!(checksum(b"123456789"), 0xcbf4_3926);
+}

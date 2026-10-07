@@ -14,3 +14,7 @@ harness = false
 [[bench]]
 name = "maintenance"
 harness = false
+
+[[bench]]
+name = "storage_scale"
+harness = false

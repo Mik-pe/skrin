@@ -35,6 +35,13 @@ pub enum Error {
     Codec(String),
     /// A record or transaction exceeded a documented byte limit.
     LimitExceeded { limit: usize },
+    /// A maintenance operation would exceed an explicit encoded-resource limit.
+    /// `required` is the minimum needed at the rejected step, not a reservation.
+    BudgetExceeded {
+        resource: &'static str,
+        limit: u64,
+        required: u64,
+    },
     /// The monotonically increasing transaction sequence has been exhausted.
     SequenceExhausted,
     /// Persistent storage is unavailable on this platform.
@@ -79,6 +86,16 @@ impl fmt::Display for Error {
             Self::DuplicateKey(key) => write!(f, "duplicate primary key {key}"),
             Self::Codec(reason) => write!(f, "record codec: {reason}"),
             Self::LimitExceeded { limit } => write!(f, "encoded data exceeds {limit} bytes"),
+            Self::BudgetExceeded {
+                resource,
+                limit,
+                required,
+            } => {
+                write!(
+                    f,
+                    "maintenance budget for {resource}: need at least {required}, limit {limit}"
+                )
+            }
             Self::SequenceExhausted => f.write_str("transaction sequence exhausted"),
             Self::UnsupportedPlatform => {
                 f.write_str("persistent storage currently requires a Unix filesystem")

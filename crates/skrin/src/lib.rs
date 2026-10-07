@@ -13,14 +13,21 @@ mod database;
 mod directory;
 mod error;
 mod log;
+mod maintenance_options;
+#[cfg(all(test, unix))]
+mod persistence_model;
 mod snapshot;
 #[cfg(test)]
 mod test_support;
 
 pub use codec::{Decoder, Encoder};
 pub use database::{Database, ReadTransaction, Stats, WriteTransaction};
-pub use directory::{Checkpoint, GenerationInfo, Migration, PruneReport};
+pub use directory::{
+    Checkpoint, GenerationInfo, Migration, PruneReport, ReclaimReport, StorageEntry,
+    StorageEntryKind, StorageInventory,
+};
 pub use error::{Error, Result};
+pub use maintenance_options::{CheckpointPolicy, MaintenanceEstimate, MaintenanceOptions};
 
 /// Stable application identity, independent of the storage format version.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

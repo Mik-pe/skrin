@@ -381,3 +381,241 @@ fn generation_formats_match_independently_encoded_fixtures() {
         bytes(include_str!("../tests/fixtures/segment-v2.hex"))
     );
 }
+
+#[test]
+fn checkpoint_verification_keeps_only_one_decoded_row_alive_and_preserves_native_rows() {
+    use std::cell::Cell;
+    thread_local! {
+        static LIVE: Cell<usize> = const { Cell::new(0) };
+        static PEAK: Cell<usize> = const { Cell::new(0) };
+    }
+    struct Tracked {
+        value: u64,
+        decoded: bool,
+    }
+    impl Drop for Tracked {
+        fn drop(&mut self) {
+            if self.decoded {
+                LIVE.with(|n| n.set(n.get() - 1));
+            }
+        }
+    }
+    impl Record for Tracked {
+        const SCHEMA: Schema = Schema {
+            table_id: 921,
+            version: 1,
+        };
+        fn encode(&self, e: &mut Encoder) -> Result<()> {
+            e.u64(self.value)
+        }
+        fn decode(d: &mut Decoder<'_>) -> Result<Self> {
+            let value = d.u64()?;
+            LIVE.with(|n| {
+                n.set(n.get() + 1);
+                PEAK.with(|p| p.set(p.get().max(n.get())));
+            });
+            Ok(Self {
+                value,
+                decoded: true,
+            })
+        }
+    }
+    let path = Temp::new();
+    let db = Database::<Tracked>::create_dir(&path.0).unwrap();
+    db.write(|tx| {
+        for key in 0..2048 {
+            tx.insert(
+                key,
+                Tracked {
+                    value: key,
+                    decoded: false,
+                },
+            )?;
+        }
+        Ok(())
+    })
+    .unwrap();
+    let address = db.read().unwrap().get(42).unwrap() as *const Tracked as usize;
+    db.checkpoint().unwrap();
+    assert_eq!(LIVE.with(Cell::get), 0);
+    assert_eq!(PEAK.with(Cell::get), 1);
+    assert_eq!(
+        db.read().unwrap().get(42).unwrap() as *const Tracked as usize,
+        address
+    );
+    let backup_path = Temp::new();
+    let backup = db.backup_to(&backup_path.0).unwrap();
+    assert_eq!(LIVE.with(Cell::get), 2048);
+    assert_eq!(PEAK.with(Cell::get), 2048);
+    drop(backup);
+    assert_eq!(LIVE.with(Cell::get), 0);
+}
+
+#[test]
+fn reclaim_failures_are_restartable_and_preserve_active_and_previous_generations() {
+    for cutoff in 0..100 {
+        let (path, db) = seed();
+        db.checkpoint().unwrap();
+        db.checkpoint().unwrap();
+        assert!(
+            db.checkpoint_with_options(MaintenanceOptions {
+                max_record_bytes: 0,
+                ..Default::default()
+            })
+            .is_err()
+        );
+        faults::arm(cutoff);
+        let result = db.reclaim();
+        faults::clear();
+        check(&db);
+        db.reclaim().unwrap();
+        let inventory = db.storage_inventory().unwrap();
+        assert_eq!(inventory.reclaimable_file_bytes, 0);
+        assert_eq!(
+            inventory
+                .entries
+                .iter()
+                .filter(|e| matches!(
+                    e.kind,
+                    StorageEntryKind::ActiveGeneration | StorageEntryKind::RetainedGeneration
+                ))
+                .count(),
+            2
+        );
+        drop(db);
+        check(&Database::<Item>::open_dir(&path.0).unwrap());
+        if result.is_ok() {
+            assert!(cutoff > 10);
+            return;
+        }
+    }
+    panic!("did not traverse every reclamation failure boundary");
+}
+
+#[test]
+fn persistence_projection_preserves_acknowledged_writes_through_checkpoint_and_migration() {
+    use crate::persistence_model as model;
+    for migration in [false, true] {
+        let (path, db) = seed();
+        model::start(&path.0, false);
+        // Observe a real acknowledged WAL synchronization, not only a static seed.
+        db.write(|tx| tx.update(1, |_| Ok(Item(11)))).unwrap();
+        model::boundary();
+        if migration {
+            let new = db
+                .migrate::<NewItem>("projection-v2", |_, old| Ok(NewItem(old.0 + 100)))
+                .unwrap();
+            drop(new);
+        } else {
+            db.checkpoint().unwrap();
+            drop(db);
+        }
+        let images = model::finish();
+        assert!(images.len() > 20);
+        assert!(images.iter().any(|image| image.early_manifest));
+        for (cut, image) in images.iter().enumerate() {
+            image.restore(&path.0);
+            match Database::<Item>::open_dir(&path.0) {
+                Ok(db) => {
+                    assert_eq!(
+                        db.stats().unwrap().commits,
+                        if cut == 0 { 1 } else { 2 },
+                        "cut {cut}"
+                    );
+                    assert_eq!(
+                        db.read()
+                            .unwrap()
+                            .iter()
+                            .map(|(k, r)| (k, r.0))
+                            .collect::<Vec<_>>(),
+                        [(1, if cut == 0 { 10 } else { 11 }), (2, 20)]
+                    );
+                }
+                Err(Error::SchemaMismatch { .. }) if migration => {
+                    let db = Database::<NewItem>::open_dir(&path.0).unwrap();
+                    assert_eq!(db.stats().unwrap().commits, 2, "cut {cut}");
+                    assert_eq!(
+                        db.read()
+                            .unwrap()
+                            .iter()
+                            .map(|(k, r)| (k, r.0))
+                            .collect::<Vec<_>>(),
+                        [(1, 111), (2, 120)]
+                    );
+                }
+                Err(error) => panic!(
+                    "migration={migration}, cut={cut}, early={}: {error}",
+                    image.early_manifest
+                ),
+            }
+        }
+        // The successful final boundary must select the completed operation.
+        images.last().unwrap().restore(&path.0);
+        if migration {
+            assert!(Database::<NewItem>::open_dir(&path.0).is_ok());
+        } else {
+            assert_eq!(
+                Database::<Item>::open_dir(&path.0)
+                    .unwrap()
+                    .generation_info()
+                    .unwrap()
+                    .unwrap()
+                    .generation,
+                2
+            );
+        }
+    }
+}
+
+#[test]
+fn persistence_projection_detects_an_omitted_prepublication_parent_sync() {
+    use crate::persistence_model as model;
+    let (path, db) = seed();
+    model::start(&path.0, true);
+    db.checkpoint().unwrap();
+    drop(db);
+    let images = model::finish();
+    let mut detected = 0;
+    for image in &images {
+        image.restore(&path.0);
+        if Database::<Item>::open_dir(&path.0).is_err() {
+            assert!(image.early_manifest);
+            detected += 1;
+        }
+    }
+    assert!(
+        detected > 0,
+        "negative control must detect a manifest selecting a nondurable generation name"
+    );
+}
+
+#[test]
+fn persistence_projection_cleanup_is_restartable_without_losing_retained_generations() {
+    use crate::persistence_model as model;
+    let (path, db) = seed();
+    db.checkpoint().unwrap();
+    db.checkpoint().unwrap();
+    db.checkpoint().unwrap();
+    model::start(&path.0, false);
+    db.reclaim().unwrap();
+    drop(db);
+    let images = model::finish();
+    assert!(images.len() > 10);
+    for image in &images {
+        image.restore(&path.0);
+        let db = Database::<Item>::open_dir(&path.0).unwrap();
+        check(&db);
+        db.reclaim().unwrap();
+        assert_eq!(
+            db.storage_inventory()
+                .unwrap()
+                .entries
+                .iter()
+                .filter(|e| e.reclaimable)
+                .count(),
+            0
+        );
+        assert!(path.0.join(generation_name(3)).is_dir());
+        assert!(path.0.join(generation_name(4)).is_dir());
+    }
+}

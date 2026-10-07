@@ -50,19 +50,19 @@ Open the stable lock; validate the bounded `CURRENT` manifest and its schema; va
 
 A missing/invalid `CURRENT`, missing active files, cross-generation snapshot/WAL swap, incompatible schema or complete corruption is a refusal. Recovery does not pick the largest generation number or roll back to the previous generation. Recovered files/directories are synced before returning a usable handle, including after an earlier uncertain publication.
 
-Failed preparations can leave unreferenced generation directories and temporary manifests. They are never automatically selected. Complete recognized generations become eligible for pruning after a later successful checkpoint; malformed or unknown content is left for explicit inspection. Temporary manifests are not automatically removed. Repeated failed maintenance can therefore consume additional space even with a normal retention policy.
+Failed preparations can leave unreferenced generation directories and temporary manifests. They are never automatically selected. Complete recognized generations become eligible for pruning after a later successful checkpoint; malformed or unknown content is left for explicit inspection. There is no automatic deletion during recovery. Explicit `reclaim()` can remove recognized abandoned generations and complete validated temporary manifests, including newer unselected generations. Corrupt/partial ownership metadata stays untouched for operator investigation; see [bounded maintenance](maintenance.md).
 
 ## Retention and headroom
 
-`checkpoint()` rotates to a new snapshot and WAL. `prune()` is an explicit separate operation that retains the active and immediately previous generations. Both must be called by the application; without checkpoints the active WAL still grows.
+`checkpoint()` rotates to a new snapshot and WAL. `prune()` is an explicit separate operation that retains the active and immediately previous generations. Both must be called by the application; without checkpoints the active WAL still grows. `checkpoint_if_needed(policy, options)` supplies explicit WAL-byte/commit thresholds, and `reclaim()` extends cleanup to recognized abandoned work without running inside commits.
 
 Pruning only examines exact reserved generation directory names older than the active generation. Nonempty candidates require the correct owner marker and only recognized regular files (`OWNER`, `snapshot`, `wal`). Unknown content is skipped. It removes named files, never recursively deletes a directory tree, and leaves active/previous generations untouched. Empty reserved directories left by interrupted final cleanup can be removed on retry. Cleanup errors do not poison the active database. The returned report records removal counts, bytes and skips.
 
 With successful periodic maintenance, history retention is bounded to the active and previous generation's WAL intervals, not all historical transactions. Pruning is not a backup policy. It may remove the older schema's generation after subsequent checkpoints.
 
-Provide room for the current data, retained generation and the complete replacement. There is no filesystem-space reservation API or automatic resource budget yet. ENOSPC before publication leaves the old generation selected; a failure during publication requires reopen/reconciliation. Never delete the only good copy merely to force a checkpoint through.
+Provide room for the current data, retained generation and the complete replacement. Explicit encoded-file/record/row budgets are available through `MaintenanceOptions`; they do not reserve filesystem space or constrain arbitrary application allocations. ENOSPC before publication leaves the old generation selected; a failure during publication requires reopen/reconciliation. Never delete the only good copy merely to force a checkpoint through.
 
-Snapshot writing is streaming and bounded per record, not limited to one transaction payload. Full decode verification constructs another resident map: peak RAM can include the current data and another decoded copy. This deliberate first implementation trades maintenance cost for a straightforward validation boundary.
+Snapshot writing is streaming and bounded per record, not limited to one transaction payload. Checkpoint/migration verification uses the same real decoder as recovery, discarding each verification row before reading the next one. Checkpoints retain the original native table. Backups retain the decoded table because the returned independent handle owns it. See [resource limits and buffers](maintenance.md#streaming-verification-and-buffers).
 
 ## Backup and restore
 

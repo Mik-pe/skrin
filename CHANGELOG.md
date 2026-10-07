@@ -1,5 +1,16 @@
 # Changelog
 
+## Bounded maintenance and recovery performance
+
+- Stream checkpoint/migration verification without a second native table; preserve original checkpoint rows.
+- Reuse record/WAL/snapshot buffers, batch snapshot writes, and accelerate unchanged IEEE CRC-32 in safe Rust.
+- Add maintenance byte/record/row budgets, exact encoded preflight and explicit checkpoint thresholds.
+- Add read-only inventory and conservative, restartable reclamation of recognized obsolete/orphan generations and temporary manifests.
+- Refuse symlinked/special managed metadata and active storage files.
+- Model persistence ordering at production sync/rename sites and test a missing-parent-sync negative control.
+- Add capacity, ownership, retention, policy, CRC-reference and streaming-memory regressions; executable maintenance and scale benchmarks.
+
+
 ## Unreleased — experimental
 
 ### Added

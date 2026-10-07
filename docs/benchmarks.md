@@ -16,7 +16,7 @@ Do not publish shared CI-runner output as a performance claim. Record the exact 
 
 Before comparing with redb, SQLite, SpacetimeDB or another engine, match durability and transaction semantics. Compare embedded storage paths with embedded storage paths, not a local pointer lookup with a network/backend benchmark. Include realistic record sizes, multiple dataset sizes, allocation/memory usage and recovery work.
 
-Skrin has no checkpoint or log rotation yet, so the current harness cannot establish long-running steady-state maintenance costs. Implement those before claiming sustainable throughput. Multi-table workloads, secondary indexes, concurrent readers/writers and controlled cold-cache recovery are follow-on benchmarks, not hidden assumptions in these results.
+Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. Multi-table workloads, secondary indexes, concurrent readers/writers and controlled cold-cache recovery are follow-on benchmarks, not hidden assumptions in these results.
 
 ## Managed maintenance
 
@@ -25,3 +25,9 @@ Run `cargo bench -p skrin --bench maintenance -- /tmp` with an existing scratch 
 Eight rounds each run 200 synced transactions of 100 row updates, checkpoint, prune, close and reopen. Output includes checkpoint/prune pause, warm-cache reopen time, WAL shrinkage, snapshot bytes and before/peak/after disk bytes. Rows and sequence are checked after every reopen. The retained previous WAL is included in disk totals.
 
 These are smoke measurements on the actual selected filesystem, not proof of hardware persistence or a cross-engine comparison. Record physical storage, mount type, available RAM and cache state before publishing results. Do not describe container or shared-runner numbers as SSD guarantees.
+
+## Scale and before/after evidence
+
+`cargo bench -p skrin --bench storage_scale -- /tmp 100000` accepts 1..=1,000,000 rows. It uses 108-byte encoded records, 1,000-row synced seed transactions, seven complete WAL replays, one independent backup, and seven checkpoint/prune/reopen cycles. Every reopened row is checked outside the timed regions. Output reports per-process sample medians/min/max; it does not mislabel seven samples as a robust p99 estimate.
+
+[The recorded comparison](measurements/maintenance-2026-10-07.md) includes identical-harness runs against the pre-change engine, three interleaved process pairs at 100k rows, larger/smaller workload checks, visible environment details, and the limitations of overlayfs/warm-cache measurements. The complete harness includes a live backup copy, so its process peak RSS is not a checkpoint-only memory measurement.

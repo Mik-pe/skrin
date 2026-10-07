@@ -68,7 +68,10 @@ impl Storage for LockedFile {
     }
 
     fn sync(&self) -> io::Result<()> {
-        self.file.sync_all()
+        self.file.sync_all()?;
+        #[cfg(all(test, unix))]
+        crate::persistence_model::file_synced(&self.file);
+        Ok(())
     }
 }
 
