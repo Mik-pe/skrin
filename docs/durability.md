@@ -13,7 +13,7 @@ Read guards cannot observe staging or an unsynced commit. Empty transactions nei
 
 The guarantee is conditional on the OS, local filesystem and storage device honoring synchronization. Parent directories must already exist durably; the caller is responsible for any newly created ancestors. Skrin syncs its immediate parent on create/open. Network filesystems and external file modifications are unsupported. Non-Unix persistence currently returns `UnsupportedPlatform` before creating/opening a file; in-memory mode still works there.
 
-**This is not universal power-loss certification.** In particular, the current macOS backend uses standard `sync_all`; no stronger platform-specific hardware-flush contract is implemented. Hardware that lies about flush completion, disappearing media, catastrophic corruption and loss of already-synced bytes are outside what this WAL can repair. See the standard library's [file synchronization and locking contracts](https://doc.rust-lang.org/std/fs/struct.File.html).
+**This is not universal power-loss certification.** The reviewed Rust 1.89/1.98.1/1.99.0 implementations map `sync_all` to Linux `fsync` and macOS `F_FULLFSYNC`, propagating errors without a weaker macOS fallback. Skrin has no custom platform wrapper; the standard-library request is still conditional on filesystem/device behavior. See [the source and platform-contract review](flush-contract-review.md). Hardware that lies about flush completion, disappearing media, catastrophic corruption and loss of already-synced bytes are outside what this WAL can repair. See the standard library's [file synchronization and locking contracts](https://doc.rust-lang.org/std/fs/struct.File.html).
 
 ## Errors and uncertain commits
 

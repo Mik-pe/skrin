@@ -46,6 +46,8 @@ jobs:
           - os: ubuntu-latest
             rust: stable
           - os: macos-latest
+            rust: 1.89.0
+          - os: macos-latest
             rust: stable
           - os: windows-latest
             rust: stable
@@ -54,7 +56,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Install toolchain
-        run: rustup toolchain install ${{ matrix.rust }} --profile minimal
+        run: |
+          rustup toolchain install ${{ matrix.rust }} --profile minimal
+          rustc +${{ matrix.rust }} -Vv
       - name: Tests
         run: cargo +${{ matrix.rust }} test --workspace --locked
       - name: Check all targets
