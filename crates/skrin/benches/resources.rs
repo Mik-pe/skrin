@@ -192,10 +192,15 @@ fn main() -> Result<()> {
         let read_bytes = counter("/proc/self/io", "read_bytes")
             .zip(read_before)
             .map(|(a, b)| a.saturating_sub(b));
+        let observation = match read_bytes {
+            Some(0) => "no_storage_reads_observed",
+            Some(_) => "storage_reads_observed",
+            None => "unavailable",
+        };
         memory("reopen_before_verification");
         verify(&db, rows, round, bytes, sequence)?;
         println!(
-            "reopen,phase={},round={round},sample={},open_ms={open_ms:.3},read_bytes={read_bytes:?}",
+            "reopen,phase={},round={round},sample={},open_ms={open_ms:.3},read_bytes={read_bytes:?},cache_observation={observation}",
             args[8], args[9]
         );
         return Ok(());
@@ -279,7 +284,7 @@ fn main() -> Result<()> {
                 &args[1..5],
                 round,
                 sequence,
-                "snapshot_plus_wal_warm",
+                "snapshot_plus_wal_no_advice",
                 false,
             )?;
             if advice {
@@ -317,7 +322,14 @@ fn main() -> Result<()> {
                 report.bytes_removed
             );
             drop(db);
-            reopen(&path, &args[1..5], round, sequence, "snapshot_warm", false)?;
+            reopen(
+                &path,
+                &args[1..5],
+                round,
+                sequence,
+                "snapshot_no_advice",
+                false,
+            )?;
             if advice {
                 reopen(
                     &path,
