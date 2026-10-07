@@ -1,5 +1,10 @@
 # Changelog
 
+## Reproducible contributor verification
+
+- Verify every baseline row and exact sequence after volatile/synced benchmark phases and fresh reopen, outside reported timing sections.
+- Add a contributor guide for required checks, complete lifecycle examples, explicit bounded ENOSPC/OOM wrappers, benchmark selection and completed milestone evidence.
+
 ## Process-budget recovery and checkpoint overlap
 
 - Exercise actual kernel OOM during production checkpoint verification in a private Linux cgroup; require bounded-worker death and independently verify acknowledged recovery, orphan reclamation and backup.

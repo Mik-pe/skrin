@@ -29,6 +29,24 @@ fn report(label: &str, operations: u64, elapsed: Duration) {
     );
 }
 
+// Validate outside the timed sections, including exact sequence and row count.
+// Wrong state must fail the harness rather than produce a plausible timing.
+fn verify(
+    db: &Database<Row>,
+    rows: u64,
+    sequence: u64,
+    expected: impl Fn(u64) -> (u64, u64),
+) -> Result<()> {
+    let read = db.read()?;
+    assert_eq!(read.sequence(), sequence);
+    assert_eq!(read.len() as u64, rows);
+    for index in 0..rows {
+        let (key, value) = expected(index);
+        assert_eq!(read.get(key).unwrap().0, value);
+    }
+    Ok(())
+}
+
 fn memory() -> Result<()> {
     const ROWS: u64 = 10_000;
     const READS: u64 = 1_000_000;
@@ -42,6 +60,7 @@ fn memory() -> Result<()> {
         Ok(())
     })?;
     let key = |index: u64| black_box((index * 7919) % ROWS);
+    verify(&db, ROWS, 1, |index| (index, index))?;
 
     let start = Instant::now();
     for index in 0..READS {
@@ -76,6 +95,7 @@ fn memory() -> Result<()> {
         ROWS,
         start.elapsed(),
     );
+    verify(&db, ROWS, 1 + ROWS, |index| (key(index), index))?;
 
     let start = Instant::now();
     for batch in 0..1000 {
@@ -91,6 +111,9 @@ fn memory() -> Result<()> {
         100_000,
         start.elapsed(),
     );
+    verify(&db, ROWS, 1 + ROWS + 1000, |index| {
+        (key(index), index % 100)
+    })?;
     Ok(())
 }
 
@@ -114,6 +137,7 @@ impl Drop for ScratchFile {
 
 fn synced_batch(db: &Database<Row>, batch_size: u64) -> Result<()> {
     const TRANSACTIONS: usize = 200;
+    let sequence_before = db.read()?.sequence();
     let mut samples = Vec::with_capacity(TRANSACTIONS);
     let total = Instant::now();
     for index in 0..TRANSACTIONS {
@@ -137,6 +161,12 @@ fn synced_batch(db: &Database<Row>, batch_size: u64) -> Result<()> {
         p50.as_secs_f64() * 1e6,
         p99.as_secs_f64() * 1e6
     );
+    verify(
+        db,
+        batch_size,
+        sequence_before + TRANSACTIONS as u64,
+        |key| (key, (TRANSACTIONS - 1) as u64),
+    )?;
     Ok(())
 }
 
@@ -160,6 +190,7 @@ fn durable(directory: &Path) -> Result<()> {
         start.elapsed().as_secs_f64() * 1e3,
         reopened.stats()?.rows
     );
+    verify(&reopened, 100, 400, |key| (key, 199))?;
     Ok(())
 }
 

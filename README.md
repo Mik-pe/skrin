@@ -222,6 +222,8 @@ cargo +1.89.0 clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo test --workspace --release --locked
 RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked
+cargo check --workspace --all-targets --locked
+cargo run -p skrin --example accounts --locked
 ```
 
-Start with [architecture](docs/architecture.md), [v1 file format](docs/file-format.md), [managed storage](docs/managed-storage.md), [benchmarks](docs/benchmarks.md), and [the roadmap](docs/roadmap.md). Contributions should preserve the failure contract before expanding the API.
+Start with [architecture](docs/architecture.md), [v1 file format](docs/file-format.md), [managed storage](docs/managed-storage.md), [benchmarks](docs/benchmarks.md), and [the roadmap](docs/roadmap.md). The [verification guide](docs/verification.md) covers complete lifecycle examples, explicitly invoked real ENOSPC/OOM tests, benchmark selection and milestone evidence. Contributions should preserve the failure contract before expanding the API.
