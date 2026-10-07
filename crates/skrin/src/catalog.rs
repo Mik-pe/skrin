@@ -93,7 +93,7 @@ fn descriptor<C: Catalog>() -> Result<Vec<u8>> {
     Ok(e.finish())
 }
 
-fn table<C: Catalog, T: Table<C>>() -> Result<u64> {
+pub(crate) fn table<C: Catalog, T: Table<C>>() -> Result<u64> {
     let schema = T::Record::SCHEMA;
     if !C::TABLES.contains(&schema) {
         return Err(invalid("typed table is not present in this catalog"));
@@ -101,7 +101,7 @@ fn table<C: Catalog, T: Table<C>>() -> Result<u64> {
     Ok(schema.table_id)
 }
 
-fn index<C: Catalog, T: Table<C>>(id: u64) -> Result<&'static IndexDefinition> {
+pub(crate) fn index<C: Catalog, T: Table<C>>(id: u64) -> Result<&'static IndexDefinition> {
     let table_id = table::<C, T>()?;
     C::INDEXES
         .iter()
@@ -111,18 +111,18 @@ fn index<C: Catalog, T: Table<C>>(id: u64) -> Result<&'static IndexDefinition> {
 
 // Physical row zero is the catalog descriptor. Other slots are internal only;
 // logical table/key pairs retain all 64 bits of the user's primary key.
-struct Stored<C: Catalog> {
-    data: Option<(u64, C::Row)>,
+pub(crate) struct Stored<C: Catalog> {
+    pub(crate) data: Option<(u64, C::Row)>,
     marker: PhantomData<C>,
 }
 impl<C: Catalog> Stored<C> {
-    fn metadata() -> Self {
+    pub(crate) fn metadata() -> Self {
         Self {
             data: None,
             marker: PhantomData,
         }
     }
-    fn row(key: u64, row: C::Row) -> Self {
+    pub(crate) fn row(key: u64, row: C::Row) -> Self {
         Self {
             data: Some((key, row)),
             marker: PhantomData,
@@ -181,20 +181,20 @@ impl<C: Catalog> Record for Stored<C> {
 }
 
 #[derive(Default)]
-struct Indexes {
-    primary: BTreeMap<(u64, u64), u64>,
-    secondary: BTreeMap<u64, BTreeMap<Vec<u8>, BTreeSet<u64>>>,
-    next_slot: u64,
+pub(crate) struct Indexes {
+    pub(crate) primary: BTreeMap<(u64, u64), u64>,
+    pub(crate) secondary: BTreeMap<u64, BTreeMap<Vec<u8>, BTreeSet<u64>>>,
+    pub(crate) next_slot: u64,
 }
 #[derive(PartialEq, Eq)]
-struct Projected {
-    slot: u64,
-    address: (u64, u64),
-    keys: Vec<(u64, Vec<u8>)>,
+pub(crate) struct Projected {
+    pub(crate) slot: u64,
+    pub(crate) address: (u64, u64),
+    pub(crate) keys: Vec<(u64, Vec<u8>)>,
 }
-struct Delta {
-    removed: Vec<Projected>,
-    added: Vec<Projected>,
+pub(crate) struct Delta {
+    pub(crate) removed: Vec<Projected>,
+    pub(crate) added: Vec<Projected>,
 }
 fn project<C: Catalog>(slot: u64, row: &Stored<C>) -> Result<Projected> {
     let (key, native) = row
@@ -239,7 +239,7 @@ impl Indexes {
             .map_or(1, |(&k, _)| k.saturating_add(1));
         Ok(indexes)
     }
-    fn prepare<C: Catalog>(
+    pub(crate) fn prepare<C: Catalog>(
         &self,
         rows: &BTreeMap<u64, Stored<C>>,
         changes: &BTreeMap<u64, Option<Stored<C>>>,
@@ -299,7 +299,7 @@ impl Indexes {
         }
         Ok(Delta { removed, added })
     }
-    fn apply(&mut self, delta: Delta) {
+    pub(crate) fn apply(&mut self, delta: Delta) {
         for p in delta.removed {
             self.primary.remove(&p.address);
             for (id, key) in p.keys {
@@ -361,8 +361,8 @@ fn verify_projection<C: Catalog>(
 /// Multi-table database using the same WAL, locking and managed generations as
 /// `Database`. Rows and all derived indexes publish under one catalog lock.
 pub struct CatalogDatabase<C: Catalog> {
-    database: Database<Stored<C>>,
-    indexes: RwLock<Indexes>,
+    pub(crate) database: Database<Stored<C>>,
+    pub(crate) indexes: RwLock<Indexes>,
 }
 impl<C: Catalog> CatalogDatabase<C> {
     /// Create an explicitly volatile catalog, validating its full definition.
@@ -447,7 +447,7 @@ impl<C: Catalog> CatalogDatabase<C> {
             indexes: RwLock::new(indexes.expect("validated snapshot")),
         })
     }
-    fn wrap(database: Database<Stored<C>>) -> Result<Self> {
+    pub(crate) fn wrap(database: Database<Stored<C>>) -> Result<Self> {
         let indexes = Indexes::build(&database.read()?.state.rows)?;
         Ok(Self {
             database,
@@ -685,10 +685,10 @@ impl<C: Catalog> CatalogRead<'_, C> {
 /// Staged multi-table write view. Errors propagated from the closure roll back
 /// everything. Uniqueness is checked on the final view, permitting key swaps.
 pub struct CatalogWrite<'a, C: Catalog> {
-    indexes: &'a Indexes,
-    transaction: crate::WriteTransaction<'a, Stored<C>>,
-    staged: BTreeMap<(u64, u64), u64>,
-    next_slot: u64,
+    pub(crate) indexes: &'a Indexes,
+    pub(crate) transaction: crate::WriteTransaction<'a, Stored<C>>,
+    pub(crate) staged: BTreeMap<(u64, u64), u64>,
+    pub(crate) next_slot: u64,
 }
 impl<C: Catalog> CatalogWrite<'_, C> {
     fn slot(&self, address: (u64, u64)) -> Option<u64> {

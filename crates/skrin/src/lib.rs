@@ -3,8 +3,8 @@
 //! `Database` implements one table; `catalog` adds schema-bound tables and atomic
 //! derived indexes with `u64` keys per table. Managed directories add
 //! verified checkpoints, backups and explicit offline schema migrations.
-//! Reads borrow native Rust values. Read guards block writers; they are not MVCC
-//! snapshots. Persistent databases currently require a local Unix filesystem.
+//! Reads borrow native Rust values. Baseline read guards block writers; opt-in
+//! `versioned` handles provide bounded immutable row/index snapshots. Persistent databases currently require a local Unix filesystem.
 //! No SQL, network service or local unsafe code is involved. Linux file-data
 //! reservations use safe syscall bindings.
 
@@ -27,6 +27,8 @@ mod reservation;
 mod snapshot;
 #[cfg(test)]
 mod test_support;
+mod version_tree;
+pub mod versioned;
 
 pub use codec::{Decoder, Encoder};
 pub use database::{Database, ReadTransaction, Stats, WriteTransaction};

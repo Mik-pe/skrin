@@ -132,3 +132,17 @@ jobs:
             cargo +${{ matrix.rust }} bench -p skrin --bench group_commit --locked -- "$RUNNER_TEMP" "$mode" 1 16 1000 1000
             cargo +${{ matrix.rust }} bench -p skrin --bench group_commit --locked -- "$RUNNER_TEMP" "$mode" 8 16 0 1000
           done
+
+      - name: Run immutable snapshot admission and memory lifecycle
+        run: cargo +${{ matrix.rust }} run -p skrin --example snapshots --locked
+      - name: Run snapshot pins, group retries, backup and offline migration
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: cargo +${{ matrix.rust }} run -p skrin --example snapshots --locked -- "$RUNNER_TEMP/snapshots-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Smoke equivalent durable writes with borrowed and snapshot readers
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: |
+          for mode in immediate group snapshot group_snapshot; do
+            cargo +${{ matrix.rust }} bench -p skrin --bench snapshots --locked -- "$RUNNER_TEMP" "$mode" 1 16 1000 1000 1 1000 1000
+            cargo +${{ matrix.rust }} bench -p skrin --bench snapshots --locked -- "$RUNNER_TEMP" "$mode" 8 16 0 1000 2 1000 0
+          done

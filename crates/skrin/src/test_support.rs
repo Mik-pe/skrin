@@ -152,3 +152,9 @@ impl Storage for TestStorage {
         Ok(())
     }
 }
+
+#[path = "../examples/support/banking.rs"]
+pub(crate) mod banking;
+#[cfg(unix)]
+#[path = "../examples/support/banking_v2.rs"]
+pub(crate) mod banking_v2;

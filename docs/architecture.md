@@ -34,4 +34,25 @@ The file wrapper explicitly unlocks on owner-process drop, including failed init
 
 A native map and serialized writer are a measurable correctness baseline, not the final performance architecture. This avoids hiding whole-database cloning or a second database engine beneath an ergonomic API. No derive crate exists yet because there is no implemented derive behavior to host.
 
-Managed checkpoints, explicit retention, backups and offline migrations are implemented in `directory.rs`, `snapshot.rs` and `maintenance.rs`. See [the publication protocol](managed-storage.md) and [remaining release gates](roadmap.md). Streaming verification, encoded-resource budgets, conservative inventory/reclamation and a production-path persistence projection are implemented; see [maintenance](maintenance.md). Remaining hardware/resource certification is tracked explicitly before production use. Schema-bound multi-table transactions and atomic derived indexes are implemented in `catalog.rs`; see [the catalog contract](catalog.md). The original single-table representation remains the baseline. [Independent group commit](group-commit.md) now holds the same exclusive row/index guards across separate frame appends and one shared sync; the original immediate-sync path remains the baseline. Read versions still require coherent index versioning, bounded reader retention and measured contention. The baseline benchmark is not evidence for a SpacetimeDB comparison.
+Managed checkpoints, explicit retention, backups and offline migrations are implemented in `directory.rs`, `snapshot.rs` and `maintenance.rs`. See [the publication protocol](managed-storage.md) and [remaining release gates](roadmap.md). Streaming verification, encoded-resource budgets, conservative inventory/reclamation and a production-path persistence projection are implemented; see [maintenance](maintenance.md). Remaining hardware/resource certification is tracked explicitly before production use. Schema-bound multi-table transactions and atomic derived indexes are implemented in `catalog.rs`; see [the catalog contract](catalog.md). The original single-table representation remains the baseline. [Independent group commit](group-commit.md) now holds the same exclusive row/index guards across separate frame appends and one shared sync; the original immediate-sync path remains the baseline. [Immutable read versions](snapshots.md) add coherent index versioning and bounded cooperative reader retention while retaining this baseline. The baseline benchmark is not evidence for a SpacetimeDB comparison.
+
+## Opt-in immutable read versions
+
+`versioned` consumes a native baseline once, moving rows into Arcs and building
+immutable path-copy AVL roots. The original baseline representation remains
+available. Versioned writers still use the production mutable rows, codec, WAL
+and index final-view validator under one exclusive writer boundary. Changed
+row/index paths are prepared before append; a short separate publication lock
+swaps one coherent immutable root only after immediate/shared sync. Captured
+read versions never hold the production row/index locks across I/O.
+
+Lease admission bounds live reader count and conservative full-root-per-lease
+bytes, including shared nodes/rows counted again. A trusted pure application
+footprint assessment adds native owned capacities to engine node/key accounting;
+it is not a hard allocator/RSS cap. Oldest pin, pinned versions and current/
+pinned bytes are observable. Unpinned intermediate roots are freed rather than
+retained in an ever-growing version chain. Pins retain memory, not generation
+files, so explicit checkpoint/reclaim and permanent LOCK ordering are unchanged.
+Returning to native offline migration requires exclusive client ownership and
+no pins. Real writer/maintenance uncertainty and writer panics propagate poison
+to retained view read calls. See [snapshots](snapshots.md) for the complete contract.

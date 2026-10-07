@@ -1,11 +1,9 @@
 use super::*;
-#[path = "../examples/support/banking.rs"]
-mod banking;
-#[cfg(unix)]
-#[path = "../examples/support/banking_v2.rs"]
-mod banking_v2;
 use crate::log::{Wal, encode_transaction, file_header};
 use crate::test_support::TestStorage;
+use crate::test_support::banking;
+#[cfg(unix)]
+use crate::test_support::banking_v2;
 use banking::*;
 
 fn reopen(storage: &TestStorage) -> CatalogDatabase<Banking> {

@@ -39,7 +39,7 @@ pub enum Error {
     Codec(String),
     /// A record or transaction exceeded a documented byte limit.
     LimitExceeded { limit: usize },
-    /// A maintenance operation would exceed an explicit encoded-resource limit.
+    /// An operation would exceed an explicit encoded-resource or reader limit.
     /// `required` is the minimum needed at the rejected step, not a reservation.
     BudgetExceeded {
         resource: &'static str,
@@ -99,7 +99,7 @@ impl fmt::Display for Error {
             } => {
                 write!(
                     f,
-                    "maintenance budget for {resource}: need at least {required}, limit {limit}"
+                    "resource budget for {resource}: need at least {required}, limit {limit}"
                 )
             }
             Self::SequenceExhausted => f.write_str("transaction sequence exhausted"),

@@ -1,0 +1,624 @@
+use super::*;
+use crate::catalog::{
+    self, Catalog, CatalogDatabase, CatalogWrite, IndexDefinition, Indexes, Stored, Table,
+};
+use std::marker::PhantomData;
+use std::ops::Bound;
+
+struct SharedCatalog<C>(PhantomData<C>);
+impl<C: Catalog> Catalog for SharedCatalog<C> {
+    const SCHEMA: Schema = C::SCHEMA;
+    const TABLES: &'static [Schema] = C::TABLES;
+    const INDEXES: &'static [IndexDefinition] = C::INDEXES;
+    type Row = Arc<C::Row>;
+    fn table_id(row: &Self::Row) -> u64 {
+        C::table_id(row)
+    }
+    fn encode(row: &Self::Row, e: &mut Encoder) -> Result<()> {
+        C::encode(row, e)
+    }
+    fn decode(id: u64, d: &mut Decoder<'_>) -> Result<Self::Row> {
+        Ok(Arc::new(C::decode(id, d)?))
+    }
+    fn index_key(id: u64, row: &Self::Row) -> Result<Vec<u8>> {
+        C::index_key(id, row)
+    }
+}
+struct SharedTable<T>(PhantomData<T>);
+impl<C: Catalog, T: Table<C>> Table<SharedCatalog<C>> for SharedTable<T> {
+    type Record = T::Record;
+    fn into_row(row: Self::Record) -> Arc<C::Row> {
+        Arc::new(T::into_row(row))
+    }
+    fn borrow(row: &Arc<C::Row>) -> Option<&Self::Record> {
+        T::borrow(row)
+    }
+}
+fn shared<C: Catalog>(database: CatalogDatabase<C>) -> Result<CatalogDatabase<SharedCatalog<C>>> {
+    let indexes = database.indexes.into_inner().map_err(|_| Error::Poisoned)?;
+    let database = database.database.map_records(|_, r| {
+        Ok(match r.data {
+            None => Stored::metadata(),
+            Some((key, row)) => Stored::row(key, Arc::new(row)),
+        })
+    })?;
+    Ok(CatalogDatabase {
+        database,
+        indexes: RwLock::new(indexes),
+    })
+}
+fn native<C: Catalog>(database: CatalogDatabase<SharedCatalog<C>>) -> Result<CatalogDatabase<C>> {
+    let indexes = database.indexes.into_inner().map_err(|_| Error::Poisoned)?;
+    let database = database.database.map_records(|_, r| {
+        Ok(match r.data {
+            None => Stored::metadata(),
+            Some((key, row)) => Stored::row(key, Arc::try_unwrap(row).map_err(|_| Error::Busy)?),
+        })
+    })?;
+    Ok(CatalogDatabase {
+        database,
+        indexes: RwLock::new(indexes),
+    })
+}
+type Posting = (u64, Arc<[u8]>, u64);
+struct CatalogView<C: Catalog> {
+    rows: VersionTree<(u64, u64), Arc<C::Row>>,
+    postings: VersionTree<Posting, ()>,
+}
+impl<C: Catalog> Clone for CatalogView<C> {
+    fn clone(&self) -> Self {
+        Self {
+            rows: self.rows.clone(),
+            postings: self.postings.clone(),
+        }
+    }
+}
+impl<C: Catalog> View for CatalogView<C> {
+    fn bytes(&self) -> u64 {
+        self.rows
+            .accounted_bytes()
+            .saturating_add(self.postings.accounted_bytes())
+    }
+}
+fn posting_bytes(key: &[u8]) -> Result<u64> {
+    (key.len() as u64)
+        .checked_add(VersionTree::<Posting, ()>::node_bytes())
+        .and_then(|n| n.checked_add(2 * std::mem::size_of::<usize>() as u64))
+        .ok_or_else(|| Error::InvalidOperation("index footprint overflow".into()))
+}
+impl<C: Catalog> CatalogView<C> {
+    fn build(
+        database: &CatalogDatabase<SharedCatalog<C>>,
+        footprint: fn(&C::Row) -> Result<u64>,
+    ) -> Result<(Self, u64)> {
+        let indexes = database.indexes.read().map_err(|_| Error::Poisoned)?;
+        let read = database.database.read()?;
+        let mut view = Self {
+            rows: VersionTree::default(),
+            postings: VersionTree::default(),
+        };
+        for (&address, slot) in &indexes.primary {
+            let row = &read.state.rows[slot]
+                .data
+                .as_ref()
+                .expect("validated native row")
+                .1;
+            view.rows = view.rows.insert(
+                address,
+                row.clone(),
+                row_bytes(
+                    row.as_ref(),
+                    footprint,
+                    VersionTree::<(u64, u64), Arc<C::Row>>::node_bytes(),
+                )?,
+            );
+        }
+        for (&id, entries) in &indexes.secondary {
+            for (key, posting) in entries {
+                let shared: Arc<[u8]> = key.as_slice().into();
+                for &primary in posting {
+                    view.postings = view.postings.insert(
+                        (id, shared.clone(), primary),
+                        (),
+                        posting_bytes(key)?,
+                    );
+                }
+            }
+        }
+        Ok((view, read.sequence()))
+    }
+    fn changed(
+        &self,
+        delta: &catalog::Delta,
+        changes: &BTreeMap<u64, Option<Stored<SharedCatalog<C>>>>,
+        footprint: fn(&C::Row) -> Result<u64>,
+    ) -> Result<Self> {
+        let mut view = self.clone();
+        for p in &delta.removed {
+            view.rows = view.rows.remove(&p.address);
+            for (id, key) in &p.keys {
+                view.postings =
+                    view.postings
+                        .remove(&(*id, Arc::from(key.as_slice()), p.address.1));
+            }
+        }
+        for p in &delta.added {
+            let row = &changes[&p.slot]
+                .as_ref()
+                .expect("projected staged row")
+                .data
+                .as_ref()
+                .expect("native staged row")
+                .1;
+            view.rows = view.rows.insert(
+                p.address,
+                row.clone(),
+                row_bytes(
+                    row.as_ref(),
+                    footprint,
+                    VersionTree::<(u64, u64), Arc<C::Row>>::node_bytes(),
+                )?,
+            );
+            for (id, key) in &p.keys {
+                view.postings = view.postings.insert(
+                    (*id, Arc::from(key.as_slice()), p.address.1),
+                    (),
+                    posting_bytes(key)?,
+                );
+            }
+        }
+        Ok(view)
+    }
+}
+struct CatalogEngine<C: Catalog> {
+    database: CatalogDatabase<SharedCatalog<C>>,
+    publisher: Publisher<CatalogView<C>>,
+    footprint: fn(&C::Row) -> Result<u64>,
+}
+impl<C: Catalog> CatalogEngine<C> {
+    fn new(
+        database: CatalogDatabase<C>,
+        options: SnapshotOptions,
+        footprint: fn(&C::Row) -> Result<u64>,
+    ) -> Result<Self> {
+        options.validate()?;
+        let database = shared(database)?;
+        let (view, sequence) = CatalogView::build(&database, footprint)?;
+        Ok(Self {
+            database,
+            publisher: Publisher::new(sequence, view, options)?,
+            footprint,
+        })
+    }
+    fn inspect<T>(&self, result: Result<T>) -> Result<T> {
+        if result.is_err() {
+            let failed = self
+                .database
+                .database
+                .state
+                .read()
+                .map_or(true, |state| state.failed);
+            if failed || self.database.indexes.read().is_err() {
+                self.publisher.failed.store(true, Ordering::Release);
+            }
+        }
+        result
+    }
+    fn into_database(self) -> Result<CatalogDatabase<C>> {
+        self.publisher.no_pins()?;
+        drop(self.publisher);
+        native(self.database)
+    }
+}
+/// Immutable catalog snapshots and serialized immediate-sync native writes.
+/// All rows and mandatory indexes share one published sequence/root.
+pub struct SnapshotCatalog<C: Catalog> {
+    engine: Arc<CatalogEngine<C>>,
+}
+impl<C: Catalog> Clone for SnapshotCatalog<C> {
+    fn clone(&self) -> Self {
+        Self {
+            engine: self.engine.clone(),
+        }
+    }
+}
+impl<C: Catalog> CatalogDatabase<C> {
+    /// Enable coherent immutable row/index versions. The trusted, pure footprint
+    /// function must include the enum's inline size and all owned capacities/
+    /// nested allocations. Engine tree/index accounting is added separately.
+    /// The conversion consumes this handle and changes no persistent bytes.
+    pub fn into_snapshots(
+        self,
+        options: SnapshotOptions,
+        footprint: fn(&C::Row) -> Result<u64>,
+    ) -> Result<SnapshotCatalog<C>> {
+        Ok(SnapshotCatalog {
+            engine: Arc::new(CatalogEngine::new(self, options, footprint)?),
+        })
+    }
+}
+/// Native rows and every index at one synchronized catalog sequence. Clones
+/// share a lease. A lease retains memory, not disk generations or directory LOCK.
+pub struct CatalogSnapshot<C: Catalog> {
+    lease: Arc<Lease<CatalogView<C>>>,
+}
+impl<C: Catalog> Clone for CatalogSnapshot<C> {
+    fn clone(&self) -> Self {
+        Self {
+            lease: self.lease.clone(),
+        }
+    }
+}
+impl<C: Catalog> CatalogSnapshot<C> {
+    /// The synchronized sequence shared by rows and every index.
+    pub fn sequence(&self) -> Result<u64> {
+        self.lease.check()?;
+        Ok(self.lease.version.sequence)
+    }
+    /// Borrow a typed native row at this version.
+    pub fn get<T: Table<C>>(&self, key: u64) -> Result<Option<&T::Record>> {
+        self.lease.check()?;
+        let id = catalog::table::<C, T>()?;
+        Ok(self
+            .lease
+            .version
+            .view
+            .rows
+            .get(&(id, key))
+            .and_then(|r| T::borrow(r)))
+    }
+    /// Ordered native primary-key scan of one declared table.
+    pub fn scan<T: Table<C>>(&self) -> Result<impl Iterator<Item = (u64, &T::Record)>> {
+        self.lease.check()?;
+        let id = catalog::table::<C, T>()?;
+        Ok(self
+            .lease
+            .version
+            .view
+            .rows
+            .range((id, 0)..=(id, u64::MAX))
+            .filter_map(|((_, key), row)| T::borrow(row).map(|r| (*key, r))))
+    }
+    /// Indexed equality, ordered by primary key within the matching byte key.
+    pub fn lookup<T: Table<C>>(&self, id: u64, key: &[u8]) -> Result<Vec<(u64, &T::Record)>> {
+        self.index_range::<T>(id, key.to_vec()..=key.to_vec())
+    }
+    /// Indexed range ordered by byte key then primary key. Invalid bounds panic
+    /// as for BTreeMap. Rows and postings always come from this same version.
+    pub fn index_range<T: Table<C>>(
+        &self,
+        id: u64,
+        range: impl RangeBounds<Vec<u8>>,
+    ) -> Result<Vec<(u64, &T::Record)>> {
+        self.lease.check()?;
+        catalog::index::<C, T>(id)?;
+        let (start, end) = (range.start_bound(), range.end_bound());
+        if let (Bound::Included(a) | Bound::Excluded(a), Bound::Included(b) | Bound::Excluded(b)) =
+            (start, end)
+        {
+            assert!(a <= b, "range start exceeds range end");
+            assert!(
+                a != b || !matches!((start, end), (Bound::Excluded(_), Bound::Excluded(_))),
+                "equal excluded range bounds"
+            );
+        }
+        let lower = match start {
+            Bound::Unbounded => Bound::Included((id, Arc::from([]), 0)),
+            Bound::Included(key) => Bound::Included((id, Arc::from(key.as_slice()), 0)),
+            Bound::Excluded(key) => Bound::Excluded((id, Arc::from(key.as_slice()), u64::MAX)),
+        };
+        let mut result = Vec::new();
+        for ((found, key, primary), ()) in self
+            .lease
+            .version
+            .view
+            .postings
+            .range((lower, Bound::Unbounded))
+        {
+            if *found != id
+                || match end {
+                    Bound::Unbounded => false,
+                    Bound::Included(k) => key.as_ref() > k.as_slice(),
+                    Bound::Excluded(k) => key.as_ref() >= k.as_slice(),
+                }
+            {
+                break;
+            }
+            if let Some(row) = self.get::<T>(*primary)? {
+                result.push((*primary, row));
+            }
+        }
+        Ok(result)
+    }
+}
+/// Multi-table staging with the original final-view uniqueness algorithm.
+/// Reads observe preceding group writes plus staging, not an independent pin.
+pub struct CatalogSnapshotWrite<'a, C: Catalog> {
+    transaction: CatalogWrite<'a, SharedCatalog<C>>,
+}
+impl<C: Catalog> CatalogSnapshotWrite<'_, C> {
+    /// Read a typed row, including staging and preceding group transactions.
+    pub fn get<T: Table<C>>(&self, key: u64) -> Result<Option<&T::Record>> {
+        self.transaction.get::<SharedTable<T>>(key)
+    }
+    /// Insert without overwriting a logical key.
+    pub fn insert<T: Table<C>>(&mut self, key: u64, row: T::Record) -> Result<()> {
+        self.transaction.insert::<SharedTable<T>>(key, row)
+    }
+    /// Insert or replace; validate final uniqueness before append.
+    pub fn put<T: Table<C>>(&mut self, key: u64, row: T::Record) -> Result<()> {
+        self.transaction.put::<SharedTable<T>>(key, row)
+    }
+    /// Replace an existing typed row without Clone.
+    pub fn update<T: Table<C>>(
+        &mut self,
+        key: u64,
+        update: impl FnOnce(&T::Record) -> Result<T::Record>,
+    ) -> Result<()> {
+        self.transaction.update::<SharedTable<T>>(key, update)
+    }
+    /// Remove a logical key, reporting whether it existed in this staged view.
+    pub fn remove<T: Table<C>>(&mut self, key: u64) -> Result<bool> {
+        self.transaction.remove::<SharedTable<T>>(key)
+    }
+    /// Indexed equality including staging; temporary swap duplicates are visible.
+    pub fn lookup<T: Table<C>>(&self, id: u64, key: &[u8]) -> Result<Vec<(u64, &T::Record)>> {
+        self.transaction.lookup::<SharedTable<T>>(id, key)
+    }
+    /// Indexed range including staging, ordered by byte key then primary key.
+    pub fn index_range<T: Table<C>>(
+        &self,
+        id: u64,
+        range: impl RangeBounds<Vec<u8>>,
+    ) -> Result<Vec<(u64, &T::Record)>> {
+        self.transaction.index_range::<SharedTable<T>>(id, range)
+    }
+}
+struct CatalogVersionBatch<'a, C: Catalog> {
+    indexes: RwLockWriteGuard<'a, Indexes>,
+    state: RwLockWriteGuard<'a, State<Stored<SharedCatalog<C>>>>,
+    publisher: &'a Publisher<CatalogView<C>>,
+    view: CatalogView<C>,
+    footprint: fn(&C::Row) -> Result<u64>,
+}
+impl<C: Catalog> Drop for CatalogVersionBatch<'_, C> {
+    fn drop(&mut self) {
+        if self.state.failed || std::thread::panicking() {
+            self.publisher.failed.store(true, Ordering::Release);
+        }
+    }
+}
+impl<C: Catalog> Engine for CatalogEngine<C> {
+    type Transaction<'a> = CatalogSnapshotWrite<'a, C>;
+    type Batch<'a> = CatalogVersionBatch<'a, C>;
+    fn persistent(&self) -> Result<bool> {
+        self.publisher.check()?;
+        Ok(self.database.stats()?.persistent)
+    }
+    fn begin(&self) -> Result<Self::Batch<'_>> {
+        self.publisher.check()?;
+        let indexes = self.database.indexes.write().map_err(|_| Error::Poisoned)?;
+        let state = self
+            .database
+            .database
+            .state
+            .write()
+            .map_err(|_| Error::Poisoned)?;
+        if state.failed {
+            self.publisher.failed.store(true, Ordering::Release);
+            return Err(Error::Poisoned);
+        }
+        let view = self.publisher.root()?.view.clone();
+        Ok(CatalogVersionBatch {
+            indexes,
+            state,
+            publisher: &self.publisher,
+            view,
+            footprint: self.footprint,
+        })
+    }
+    fn execute<T>(
+        batch: &mut Self::Batch<'_>,
+        operation: impl FnOnce(&mut CatalogSnapshotWrite<'_, C>) -> Result<T>,
+    ) -> Result<(T, u64)> {
+        let (value, sequence, delta, view) = {
+            let mut tx = CatalogSnapshotWrite {
+                transaction: CatalogWrite {
+                    indexes: &batch.indexes,
+                    transaction: crate::WriteTransaction {
+                        state: WriteState::Borrowed(&mut batch.state),
+                        changes: BTreeMap::new(),
+                    },
+                    staged: BTreeMap::new(),
+                    next_slot: batch.indexes.next_slot,
+                },
+            };
+            let value = operation(&mut tx)?;
+            let delta = batch.indexes.prepare(
+                &tx.transaction.transaction.state.rows,
+                &tx.transaction.transaction.changes,
+            )?;
+            let view =
+                batch
+                    .view
+                    .changed(&delta, &tx.transaction.transaction.changes, batch.footprint)?;
+            view.validate_accounting()?;
+            let sequence = tx.transaction.transaction.commit_unsynced()?;
+            (value, sequence, delta, view)
+        };
+        batch.indexes.apply(delta);
+        batch.view = view;
+        Ok((value, sequence))
+    }
+    fn failed(batch: &Self::Batch<'_>) -> bool {
+        batch.state.failed
+    }
+    fn sequence(batch: &Self::Batch<'_>) -> u64 {
+        batch.state.sequence
+    }
+    fn finish(batch: &mut Self::Batch<'_>) -> Result<()> {
+        finish_state(&mut batch.state)?;
+        if let Err(error) = batch
+            .publisher
+            .publish(batch.state.sequence, batch.view.clone())
+        {
+            batch.state.failed = true;
+            return Err(error);
+        }
+        Ok(())
+    }
+}
+impl<C: Catalog> SnapshotCatalog<C> {
+    /// Serialized published engine counters; pending unsynchronized work is
+    /// excluded. Unlike retention inspection, this may wait for writer I/O.
+    pub fn stats(&self) -> Result<crate::Stats> {
+        self.engine.inspect(self.engine.database.stats())
+    }
+
+    /// Capture a coherent synchronized row/index version. BudgetExceeded is
+    /// reader admission backpressure; release leases to restore capacity.
+    pub fn snapshot(&self) -> Result<CatalogSnapshot<C>> {
+        Ok(CatalogSnapshot {
+            lease: self.engine.publisher.capture()?,
+        })
+    }
+    /// Observe oldest pin, pinned versions and conservative accounted bytes.
+    pub fn retention(&self) -> Result<RetentionStats> {
+        self.engine.publisher.retention()
+    }
+    /// One independent immediate-sync transaction; old snapshots continue
+    /// reading during the writer callback, append, sync and checkpoint.
+    pub fn write<T>(
+        &self,
+        operation: impl FnOnce(&mut CatalogSnapshotWrite<'_, C>) -> Result<T>,
+    ) -> Result<T> {
+        let mut batch = self.engine.begin()?;
+        let start = CatalogEngine::<C>::sequence(&batch);
+        let (value, sequence) = CatalogEngine::<C>::execute(&mut batch, operation)?;
+        if sequence != start {
+            CatalogEngine::<C>::finish(&mut batch)?;
+        }
+        Ok(value)
+    }
+    /// Recover the native baseline with exclusive controller ownership and no
+    /// leases. Use it for offline migration; Busy consumes this client.
+    pub fn into_database(self) -> Result<CatalogDatabase<C>> {
+        Arc::try_unwrap(self.engine)
+            .map_err(|_| Error::Busy)?
+            .into_database()
+    }
+    /// Enable bounded independent shared-sync requests on this versioned catalog.
+    pub fn into_group_commit(self, options: GroupCommitOptions) -> Result<GroupSnapshotCatalog<C>> {
+        Ok(GroupSnapshotCatalog {
+            runtime: Runtime::new(
+                Arc::try_unwrap(self.engine).map_err(|_| Error::Busy)?,
+                options,
+            )?,
+        })
+    }
+    /// Verified serialized checkpoint without retaining disk files for pins.
+    pub fn checkpoint(&self) -> Result<crate::Checkpoint> {
+        self.checkpoint_with_options(MaintenanceOptions::default())
+    }
+    /// Serialized checkpoint with original encoded-resource/codec validation.
+    pub fn checkpoint_with_options(
+        &self,
+        options: MaintenanceOptions,
+    ) -> Result<crate::Checkpoint> {
+        let _panic = self.engine.publisher.panic_guard();
+        self.engine
+            .inspect(self.engine.database.checkpoint_with_options(options))
+    }
+    /// Independently decoded and constraint-checked native backup to a new path.
+    pub fn backup_to(&self, path: impl AsRef<Path>) -> Result<CatalogDatabase<C>> {
+        self.engine.publisher.check()?;
+        native(self.engine.inspect(self.engine.database.backup_to(path))?)
+    }
+    /// Read-only selected/retained/orphan inventory under permanent ownership.
+    pub fn storage_inventory(&self) -> Result<crate::StorageInventory> {
+        self.engine
+            .inspect(self.engine.database.storage_inventory())
+    }
+    /// Conservative cleanup retaining active and previous disk generations.
+    pub fn reclaim(&self) -> Result<crate::ReclaimReport> {
+        let _panic = self.engine.publisher.panic_guard();
+        self.engine.inspect(self.engine.database.reclaim())
+    }
+}
+/// Independent group commit publishing rows and every index after shared sync.
+pub struct GroupSnapshotCatalog<C: Catalog> {
+    runtime: Arc<Runtime<CatalogEngine<C>>>,
+}
+impl<C: Catalog> Clone for GroupSnapshotCatalog<C> {
+    fn clone(&self) -> Self {
+        Self {
+            runtime: self.runtime.clone(),
+        }
+    }
+}
+impl<C: Catalog> GroupSnapshotCatalog<C> {
+    /// Read-only selected, retained and unknown storage under permanent ownership.
+    pub fn storage_inventory(&self) -> Result<crate::StorageInventory> {
+        self.runtime
+            .engine
+            .inspect(self.runtime.engine.database.storage_inventory())
+    }
+
+    /// Serialized published engine counters; pending unsynchronized work is
+    /// excluded. Unlike retention inspection, this may wait for writer I/O.
+    pub fn stats(&self) -> Result<crate::Stats> {
+        self.runtime
+            .engine
+            .inspect(self.runtime.engine.database.stats())
+    }
+
+    /// Admit one independent callback; dropping its response does not cancel.
+    pub fn submit<T: Send + 'static>(
+        &self,
+        operation: impl FnOnce(&mut CatalogSnapshotWrite<'_, C>) -> Result<T> + Send + 'static,
+    ) -> Result<PendingCommit<T>> {
+        self.runtime.submit(operation)
+    }
+    /// Capture a synchronized coherent version without waiting for writer I/O.
+    pub fn snapshot(&self) -> Result<CatalogSnapshot<C>> {
+        Ok(CatalogSnapshot {
+            lease: self.runtime.engine.publisher.capture()?,
+        })
+    }
+    /// Observe oldest pin, live versions and conservative accounted bytes.
+    pub fn retention(&self) -> Result<RetentionStats> {
+        self.runtime.engine.publisher.retention()
+    }
+    /// Drain admitted work and recover the native baseline for offline migration;
+    /// exclusive client ownership and no live leases are required.
+    pub fn into_database(self) -> Result<CatalogDatabase<C>> {
+        self.runtime.into_engine()?.into_database()
+    }
+    /// Serialized verified checkpoint; pinned roots remain readable in memory.
+    pub fn checkpoint(&self) -> Result<crate::Checkpoint> {
+        let _panic = self.runtime.engine.publisher.panic_guard();
+        self.runtime
+            .engine
+            .inspect(self.runtime.engine.database.checkpoint())
+    }
+    /// Conservative explicit disk cleanup retaining active and previous.
+    pub fn reclaim(&self) -> Result<crate::ReclaimReport> {
+        let _panic = self.runtime.engine.publisher.panic_guard();
+        self.runtime
+            .engine
+            .inspect(self.runtime.engine.database.reclaim())
+    }
+    /// Independently decoded and constraint-checked backup to a new directory.
+    pub fn backup_to(&self, path: impl AsRef<Path>) -> Result<CatalogDatabase<C>> {
+        self.runtime.engine.publisher.check()?;
+        native(
+            self.runtime
+                .engine
+                .inspect(self.runtime.engine.database.backup_to(path))?,
+        )
+    }
+}
+
+#[cfg(test)]
+#[path = "versioned_catalog_tests.rs"]
+mod tests;

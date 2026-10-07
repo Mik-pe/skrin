@@ -40,6 +40,31 @@ pub struct Stats {
 }
 
 impl<R: Record> Database<R> {
+    // Ownership-only conversion: preserves the exact open WAL and directory
+    // lock, sequence and recovery counters. Never touches persistent bytes.
+    pub(crate) fn map_records<N: Record>(
+        self,
+        mut convert: impl FnMut(u64, R) -> Result<N>,
+    ) -> Result<Database<N>> {
+        let state = self.state.into_inner().map_err(|_| Error::Poisoned)?;
+        if state.failed {
+            return Err(Error::Poisoned);
+        }
+        Ok(Database {
+            state: RwLock::new(State {
+                rows: state
+                    .rows
+                    .into_iter()
+                    .map(|(k, r)| Ok((k, convert(k, r)?)))
+                    .collect::<Result<_>>()?,
+                wal: state.wal,
+                directory: state.directory,
+                sequence: state.sequence,
+                recovered_tail_bytes: state.recovered_tail_bytes,
+                failed: false,
+            }),
+        })
+    }
     /// Create a volatile database. This mode performs no encoding or disk I/O.
     pub fn in_memory() -> Self {
         Self {
