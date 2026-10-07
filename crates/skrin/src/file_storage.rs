@@ -12,6 +12,9 @@ pub(crate) struct LockedFile {
 }
 
 impl LockedFile {
+    pub(crate) fn reserve_data(&self, len: u64) -> io::Result<()> {
+        crate::reservation::reserve(&self.file, 0, len)
+    }
     pub(crate) fn acquire(file: File) -> Result<Self> {
         match file.try_lock() {
             Ok(()) => Ok(Self {

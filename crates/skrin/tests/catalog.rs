@@ -327,6 +327,7 @@ mod persistent {
             max_new_file_bytes: estimate.new_file_bytes,
             max_rows: 4,
             max_record_bytes: estimate.largest_record_bytes,
+            ..Default::default()
         };
         let checkpoint = db.checkpoint_with_options(exact)?;
         assert_eq!(checkpoint.rows, 3);
@@ -521,6 +522,46 @@ mod persistent {
             1
         );
         assert_eq!(next.read()?.get::<Transfers>(1)?.unwrap().amount, 1);
+        Ok(())
+    }
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn required_catalog_reservation_keeps_all_rows_and_indexes_through_maintenance() -> Result<()> {
+        let path = Temp::new();
+        let backup_path = Temp::new();
+        let db = CatalogDatabase::<Banking>::create_dir(&path.0)?;
+        seed(&db)?;
+        db.write(|tx| transfer(tx, 7, 1, 2, 25))?;
+        let options = skrin::MaintenanceOptions {
+            reserve_file_data: true,
+            ..Default::default()
+        };
+        db.checkpoint_with_options(options)?;
+        let backup = db.backup_to_with_options(&backup_path.0, options)?;
+        assert_eq!(
+            backup
+                .read()?
+                .lookup::<Accounts>(1, b"alice@example.test")?[0]
+                .1
+                .balance,
+            75
+        );
+        assert_eq!(backup.read()?.get::<Transfers>(7)?.unwrap().amount, 25);
+        let next = db.migrate_with_options::<banking_v2::BankingV2>(
+            "reserved-active",
+            options,
+            banking_v2::migrate_row,
+        )?;
+        drop(next);
+        let next = CatalogDatabase::<banking_v2::BankingV2>::open_dir(&path.0)?;
+        assert_eq!(next.read()?.get::<Transfers>(7)?.unwrap().amount, 25);
+        assert_eq!(
+            next.read()?
+                .lookup::<banking_v2::AccountsV2>(2, &75u64.to_be_bytes())?[0]
+                .0,
+            1
+        );
+        assert_eq!(next.read()?.sequence(), 2);
         Ok(())
     }
 }

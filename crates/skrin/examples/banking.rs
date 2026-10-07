@@ -35,6 +35,7 @@ fn main() -> Result<()> {
             max_new_file_bytes: 1024 * 1024,
             max_record_bytes: 4096,
             max_rows: 1000,
+            reserve_file_data: cfg!(target_os = "linux"),
         };
         let estimate = db.estimate_checkpoint(options)?;
         println!(

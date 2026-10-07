@@ -161,6 +161,7 @@ fn estimates_are_read_only_and_exact_byte_budgets_are_enforced() {
         max_new_file_bytes: estimate.new_file_bytes,
         max_rows: 2,
         max_record_bytes: 8,
+        ..Default::default()
     };
     let checkpoint = db.checkpoint_with_options(exact).unwrap();
     assert_eq!(checkpoint.snapshot_bytes, estimate.snapshot_bytes);
@@ -264,6 +265,7 @@ fn migration_budget_failure_preserves_old_schema_and_can_be_retried() {
                 max_rows: 2,
                 max_new_file_bytes: 1024,
                 max_record_bytes: 20,
+                ..Default::default()
             },
             |_, r| Ok(NewRow(r.0 + 1)),
         )
@@ -522,4 +524,62 @@ fn memory_and_legacy_backends_refuse_directory_only_maintenance() {
                 .is_err()
         );
     }
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn reserved_checkpoint_backup_and_migration_keep_data_and_conversion_identity() {
+    let (path, db) = seed();
+    let options = MaintenanceOptions {
+        reserve_file_data: true,
+        ..Default::default()
+    };
+    let estimate = db.estimate_checkpoint(options).unwrap();
+    let cp = db.checkpoint_with_options(options).unwrap();
+    assert_eq!(cp.snapshot_bytes, estimate.snapshot_bytes);
+    let original = tree(&path.db());
+    let backup = db
+        .backup_to_with_options(path.0.join("reserved-backup"), options)
+        .unwrap();
+    assert_eq!(rows(&backup), rows(&db));
+    assert_eq!(tree(&path.db()), original);
+    drop(backup);
+    assert_eq!(
+        rows(&Database::<Row>::open_dir(path.0.join("reserved-backup")).unwrap()),
+        [(1, 10), (2, 20)]
+    );
+    let conversions = std::cell::Cell::new(0);
+    let new = db
+        .migrate_with_options::<NewRow>("reserved-v2", options, |_, row| {
+            conversions.set(conversions.get() + 1);
+            Ok(NewRow(row.0 + 1))
+        })
+        .unwrap();
+    assert_eq!(conversions.get(), 2);
+    assert_eq!(new.read().unwrap().get(1).unwrap().0, 11);
+    drop(new);
+    assert!(matches!(
+        Database::<Row>::open_dir(path.db()),
+        Err(Error::SchemaMismatch { .. })
+    ));
+    let reopened = Database::<NewRow>::open_dir(path.db()).unwrap();
+    assert_eq!(reopened.read().unwrap().get(2).unwrap().0, 21);
+    assert_eq!(reopened.read().unwrap().sequence(), 1);
+}
+
+#[cfg(not(target_os = "linux"))]
+#[test]
+fn unsupported_reservation_refuses_before_creating_a_destination() {
+    let path = Temp::new();
+    let db = Database::<Row>::in_memory();
+    let result = db.backup_to_with_options(
+        path.db(),
+        MaintenanceOptions {
+            reserve_file_data: true,
+            ..Default::default()
+        },
+    );
+    assert!(matches!(result, Err(Error::InvalidOperation(_))));
+    assert!(!path.db().exists());
+    assert_eq!(db.read().unwrap().len(), 0);
 }

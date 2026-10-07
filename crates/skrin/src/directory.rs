@@ -256,9 +256,12 @@ fn sync_directory(path: &Path) -> io::Result<()> {
     boundary()
 }
 
-fn write_new(path: &Path, bytes: &[u8]) -> Result<()> {
+fn write_new(path: &Path, bytes: &[u8], reserve_file_data: bool) -> Result<()> {
     boundary()?;
     let mut file = File::create_new(path)?;
+    if reserve_file_data {
+        crate::reservation::reserve(&file, 0, bytes.len() as u64)?;
+    }
     let middle = bytes.len() / 2;
     file.write_all(&bytes[..middle])?;
     #[cfg(all(test, unix))]
@@ -327,6 +330,9 @@ impl Directory {
         sync_parent(path)?;
         let root = fs::canonicalize(path)?;
         let mut lock = LockedFile::acquire(File::create_new(root.join("LOCK"))?)?;
+        if options.reserve_file_data {
+            lock.reserve_data(8)?;
+        }
         lock.write_all(b"SKRLOCK1")?;
         lock.sync()?;
         sync_directory(&root)?;
@@ -508,6 +514,7 @@ impl Directory {
         write_new(
             &dir.join("OWNER"),
             &owner_marker(R::SCHEMA.table_id, generation),
+            options.reserve_file_data,
         )?;
         let bytes = snapshot::write::<R>(
             &dir.join("snapshot"),
@@ -517,7 +524,12 @@ impl Directory {
             overhead,
             options,
         )?;
-        let wal = Wal::create_segment::<R>(&dir.join("wal"), generation, sequence)?;
+        let wal = Wal::create_segment::<R>(
+            &dir.join("wal"),
+            generation,
+            sequence,
+            options.reserve_file_data,
+        )?;
         boundary()?;
         // One real decoder, one row at a time. Checkpoints/migrations discard
         // verification rows instead of constructing a second resident table.
@@ -533,7 +545,7 @@ impl Directory {
         // The generation's name must be durable BEFORE CURRENT can refer to it.
         sync_directory(&self.root)?;
         let temporary = self.root.join(format!("CURRENT-{generation:016x}.tmp"));
-        write_new(&temporary, &encoded_manifest)?;
+        write_new(&temporary, &encoded_manifest, options.reserve_file_data)?;
         boundary()?;
         let publish = || -> io::Result<()> {
             fs::rename(&temporary, self.root.join("CURRENT"))?;

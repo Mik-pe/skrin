@@ -47,6 +47,7 @@ let options = MaintenanceOptions {
     max_new_file_bytes: 64 * 1024 * 1024,
     max_record_bytes: 64 * 1024,
     max_rows: 100_001,
+    ..Default::default()
 };
 let estimate = db.estimate_checkpoint(options)?;
 if let Some(checkpoint) = db.checkpoint_if_needed(
@@ -83,7 +84,7 @@ The underlying standalone v1 and managed v1/v2 framing remains unchanged, includ
 
 ## Resources and evidence
 
-Data, the logical-to-physical primary map and every derived index live in RAM. Each row contributes one posting to every declared index. Snapshot recovery builds those indexes before exposure. Maintenance is explicit and serialized. Offline import/backup/migration can temporarily hold source/destination native tables and validation index maps; no process-memory or filesystem reservation is implied. The internal descriptor occupies one storage row; public catalog stats/checkpoint row counts exclude it.
+Data, the logical-to-physical primary map and every derived index live in RAM. Each row contributes one posting to every declared index. Snapshot recovery builds those indexes before exposure. Maintenance is explicit and serialized. Offline import/backup/migration can temporarily hold source/destination native tables and validation index maps; encoded budgets do not reserve process memory. Linux `reserve_file_data` is available for checkpoint/backup/migration, with the same data-only allocation and extra snapshot preflight contract. The internal descriptor occupies one storage row; public catalog stats/checkpoint row counts exclude it.
 
 Tests cover an independent row/index model, final-view swaps and staged ranges, full-u64 keys, explicit legacy import, restart across WAL/checkpoints, independent backups, genuine V2 migration, descriptor mismatch and complete constraint corruption without tail repair, every short WAL write, uncertain sync, checkpoint I/O faults, production persistence images and subprocess exits during checkpoint/migration. These extend the existing engine's fault seam; they are not device power-loss certification.
 

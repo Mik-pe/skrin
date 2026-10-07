@@ -1,5 +1,5 @@
-//! Sustained maintenance/resource evidence; no device-cold or reservation claim.
-use skrin::{Database, Decoder, Encoder, Error, Record, Result, Schema};
+//! Sustained maintenance/resource evidence; no device-cold or global-resource guarantee.
+use skrin::{Database, Decoder, Encoder, Error, MaintenanceOptions, Record, Result, Schema};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -205,14 +205,22 @@ fn main() -> Result<()> {
         );
         return Ok(());
     }
-    if !(5..=6).contains(&args.len()) || (args.len() == 6 && args[5] != "--advisory-evict") {
-        return Err(Error::InvalidOperation("usage: resources EXISTING_DIRECTORY ROWS ROUNDS PAYLOAD_BYTES BATCH_ROWS [--advisory-evict]".into()));
+    if !(5..=7).contains(&args.len())
+        || args[5..]
+            .iter()
+            .any(|arg| !matches!(arg.as_str(), "--advisory-evict" | "--reserve-file-data"))
+    {
+        return Err(Error::InvalidOperation("usage: resources EXISTING_DIRECTORY ROWS ROUNDS PAYLOAD_BYTES BATCH_ROWS [--advisory-evict] [--reserve-file-data]".into()));
     }
     let rows = number(&args[1], 10, 1_000_000)?;
     let rounds = number(&args[2], 1, 10_000)?;
     let bytes = number(&args[3], 1, 4096)? as usize;
     let batch = number(&args[4], 1, 1000)?;
-    let advice = args.len() == 6;
+    let advice = args[5..].iter().any(|arg| arg == "--advisory-evict");
+    let options = MaintenanceOptions {
+        reserve_file_data: args[5..].iter().any(|arg| arg == "--reserve-file-data"),
+        ..Default::default()
+    };
     if advice && !cfg!(target_os = "linux") {
         return Err(Error::InvalidOperation(
             "advisory eviction requires Linux and Python3".into(),
@@ -226,7 +234,8 @@ fn main() -> Result<()> {
     fs::create_dir(&root)?;
     let work = || -> Result<()> {
         println!(
-            "config,rows={rows},rounds={rounds},payload_bytes={bytes},batch_rows={batch},durability=sync_all,advisory_eviction={advice},root={}",
+            "config,rows={rows},rounds={rounds},payload_bytes={bytes},batch_rows={batch},durability=sync_all,advisory_eviction={advice},reserve_file_data={},root={}",
+            options.reserve_file_data,
             root.display()
         );
         let path = root.join("database");
@@ -241,7 +250,7 @@ fn main() -> Result<()> {
         }
         let mut sequence = db.stats()?.commits;
         verify(&db, rows, 0, bytes, sequence)?;
-        db.checkpoint()?;
+        db.checkpoint_with_options(options)?;
         db.reclaim()?;
         memory("seed_checkpoint");
         let workload_start = Instant::now();
@@ -299,7 +308,7 @@ fn main() -> Result<()> {
             }
             db = Database::<Row>::open_dir(&path)?;
             let start = Instant::now();
-            let cp = db.checkpoint()?;
+            let cp = db.checkpoint_with_options(options)?;
             let checkpoint_ms = millis(start.elapsed());
             let staged = disk(&path)?;
             memory("after_checkpoint");
