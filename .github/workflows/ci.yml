@@ -104,3 +104,11 @@ jobs:
       - name: Smoke sustained maintenance and independent reopen metrics
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench resources --locked -- "$RUNNER_TEMP" 1000 3 128 100 --advisory-evict
+
+      - name: Actual ENOSPC in an isolated bounded filesystem
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        env:
+          SKRIN_TEST_TOOLCHAIN: ${{ matrix.rust }}
+        run: |
+          scripts/test-storage-full.sh --privileged-namespace
+          scripts/test-storage-full.sh --release --privileged-namespace

@@ -1,5 +1,10 @@
 # Changelog
 
+## Real storage-full regression and unknown-stage operation
+
+- Fill a private 4 MiB Linux tmpfs to exercise actual kernel ENOSPC beneath production checkpoint/WAL code; require clean preparation refusal, poisoned append, selected recovery and a verified independent backup.
+- Preserve the partial ownership stage through reclamation, document the operator/quarantine headroom workflow, and run the explicit bounded-filesystem wrapper in Linux/MSRV CI.
+
 ## Sustained resource measurement
 
 - Add a verified update/delete/insert maintenance benchmark with Linux process RSS, logical/per-inode allocated disk overlap, checkpoint/reclaim pauses and independent-process warm/advisory-evicted recovery.
