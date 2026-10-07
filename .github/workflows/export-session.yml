@@ -1,0 +1,28 @@
+name: Export isolated validation environment
+on:
+  pull_request:
+    paths: ['.github/workflows/export-session.yml']
+permissions:
+  contents: read
+jobs:
+  export:
+    if: github.repository == 'Mik-pe/skrin' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'agent/bounded-maintenance'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.89.0 --profile minimal --component rustfmt,clippy
+      - name: Export only repository tree and public toolchain
+        run: |
+          mkdir -p "$RUNNER_TEMP/skrin-validation"
+          git archive HEAD | gzip > "$RUNNER_TEMP/skrin-validation/source.tar.gz"
+          tar -C "$HOME/.rustup/toolchains" -czf "$RUNNER_TEMP/skrin-validation/rust.tar.gz" 1.89.0-x86_64-unknown-linux-gnu
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: skrin-validation-environment
+          path: ${{ runner.temp }}/skrin-validation/*.tar.gz
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
