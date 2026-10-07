@@ -85,6 +85,15 @@ impl<R: Record> Database<R> {
         policy: CheckpointPolicy,
         options: MaintenanceOptions,
     ) -> Result<Option<Checkpoint>> {
+        self.checkpoint_if_needed_checked(policy, options, |_, _, _| Ok(()))
+    }
+
+    pub(crate) fn checkpoint_if_needed_checked(
+        &self,
+        policy: CheckpointPolicy,
+        options: MaintenanceOptions,
+        validate: impl FnMut(u64, &BTreeMap<u64, R>, &R) -> Result<()>,
+    ) -> Result<Option<Checkpoint>> {
         options.validate()?;
         let mut state = self.state.write().map_err(|_| Error::Poisoned)?;
         if state.failed {
@@ -105,15 +114,17 @@ impl<R: Record> Database<R> {
         {
             return Ok(None);
         }
-        Self::checkpoint_locked(&mut state, options, |_, _, _| Ok(())).map(Some)
+        Self::checkpoint_locked(&mut state, options, validate).map(Some)
     }
 
     pub(crate) fn checkpoint_checked(
         &self,
+        options: MaintenanceOptions,
         mut validate: impl FnMut(u64, &BTreeMap<u64, R>, &R) -> Result<()>,
     ) -> Result<Checkpoint> {
+        options.validate()?;
         let mut state = self.state.write().map_err(|_| Error::Poisoned)?;
-        Self::checkpoint_locked(&mut state, MaintenanceOptions::default(), &mut validate)
+        Self::checkpoint_locked(&mut state, options, &mut validate)
     }
 
     fn checkpoint_locked(

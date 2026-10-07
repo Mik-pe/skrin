@@ -339,6 +339,25 @@ fn validate_decoded<C: Catalog>(indexes: &mut Indexes, slot: u64, row: &Stored<C
     Ok(())
 }
 
+fn verify_projection<C: Catalog>(
+    slot: u64,
+    rows: &BTreeMap<u64, Stored<C>>,
+    decoded: &Stored<C>,
+) -> Result<()> {
+    if slot == 0 {
+        return Ok(());
+    }
+    let native = rows
+        .get(&slot)
+        .ok_or_else(|| invalid("checkpoint changed an internal row slot"))?;
+    if project::<C>(slot, native)? != project::<C>(slot, decoded)? {
+        return Err(invalid(
+            "checkpoint codec changed a logical key or index projection",
+        ));
+    }
+    Ok(())
+}
+
 /// Multi-table database using the same WAL, locking and managed generations as
 /// `Database`. Rows and all derived indexes publish under one catalog lock.
 pub struct CatalogDatabase<C: Catalog> {
@@ -476,25 +495,59 @@ impl<C: Catalog> CatalogDatabase<C> {
         stats.rows -= 1;
         Ok(stats)
     }
+    /// Inspect catalog generation and named migration history.
+    pub fn generation_info(&self) -> Result<Option<crate::GenerationInfo>> {
+        let _guard = self.indexes.read().map_err(|_| Error::Poisoned)?;
+        self.database.generation_info()
+    }
+    /// Inspect owned storage and recognized orphans without changing any files.
+    pub fn storage_inventory(&self) -> Result<crate::StorageInventory> {
+        let _guard = self.indexes.read().map_err(|_| Error::Poisoned)?;
+        self.database.storage_inventory()
+    }
     /// Explicit, serialized checkpoint; reported rows exclude the descriptor.
     pub fn checkpoint(&self) -> Result<crate::Checkpoint> {
+        self.checkpoint_with_options(MaintenanceOptions::default())
+    }
+    /// Checkpoint with enforced encoded-file/record/snapshot-row limits. The
+    /// descriptor counts as one snapshot row and participates in byte limits;
+    /// this does not reserve native/index memory or physical filesystem space.
+    pub fn checkpoint_with_options(
+        &self,
+        options: MaintenanceOptions,
+    ) -> Result<crate::Checkpoint> {
         let _guard = self.indexes.write().map_err(|_| Error::Poisoned)?;
-        let mut report = self.database.checkpoint_checked(|slot, rows, decoded| {
-            if slot == 0 {
-                return Ok(());
-            }
-            let native = rows
-                .get(&slot)
-                .ok_or_else(|| invalid("checkpoint changed an internal row slot"))?;
-            if project::<C>(slot, native)? != project::<C>(slot, decoded)? {
-                return Err(invalid(
-                    "checkpoint codec changed a logical key or index projection",
-                ));
-            }
-            Ok(())
-        })?;
+        let mut report = self
+            .database
+            .checkpoint_checked(options, verify_projection::<C>)?;
         report.rows -= 1;
         Ok(report)
+    }
+    /// Read-only exact encoded preflight. Its row count includes the mandatory
+    /// catalog descriptor, unlike application `stats`/checkpoint reports.
+    pub fn estimate_checkpoint(
+        &self,
+        options: MaintenanceOptions,
+    ) -> Result<crate::MaintenanceEstimate> {
+        let _guard = self.indexes.read().map_err(|_| Error::Poisoned)?;
+        self.database.estimate_checkpoint(options)
+    }
+    /// Evaluate caller-driven thresholds and publish under one catalog lock.
+    /// Budgets and decoded projection checks are enforced at execution; commits
+    /// do not run maintenance implicitly. Call `reclaim` separately afterward.
+    pub fn checkpoint_if_needed(
+        &self,
+        policy: crate::CheckpointPolicy,
+        options: MaintenanceOptions,
+    ) -> Result<Option<crate::Checkpoint>> {
+        let _guard = self.indexes.write().map_err(|_| Error::Poisoned)?;
+        Ok(self
+            .database
+            .checkpoint_if_needed_checked(policy, options, verify_projection::<C>)?
+            .map(|mut report| {
+                report.rows -= 1;
+                report
+            }))
     }
     /// Reclaim only recognized abandoned/obsolete files; keep active + previous.
     pub fn reclaim(&self) -> Result<crate::ReclaimReport> {
@@ -503,13 +556,23 @@ impl<C: Catalog> CatalogDatabase<C> {
     }
     /// Independently decoded backup into a NEW directory, including constraints.
     pub fn backup_to(&self, path: impl AsRef<Path>) -> Result<Self> {
+        self.backup_to_with_options(path, MaintenanceOptions::default())
+    }
+    /// Independently decoded backup with enforced encoded-resource limits.
+    /// The descriptor participates in all snapshot-row/record/file accounting.
+    pub fn backup_to_with_options(
+        &self,
+        path: impl AsRef<Path>,
+        options: MaintenanceOptions,
+    ) -> Result<Self> {
         let _guard = self.indexes.read().map_err(|_| Error::Poisoned)?;
         let mut validator = Indexes::default();
-        Self::wrap(self.database.backup_checked(
-            path.as_ref(),
-            MaintenanceOptions::default(),
-            |slot, row| validate_decoded::<C>(&mut validator, slot, row),
-        )?)
+        Self::wrap(
+            self.database
+                .backup_checked(path.as_ref(), options, |slot, row| {
+                    validate_decoded::<C>(&mut validator, slot, row)
+                })?,
+        )
     }
     /// Offline whole-catalog migration with explicit native old/new enums.
     /// Logical table/key identity is preserved; target indexes are checked before
@@ -517,6 +580,17 @@ impl<C: Catalog> CatalogDatabase<C> {
     pub fn migrate<N: Catalog>(
         self,
         id: &str,
+        convert: impl FnMut(u64, u64, C::Row) -> Result<N::Row>,
+    ) -> Result<CatalogDatabase<N>> {
+        self.migrate_with_options(id, MaintenanceOptions::default(), convert)
+    }
+    /// Offline catalog migration with enforced encoded-resource limits. Native
+    /// conversion and index allocations are not allocator-budgeted. A refusal
+    /// consumes this handle, leaving the prior CURRENT selected before publish.
+    pub fn migrate_with_options<N: Catalog>(
+        self,
+        id: &str,
+        options: MaintenanceOptions,
         mut convert: impl FnMut(u64, u64, C::Row) -> Result<N::Row>,
     ) -> Result<CatalogDatabase<N>> {
         descriptor::<N>()?;
@@ -524,7 +598,7 @@ impl<C: Catalog> CatalogDatabase<C> {
         let mut decoded_validator = Indexes::default();
         let database = self.database.migrate_checked::<Stored<N>>(
             id,
-            MaintenanceOptions::default(),
+            options,
             |slot, row| {
                 let Some((key, native)) = row.data else {
                     return Ok(Stored::metadata());

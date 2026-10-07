@@ -82,3 +82,7 @@ The test-only persistence projection observes the production file-sync, director
 Tests cover acknowledged writes across checkpoint/migration, complete old-or-new schema selection, and restartable cleanup with active/previous retention. A negative control deliberately omits the pre-publication parent sync from the projection and must detect a manifest referring to an absent generation. This proves the test can catch that ordering regression; it does not bypass or weaken production synchronization.
 
 The projection complements existing partial-write, sync-failure, corruption and subprocess-exit tests. It is not an exhaustive model of sectors, device caches, every possible unsynced file write, kernel bugs or all filesystems. macOS hardware-flush review and identified real-device long-duration/power-cut measurements remain release work.
+
+## Schema-bound catalogs
+
+`catalog::CatalogDatabase` exposes the same encoded budgets, exact checkpoint preflight, caller-driven thresholds, read-only inventory and migration history as the single-table backend. It also enforces independently decoded index constraints/projections before publication. The catalog descriptor participates in snapshot row/record/file accounting, while catalog stats and checkpoint reports exclude it from application-row counts. See [catalog maintenance](catalog.md#recovery-maintenance-and-migrations). Native/index allocations and physical filesystem reservations remain outside these encoded budgets.

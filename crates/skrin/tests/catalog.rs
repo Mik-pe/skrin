@@ -282,6 +282,159 @@ mod persistent {
         );
         Ok(())
     }
+    #[test]
+    fn catalog_preflight_and_budgets_account_for_descriptor_and_preserve_indexes() -> Result<()> {
+        use skrin::MaintenanceOptions;
+        let path = Temp::new();
+        let db = CatalogDatabase::<Banking>::create_dir(&path.0)?;
+        seed(&db)?;
+        db.write(|tx| transfer(tx, 7, 1, 2, 25))?;
+        let inventory = db.storage_inventory()?;
+        let current = fs::read(path.0.join("CURRENT"))?;
+        let estimate = db.estimate_checkpoint(MaintenanceOptions::default())?;
+        assert_eq!(estimate.rows, 4); // Three application rows plus catalog metadata.
+        assert_eq!(db.stats()?.rows, 3);
+        assert_eq!(db.storage_inventory()?, inventory);
+        let row_budget = MaintenanceOptions {
+            max_rows: 3,
+            ..MaintenanceOptions::default()
+        };
+        assert!(matches!(
+            db.checkpoint_with_options(row_budget),
+            Err(Error::BudgetExceeded {
+                resource: "snapshot rows",
+                required: 4,
+                ..
+            })
+        ));
+        assert_eq!(db.storage_inventory()?, inventory);
+        let short = MaintenanceOptions {
+            max_new_file_bytes: estimate.new_file_bytes - 1,
+            ..MaintenanceOptions::default()
+        };
+        assert!(matches!(
+            db.checkpoint_with_options(short),
+            Err(Error::BudgetExceeded { .. })
+        ));
+        assert_eq!(fs::read(path.0.join("CURRENT"))?, current);
+        assert_eq!(
+            db.read()?.lookup::<Accounts>(2, &75u64.to_be_bytes())?[0].0,
+            1
+        );
+        assert_eq!(db.read()?.get::<Transfers>(7)?.unwrap().amount, 25);
+        assert!(db.reclaim()?.generations_removed >= 1);
+        let exact = MaintenanceOptions {
+            max_new_file_bytes: estimate.new_file_bytes,
+            max_rows: 4,
+            max_record_bytes: estimate.largest_record_bytes,
+        };
+        let checkpoint = db.checkpoint_with_options(exact)?;
+        assert_eq!(checkpoint.rows, 3);
+        assert_eq!(checkpoint.snapshot_bytes, estimate.snapshot_bytes);
+        assert_eq!(db.generation_info()?.unwrap().checkpoint_sequence, 2);
+        drop(db);
+        let db = CatalogDatabase::<Banking>::open_dir(&path.0)?;
+        assert_eq!(
+            db.read()?.lookup::<Accounts>(1, b"alice@example.test")?[0].0,
+            1
+        );
+        assert_eq!(db.read()?.get::<Transfers>(7)?.unwrap().amount, 25);
+        Ok(())
+    }
+    #[test]
+    fn catalog_policy_runs_only_when_called_and_checks_decoded_projection() -> Result<()> {
+        use skrin::{CheckpointPolicy, MaintenanceOptions};
+        let path = Temp::new();
+        let db = CatalogDatabase::<Banking>::create_dir(&path.0)?;
+        let policy = CheckpointPolicy {
+            wal_bytes: None,
+            commits: Some(2),
+        };
+        assert!(
+            db.checkpoint_if_needed(policy, MaintenanceOptions::default())?
+                .is_none()
+        );
+        seed(&db)?;
+        assert!(
+            db.checkpoint_if_needed(policy, MaintenanceOptions::default())?
+                .is_none()
+        );
+        db.write(|tx| transfer(tx, 42, 1, 2, 25))?;
+        assert_eq!(db.generation_info()?.unwrap().generation, 1);
+        let report = db
+            .checkpoint_if_needed(policy, MaintenanceOptions::default())?
+            .unwrap();
+        assert_eq!((report.rows, report.sequence), (3, 2));
+        assert_eq!(db.stats()?.wal_bytes, 56);
+        assert!(
+            db.checkpoint_if_needed(
+                CheckpointPolicy {
+                    wal_bytes: Some(0),
+                    commits: Some(0)
+                },
+                MaintenanceOptions::default()
+            )?
+            .is_none()
+        );
+        assert_eq!(
+            db.read()?.lookup::<Accounts>(2, &125u64.to_be_bytes())?[0].0,
+            2
+        );
+        Ok(())
+    }
+    #[test]
+    fn catalog_backup_and_migration_limits_refuse_before_current_publication() -> Result<()> {
+        use skrin::MaintenanceOptions;
+        let path = Temp::new();
+        let backup_path = Temp::new();
+        let db = CatalogDatabase::<Banking>::create_dir(&path.0)?;
+        seed(&db)?;
+        let current = fs::read(path.0.join("CURRENT"))?;
+        let too_small = MaintenanceOptions {
+            max_rows: 2,
+            ..MaintenanceOptions::default()
+        };
+        assert!(matches!(
+            db.backup_to_with_options(&backup_path.0, too_small),
+            Err(Error::BudgetExceeded { .. })
+        ));
+        assert!(!backup_path.0.exists());
+        assert!(matches!(
+            db.migrate_with_options::<banking_v2::BankingV2>(
+                "bounded-v2",
+                too_small,
+                banking_v2::migrate_row
+            ),
+            Err(Error::BudgetExceeded { .. })
+        ));
+        assert_eq!(fs::read(path.0.join("CURRENT"))?, current);
+        let db = CatalogDatabase::<Banking>::open_dir(&path.0)?;
+        let backup = db.backup_to_with_options(&backup_path.0, MaintenanceOptions::default())?;
+        assert_eq!(
+            backup
+                .read()?
+                .lookup::<Accounts>(1, b"alice@example.test")?[0]
+                .0,
+            1
+        );
+        drop(backup);
+        let next = db.migrate_with_options::<banking_v2::BankingV2>(
+            "bounded-v2",
+            MaintenanceOptions::default(),
+            banking_v2::migrate_row,
+        )?;
+        assert_eq!(
+            next.generation_info()?.unwrap().migrations[0].id,
+            "bounded-v2"
+        );
+        assert_eq!(
+            next.read()?
+                .lookup::<banking_v2::AccountsV2>(1, b"bob@example.test")?[0]
+                .0,
+            2
+        );
+        Ok(())
+    }
     struct Changed;
     impl Catalog for Changed {
         const SCHEMA: Schema = Banking::SCHEMA;

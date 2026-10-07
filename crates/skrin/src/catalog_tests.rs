@@ -399,6 +399,17 @@ mod managed {
             })
             .unwrap();
         let current = fs::read(path.0.join("CURRENT")).unwrap();
+        assert!(
+            broken
+                .checkpoint_if_needed(
+                    crate::CheckpointPolicy {
+                        wal_bytes: None,
+                        commits: Some(1)
+                    },
+                    MaintenanceOptions::default()
+                )
+                .is_err()
+        );
         assert!(broken.checkpoint().is_err());
         assert_eq!(fs::read(path.0.join("CURRENT")).unwrap(), current);
         assert!(matches!(
