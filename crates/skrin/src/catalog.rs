@@ -483,7 +483,10 @@ impl<C: Catalog> CatalogDatabase<C> {
             if slot == 0 {
                 return Ok(());
             }
-            if project::<C>(slot, &rows[&slot])? != project::<C>(slot, decoded)? {
+            let native = rows
+                .get(&slot)
+                .ok_or_else(|| invalid("checkpoint changed an internal row slot"))?;
+            if project::<C>(slot, native)? != project::<C>(slot, decoded)? {
                 return Err(invalid(
                     "checkpoint codec changed a logical key or index projection",
                 ));
