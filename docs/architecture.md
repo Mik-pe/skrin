@@ -45,7 +45,7 @@ and index final-view validator under one exclusive writer boundary. Changed
 row/index paths are prepared before append. The complete final index projection
 is validated before unchanged primary addresses and secondary keys are filtered
 from the mutation delta. Existing row replacements are sorted and copy each
-shared AVL ancestor once per transaction, preserving tree shape and untouched
+shared AVL ancestor once in the replacement pass, preserving tree shape and untouched
 subtrees; inserts/deletes still use balanced tree operations. No full database
 copy occurs. A short separate publication lock
 swaps one coherent immutable root only after immediate/shared sync. Captured

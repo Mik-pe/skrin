@@ -65,8 +65,9 @@ three repeats, with substantial memory cost and adverse save tails. It establish
 an optimization baseline, not a generally faster-than-SQLite result.
 
 SQLite is one external yardstick for the equivalent application operation. It
-uses prepared statements, corresponding indexes, application-side typed
-get/modify/replace, WAL/FULL synchronization and explicit checkpoints. Skrin's
+uses prepared statements, corresponding indexes, WAL/FULL synchronization and
+explicit checkpoints. The comparison includes typed get/modify/replace, optimized
+set-based position updates and an atomic application-batch control. Skrin's
 engine/public API does not depend on SQLite: the adapter is benchmark-only via
 a pinned development dependency. Same useful work and durability matter more
 than matching implementation details. See [methodology](benchmarks.md#game-world).
@@ -83,8 +84,10 @@ than matching implementation details. See [methodology](benchmarks.md#game-world
    because another database uses it.
 3. Measure bounded dirty-row batches and independently queued group commit.
    Reduce synchronization per useful changed value while preserving the
-   configured acknowledgment boundary. The first harness has one producer;
-   it does not claim a group-commit benefit.
+   configured acknowledgment boundary. The harness now includes a bounded
+   eight-request pipeline through the implemented group controller, a one-request
+   control and SQLite's atomic batching alternative. See the
+   [repeated evidence](measurements/game-world-performance-2026-10-08.md).
 4. Measure a held frame version during saves and maintenance, including memory
    retention and read freshness. Optimize background scheduling and bounded
    work where measured frame tails justify it.

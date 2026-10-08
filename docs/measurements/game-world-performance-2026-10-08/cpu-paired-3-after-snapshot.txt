@@ -1,0 +1,36 @@
+workload,mode=snapshot,rows=100000,items=100000,saves=4096,batch=64,window=1,durability=sync_before_ack,maintenance=explicit,scratch=/dev/shm/skrin-world-snapshot-264350-1791443856380996654
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 104472 kB
+memory,phase=seeded,VmHWM: 104472 kB
+point,samples=4000,p50_us=1.280,p95_us=1.775,p99_us=2.098,max_us=19.979
+point_rate,operations_per_s=693220.357
+area,samples=4000,p50_us=8.262,p95_us=11.625,p99_us=16.365,max_us=33.514
+area_rate,operations_per_s=113843.932
+inventory,samples=4000,p50_us=3.012,p95_us=3.936,p99_us=4.643,max_us=15.352
+inventory_rate,operations_per_s=317748.485
+sync_groups,requests=1,groups=4096
+durable_save,samples=4096,p50_us=112.475,p95_us=147.843,p99_us=163.942,max_us=345.154
+durable_save_rate,saves_per_s=8841.973,entity_updates_per_s=565886.284
+frame_work_60hz,samples=28,p50_us=53.724,p95_us=151.622,p99_us=161.675,max_us=161.675
+frame_start_lateness,samples=28,p50_us=75.676,p95_us=119.445,p99_us=920.802,max_us=920.802
+frame_overlap,completed_while_writer_active=28,over_budget=0,last_observed_save=3977
+memory,phase=saved,VmRSS: 125864 kB
+memory,phase=saved,VmHWM: 125864 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=28178200
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=392.757,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 64216 kB
+memory,phase=reopen_before_verify,VmHWM: 64216 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=64.676
+disk,phase=published_overlap,logical_regular_file_bytes=40081556
+reclaim,elapsed_ms=0.049
+disk,phase=after_reclaim,logical_regular_file_bytes=40081556
+memory,phase=after_maintenance,VmRSS: 127832 kB
+memory,phase=after_maintenance,VmHWM: 127832 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=168.296,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 82752 kB
+memory,phase=reopen_before_verify,VmHWM: 93416 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/dev/shm/skrin-world-snapshot-264350-1791443856380996654

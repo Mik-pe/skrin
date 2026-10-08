@@ -128,6 +128,21 @@ Run the built executable in separate fresh processes, rotating native/snapshot/
 SQLite order across at least three repeats. Also smoke `67 73 13`: it wraps
 entity ranges and moves the same item again. Arguments require an existing
 scratch parent, mode, 2..1M entities, 1..1M saves and a batch of 1..min(rows,1024).
+An optional final `WINDOW` (1..=8, default 1) makes that many requests ready
+before waiting for their acknowledgments. New modes are `group_snapshot`,
+`sqlite_bulk` and `sqlite_batch`. For example:
+
+```sh
+# Independent transactions, same ready-request window and durable acknowledgments:
+/path/to/game_world /local/scratch group_snapshot 100000 128 64 8
+/path/to/game_world /local/scratch sqlite_bulk    100000 128 64 8
+# Stronger atomic application-batch control, also sharing one FULL sync:
+/path/to/game_world /local/scratch sqlite_batch   100000 128 64 8
+# Low load / no opportunity to group:
+/path/to/game_world /local/scratch group_snapshot 100000 128 64 1
+/path/to/game_world /local/scratch sqlite_bulk    100000 128 64 1
+```
+
 Each run creates an exclusive directory and **retains it even on success**.
 Output identifies the exact path; inspect/clean only these test-owned directories.
 A `--verify DB MODE ROWS SAVES BATCH` child invocation checks an existing run.
@@ -137,7 +152,13 @@ Every entity has area/x/y/revision (four u64s), and every item has owner/kind
 moves one item to the next owner and inserts a complete operation ID/request
 (five u64s). Entities are grouped in areas of 64. Seed commits insert 256
 entities and 256 items each, outside timing. Both engines have area and owner
-indexes and use the same application-side typed get/modify/replace operations.
+indexes. Skrin and `sqlite` use application-side typed get/modify/replace
+operations. The SQLite adapter reuses statement handles across the transaction
+and assigns only changed columns. `sqlite_bulk` additionally performs arithmetic
+updates directly over one/two wrapping primary-key intervals; it computes the
+same final fields while giving SQLite its native set-based advantage. `sqlite_batch`
+uses that optimized path for every request within one atomic batch. All modes
+check the same complete retry request, ownership and recipient before commit.
 Skrin uses its production catalog codec/WAL/index validator, with no special
 benchmark storage path. SQLite uses integer primary keys, normal rowid tables,
 corresponding non-unique indexes and prepared statements. All generated values
@@ -165,8 +186,24 @@ Skrin holds its entire typed world/indexes in RAM and SQLite has a warmed page
 cache. Do not describe this as equal memory cost or a cold-storage comparison.
 Timings include Instant overhead, enum dispatch and adapter/materialization costs.
 
-The save phase has **one unpaced writer** making independent immediate synced
-transactions. One reader starts with it at a barrier and requests synthetic
+The save phase has one unpaced driver with a bounded ready-request window.
+With window 1 it waits for each durable acknowledgment before the next request;
+no grouping opportunity is created. At window 8 all eight requests are ready at
+the window's start and latency runs from that common readiness boundary to each
+consumed durable acknowledgment, including queue wait. `group_snapshot` admits
+independent callbacks through the production controller (capacity 64, maximum
+8 transactions, 1 ms collection deadline), then consumes receipts in order.
+Other independent modes execute the same ready window serially, synching each
+request. No SQLite thread/connection contention penalty is introduced.
+`sqlite_batch` instead applies the ready window in one transaction and returns
+all acknowledgments after FULL commit. Its failure atomicity differs: all-or-none
+versus Skrin's independently recoverable WAL-frame prefix. It is a relevant
+control whenever the application can accept atomic batching. Never describe
+beating SQLite's per-request sync as beating that batched control. Group size
+histograms distinguish actual shared boundaries from merely queued requests;
+window 8 is a finite pipeline, not a sustained eight-producer stress test.
+
+One reader starts with it at a barrier and requests synthetic
 frame work at 60 Hz: one coherent view, 64 point lookups, one full area read,
 one inventory read, and a saved-operation watermark. Every returned value is
 checked against that view's exact acknowledged save prefix. Skrin derives the
@@ -209,3 +246,6 @@ assets, unlimited operation-ID retention or worlds larger than RAM.
 [The nine-run local NVMe baseline](measurements/game-world-2026-10-08.md) retains
 all adverse save tails, starved native frames and memory/lifecycle costs alongside
 resident lookup and snapshot frame results; no general durable speedup is claimed.
+
+[Repeated optimized CPU and durable pipeline measurements](measurements/game-world-performance-2026-10-08.md)
+include both SQLite controls, all per-run tails and the remaining memory cost.

@@ -1,0 +1,36 @@
+workload,mode=sqlite,rows=100000,items=100000,saves=128,batch=64,window=1,durability=sync_before_ack,maintenance=explicit,scratch=/home/mikpe/.cache/skrin-world-sqlite-264712-1791443943211622679
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 11884 kB
+memory,phase=seeded,VmHWM: 11884 kB
+point,samples=4000,p50_us=1.673,p95_us=2.022,p99_us=2.234,max_us=9.178
+point_rate,operations_per_s=561771.321
+area,samples=4000,p50_us=18.156,p95_us=18.987,p99_us=23.984,max_us=100.141
+area_rate,operations_per_s=54208.349
+inventory,samples=4000,p50_us=2.226,p95_us=2.830,p99_us=3.276,max_us=43.978
+inventory_rate,operations_per_s=415359.625
+sync_groups,requests=1,groups=128
+durable_save,samples=128,p50_us=7459.231,p95_us=11180.745,p99_us=12729.070,max_us=14045.615
+durable_save_rate,saves_per_s=126.882,entity_updates_per_s=8120.434
+frame_work_60hz,samples=61,p50_us=130.901,p95_us=217.258,p99_us=331.995,max_us=331.995
+frame_start_lateness,samples=61,p50_us=107.299,p95_us=138.272,p99_us=204.569,max_us=204.569
+frame_overlap,completed_while_writer_active=61,over_budget=0,last_observed_save=126
+memory,phase=saved,VmRSS: 12376 kB
+memory,phase=saved,VmHWM: 12376 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=28526504
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=8.669,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5284 kB
+memory,phase=reopen_before_verify,VmHWM: 5284 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=53.635
+disk,phase=published_overlap,logical_regular_file_bytes=5627904
+reclaim,elapsed_ms=0.000
+disk,phase=after_reclaim,logical_regular_file_bytes=5627904
+memory,phase=after_maintenance,VmRSS: 10004 kB
+memory,phase=after_maintenance,VmHWM: 11816 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=0.491,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5200 kB
+memory,phase=reopen_before_verify,VmHWM: 5200 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/home/mikpe/.cache/skrin-world-sqlite-264712-1791443943211622679

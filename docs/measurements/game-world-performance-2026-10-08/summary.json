@@ -1,0 +1,5206 @@
+{
+  "runs": [
+    {
+      "file": "cpu-before-1-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-251679-1791443545862214672"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.631,
+        "p95_us": 0.927,
+        "p99_us": 1.179,
+        "max_us": 4.612
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.953,
+        "p95_us": 10.447,
+        "p99_us": 11.955,
+        "max_us": 102.498
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.409,
+        "p95_us": 1.844,
+        "p99_us": 2.221,
+        "max_us": 38.802
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 73.157,
+        "p95_us": 88.33,
+        "p99_us": 150.138,
+        "max_us": 256.582
+      },
+      "durable_save_rate": {
+        "saves_per_s": 13068.882,
+        "entity_updates_per_s": 836408.445
+      },
+      "frame_work_60hz": {
+        "samples": 11,
+        "p50_us": 15780.007,
+        "p95_us": 79826.236,
+        "p99_us": 79826.236,
+        "max_us": 79826.236
+      },
+      "frame_start_lateness": {
+        "samples": 11,
+        "p50_us": 123.515,
+        "p95_us": 132.097,
+        "p99_us": 132.097,
+        "max_us": 132.097
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 10,
+        "over_budget": 5,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 51.038
+      },
+      "reclaim": {
+        "elapsed_ms": 0.045
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65348,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 359.812,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 137.9,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-1-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-251660-1791443541730322004"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.642,
+        "p95_us": 0.987,
+        "p99_us": 1.242,
+        "max_us": 6.875
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.292,
+        "p95_us": 8.606,
+        "p99_us": 10.648,
+        "max_us": 44.732
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.706,
+        "p95_us": 2.457,
+        "p99_us": 3.122,
+        "max_us": 6.026
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 343.401,
+        "p95_us": 419.595,
+        "p99_us": 483.539,
+        "max_us": 1047.143
+      },
+      "durable_save_rate": {
+        "saves_per_s": 2843.931,
+        "entity_updates_per_s": 182011.577
+      },
+      "frame_work_60hz": {
+        "samples": 87,
+        "p50_us": 29.79,
+        "p95_us": 100.515,
+        "p99_us": 157.6,
+        "max_us": 157.6
+      },
+      "frame_start_lateness": {
+        "samples": 87,
+        "p50_us": 129.577,
+        "p95_us": 139.643,
+        "p99_us": 140.395,
+        "max_us": 140.395
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 87,
+        "over_budget": 0,
+        "last_observed_save": 4076
+      },
+      "checkpoint": {
+        "elapsed_ms": 55.202
+      },
+      "reclaim": {
+        "elapsed_ms": 0.043
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 142584,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 367.922,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 139.422,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-1-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-251683-1791443548122032438"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.679,
+        "p95_us": 2.078,
+        "p99_us": 2.301,
+        "max_us": 42.719
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.14,
+        "p95_us": 18.88,
+        "p99_us": 20.787,
+        "max_us": 97.571
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.283,
+        "p95_us": 2.89,
+        "p99_us": 3.316,
+        "max_us": 42.458
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 27.558,
+        "p95_us": 52.393,
+        "p99_us": 66.819,
+        "max_us": 131.968
+      },
+      "durable_save_rate": {
+        "saves_per_s": 33144.482,
+        "entity_updates_per_s": 2121246.818
+      },
+      "frame_work_60hz": {
+        "samples": 8,
+        "p50_us": 121.636,
+        "p95_us": 147.653,
+        "p99_us": 147.653,
+        "max_us": 147.653
+      },
+      "frame_start_lateness": {
+        "samples": 8,
+        "p50_us": 128.64,
+        "p95_us": 139.49,
+        "p99_us": 139.49,
+        "max_us": 139.49
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 8,
+        "over_budget": 0,
+        "last_observed_save": 3855
+      },
+      "checkpoint": {
+        "elapsed_ms": 12.63
+      },
+      "reclaim": {
+        "elapsed_ms": 0.001
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 12920,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 30.349,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.331,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-2-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-251696-1791443550933729892"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.634,
+        "p95_us": 0.939,
+        "p99_us": 1.192,
+        "max_us": 6.75
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.965,
+        "p95_us": 10.429,
+        "p99_us": 11.71,
+        "max_us": 53.421
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.405,
+        "p95_us": 1.819,
+        "p99_us": 2.207,
+        "max_us": 40.657
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 72.378,
+        "p95_us": 87.669,
+        "p99_us": 150.635,
+        "max_us": 228.096
+      },
+      "durable_save_rate": {
+        "saves_per_s": 13258.363,
+        "entity_updates_per_s": 848535.212
+      },
+      "frame_work_60hz": {
+        "samples": 8,
+        "p50_us": 19008.398,
+        "p95_us": 76807.636,
+        "p99_us": 76807.636,
+        "max_us": 76807.636
+      },
+      "frame_start_lateness": {
+        "samples": 8,
+        "p50_us": 124.152,
+        "p95_us": 138.675,
+        "p99_us": 138.675,
+        "max_us": 138.675
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 7,
+        "over_budget": 5,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 49.597
+      },
+      "reclaim": {
+        "elapsed_ms": 0.042
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65264,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 360.469,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 138.231,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-2-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-251700-1791443553183985141"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.653,
+        "p95_us": 1.016,
+        "p99_us": 1.299,
+        "max_us": 6.643
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.352,
+        "p95_us": 9.042,
+        "p99_us": 11.38,
+        "max_us": 85.966
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.774,
+        "p95_us": 2.478,
+        "p99_us": 3.259,
+        "max_us": 43.55
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 344.05,
+        "p95_us": 432.542,
+        "p99_us": 519.376,
+        "max_us": 672.252
+      },
+      "durable_save_rate": {
+        "saves_per_s": 2809.798,
+        "entity_updates_per_s": 179827.047
+      },
+      "frame_work_60hz": {
+        "samples": 88,
+        "p50_us": 32.229,
+        "p95_us": 111.846,
+        "p99_us": 196.822,
+        "max_us": 196.822
+      },
+      "frame_start_lateness": {
+        "samples": 88,
+        "p50_us": 124.685,
+        "p95_us": 138.945,
+        "p99_us": 166.707,
+        "max_us": 166.707
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 88,
+        "over_budget": 0,
+        "last_observed_save": 4073
+      },
+      "checkpoint": {
+        "elapsed_ms": 55.096
+      },
+      "reclaim": {
+        "elapsed_ms": 0.039
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 142656,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 369.189,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 140.159,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-2-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-251690-1791443549519928036"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.7,
+        "p95_us": 2.082,
+        "p99_us": 2.325,
+        "max_us": 40.094
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 17.992,
+        "p95_us": 18.646,
+        "p99_us": 21.338,
+        "max_us": 54.722
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.268,
+        "p95_us": 2.948,
+        "p99_us": 3.607,
+        "max_us": 45.903
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 29.548,
+        "p95_us": 65.251,
+        "p99_us": 106.572,
+        "max_us": 210.517
+      },
+      "durable_save_rate": {
+        "saves_per_s": 28660.238,
+        "entity_updates_per_s": 1834255.253
+      },
+      "frame_work_60hz": {
+        "samples": 9,
+        "p50_us": 147.757,
+        "p95_us": 306.204,
+        "p99_us": 306.204,
+        "max_us": 306.204
+      },
+      "frame_start_lateness": {
+        "samples": 9,
+        "p50_us": 84.223,
+        "p95_us": 131.448,
+        "p99_us": 131.448,
+        "max_us": 131.448
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 9,
+        "over_budget": 0,
+        "last_observed_save": 3788
+      },
+      "checkpoint": {
+        "elapsed_ms": 9.964
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 12988,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 30.238,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.406,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-3-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-251725-1791443561493354926"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.641,
+        "p95_us": 0.927,
+        "p99_us": 1.181,
+        "max_us": 8.141
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.92,
+        "p95_us": 10.305,
+        "p99_us": 11.753,
+        "max_us": 46.747
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.415,
+        "p95_us": 1.845,
+        "p99_us": 2.184,
+        "max_us": 39.519
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 72.366,
+        "p95_us": 80.967,
+        "p99_us": 109.944,
+        "max_us": 297.503
+      },
+      "durable_save_rate": {
+        "saves_per_s": 13517.206,
+        "entity_updates_per_s": 865101.165
+      },
+      "frame_work_60hz": {
+        "samples": 8,
+        "p50_us": 19586.62,
+        "p95_us": 76135.048,
+        "p99_us": 76135.048,
+        "max_us": 76135.048
+      },
+      "frame_start_lateness": {
+        "samples": 8,
+        "p50_us": 120.565,
+        "p95_us": 135.291,
+        "p99_us": 135.291,
+        "max_us": 135.291
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 7,
+        "over_budget": 6,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 51.593
+      },
+      "reclaim": {
+        "elapsed_ms": 0.047
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65272,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 357.036,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 138.926,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-3-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-251709-1791443557346950649"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.651,
+        "p95_us": 1.026,
+        "p99_us": 1.285,
+        "max_us": 41.708
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.341,
+        "p95_us": 8.774,
+        "p99_us": 11.105,
+        "max_us": 69.052
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.747,
+        "p95_us": 2.524,
+        "p99_us": 3.183,
+        "max_us": 38.401
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 343.568,
+        "p95_us": 417.299,
+        "p99_us": 484.365,
+        "max_us": 700.212
+      },
+      "durable_save_rate": {
+        "saves_per_s": 2845.279,
+        "entity_updates_per_s": 182097.847
+      },
+      "frame_work_60hz": {
+        "samples": 87,
+        "p50_us": 28.872,
+        "p95_us": 67.215,
+        "p99_us": 106.168,
+        "max_us": 106.168
+      },
+      "frame_start_lateness": {
+        "samples": 87,
+        "p50_us": 129.296,
+        "p95_us": 138.067,
+        "p99_us": 143.812,
+        "max_us": 143.812
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 87,
+        "over_budget": 0,
+        "last_observed_save": 4079
+      },
+      "checkpoint": {
+        "elapsed_ms": 55.669
+      },
+      "reclaim": {
+        "elapsed_ms": 0.043
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 142632,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 362.011,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 140.077,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-before-3-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-251729-1791443563745125773"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.695,
+        "p95_us": 2.062,
+        "p99_us": 2.319,
+        "max_us": 38.255
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 17.966,
+        "p95_us": 18.58,
+        "p99_us": 20.487,
+        "max_us": 57.508
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.203,
+        "p95_us": 2.708,
+        "p99_us": 3.013,
+        "max_us": 39.468
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 27.972,
+        "p95_us": 64.701,
+        "p99_us": 101.085,
+        "max_us": 237.007
+      },
+      "durable_save_rate": {
+        "saves_per_s": 30009.811,
+        "entity_updates_per_s": 1920627.932
+      },
+      "frame_work_60hz": {
+        "samples": 9,
+        "p50_us": 145.466,
+        "p95_us": 209.587,
+        "p99_us": 209.587,
+        "max_us": 209.587
+      },
+      "frame_start_lateness": {
+        "samples": 9,
+        "p50_us": 86.464,
+        "p95_us": 135.999,
+        "p99_us": 135.999,
+        "max_us": 135.999
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 9,
+        "over_budget": 0,
+        "last_observed_save": 3985
+      },
+      "checkpoint": {
+        "elapsed_ms": 10.096
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 13048,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 31.055,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.292,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-1-after-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-264196-1791443754148471583"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.797,
+        "p95_us": 1.122,
+        "p99_us": 1.444,
+        "max_us": 39.523
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 10.123,
+        "p95_us": 13.832,
+        "p99_us": 45.228,
+        "max_us": 95.749
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.249,
+        "p95_us": 2.848,
+        "p99_us": 3.304,
+        "max_us": 31.968
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 63.523,
+        "p95_us": 99.775,
+        "p99_us": 115.838,
+        "max_us": 421.143
+      },
+      "durable_save_rate": {
+        "saves_per_s": 13880.068,
+        "entity_updates_per_s": 888324.379
+      },
+      "frame_work_60hz": {
+        "samples": 8,
+        "p50_us": 16099.527,
+        "p95_us": 112657.307,
+        "p99_us": 112657.307,
+        "max_us": 112657.307
+      },
+      "frame_start_lateness": {
+        "samples": 8,
+        "p50_us": 78.679,
+        "p95_us": 91.196,
+        "p99_us": 91.196,
+        "max_us": 91.196
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 7,
+        "over_budget": 4,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 62.46
+      },
+      "reclaim": {
+        "elapsed_ms": 0.075
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65100,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 521.47,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 191.106,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-1-after-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-264191-1791443750280220549"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.287,
+        "p95_us": 1.791,
+        "p99_us": 2.142,
+        "max_us": 28.633
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.619,
+        "p95_us": 11.87,
+        "p99_us": 17.548,
+        "max_us": 43.652
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.233,
+        "p95_us": 4.208,
+        "p99_us": 4.862,
+        "max_us": 24.803
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 107.363,
+        "p95_us": 145.604,
+        "p99_us": 165.463,
+        "max_us": 247.148
+      },
+      "durable_save_rate": {
+        "saves_per_s": 8883.521,
+        "entity_updates_per_s": 568545.326
+      },
+      "frame_work_60hz": {
+        "samples": 28,
+        "p50_us": 57.066,
+        "p95_us": 159.765,
+        "p99_us": 191.227,
+        "max_us": 191.227
+      },
+      "frame_start_lateness": {
+        "samples": 28,
+        "p50_us": 78.773,
+        "p95_us": 91.06,
+        "p99_us": 107.462,
+        "max_us": 107.462
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 28,
+        "over_budget": 0,
+        "last_observed_save": 3999
+      },
+      "checkpoint": {
+        "elapsed_ms": 103.402
+      },
+      "reclaim": {
+        "elapsed_ms": 0.08
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 125916,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 354.144,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 239.58,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-1-after-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-264201-1791443757064913897"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 2.422,
+        "p95_us": 3.14,
+        "p99_us": 4.174,
+        "max_us": 28.465
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 38.768,
+        "p95_us": 46.125,
+        "p99_us": 58.392,
+        "max_us": 88.492
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 5.424,
+        "p95_us": 6.621,
+        "p99_us": 8.643,
+        "max_us": 36.776
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 59.963,
+        "p95_us": 125.541,
+        "p99_us": 165.676,
+        "max_us": 324.616
+      },
+      "durable_save_rate": {
+        "saves_per_s": 14848.633,
+        "entity_updates_per_s": 950312.529
+      },
+      "frame_work_60hz": {
+        "samples": 17,
+        "p50_us": 223.336,
+        "p95_us": 365.248,
+        "p99_us": 365.248,
+        "max_us": 365.248
+      },
+      "frame_start_lateness": {
+        "samples": 17,
+        "p50_us": 77.412,
+        "p95_us": 95.321,
+        "p99_us": 95.321,
+        "max_us": 95.321
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 17,
+        "over_budget": 0,
+        "last_observed_save": 3940
+      },
+      "checkpoint": {
+        "elapsed_ms": 19.981
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 13020,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 37.025,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.524,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-1-before-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-264158-1791443744996566134"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.076,
+        "p95_us": 1.453,
+        "p99_us": 1.721,
+        "max_us": 20.483
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 10.397,
+        "p95_us": 12.542,
+        "p99_us": 19.445,
+        "max_us": 73.004
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.416,
+        "p95_us": 3.185,
+        "p99_us": 3.849,
+        "max_us": 35.921
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 100.742,
+        "p95_us": 127.828,
+        "p99_us": 150.109,
+        "max_us": 322.48
+      },
+      "durable_save_rate": {
+        "saves_per_s": 9612.82,
+        "entity_updates_per_s": 615220.475
+      },
+      "frame_work_60hz": {
+        "samples": 8,
+        "p50_us": 26784.917,
+        "p95_us": 96656.374,
+        "p99_us": 96656.374,
+        "max_us": 96656.374
+      },
+      "frame_start_lateness": {
+        "samples": 8,
+        "p50_us": 69.987,
+        "p95_us": 85.387,
+        "p99_us": 85.387,
+        "max_us": 85.387
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 7,
+        "over_budget": 6,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 59.571
+      },
+      "reclaim": {
+        "elapsed_ms": 0.07
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65260,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 573.559,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 174.945,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-1-before-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-264149-1791443739195912716"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.362,
+        "p95_us": 1.949,
+        "p99_us": 2.25,
+        "max_us": 22.655
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.883,
+        "p95_us": 12.508,
+        "p99_us": 17.188,
+        "max_us": 33.677
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.347,
+        "p95_us": 4.397,
+        "p99_us": 5.176,
+        "max_us": 37.364
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 525.97,
+        "p95_us": 690.659,
+        "p99_us": 738.401,
+        "max_us": 1437.761
+      },
+      "durable_save_rate": {
+        "saves_per_s": 1846.066,
+        "entity_updates_per_s": 118148.192
+      },
+      "frame_work_60hz": {
+        "samples": 134,
+        "p50_us": 56.735,
+        "p95_us": 155.975,
+        "p99_us": 227.423,
+        "max_us": 242.39
+      },
+      "frame_start_lateness": {
+        "samples": 134,
+        "p50_us": 80.215,
+        "p95_us": 98.367,
+        "p99_us": 367.737,
+        "max_us": 1153.431
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 134,
+        "over_budget": 0,
+        "last_observed_save": 4092
+      },
+      "checkpoint": {
+        "elapsed_ms": 71.383
+      },
+      "reclaim": {
+        "elapsed_ms": 0.06
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 142624,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 531.395,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 178.137,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-1-before-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-264163-1791443747982039561"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 2.639,
+        "p95_us": 4.343,
+        "p99_us": 5.271,
+        "max_us": 43.723
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 24.199,
+        "p95_us": 47.153,
+        "p99_us": 55.982,
+        "max_us": 157.355
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.788,
+        "p95_us": 4.823,
+        "p99_us": 6.068,
+        "max_us": 24.114
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 59.38,
+        "p95_us": 135.488,
+        "p99_us": 167.066,
+        "max_us": 217.344
+      },
+      "durable_save_rate": {
+        "saves_per_s": 16189.527,
+        "entity_updates_per_s": 1036129.732
+      },
+      "frame_work_60hz": {
+        "samples": 16,
+        "p50_us": 238.627,
+        "p95_us": 279.251,
+        "p99_us": 279.251,
+        "max_us": 279.251
+      },
+      "frame_start_lateness": {
+        "samples": 16,
+        "p50_us": 78.027,
+        "p95_us": 1152.615,
+        "p99_us": 1152.615,
+        "max_us": 1152.615
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 16,
+        "over_budget": 0,
+        "last_observed_save": 4052
+      },
+      "checkpoint": {
+        "elapsed_ms": 12.375
+      },
+      "reclaim": {
+        "elapsed_ms": 0.001
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 12924,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 35.933,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.42,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-2-after-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-264214-1791443762893965864"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.898,
+        "p95_us": 1.258,
+        "p99_us": 1.526,
+        "max_us": 11.507
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 10.173,
+        "p95_us": 12.172,
+        "p99_us": 16.676,
+        "max_us": 97.181
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.646,
+        "p95_us": 2.224,
+        "p99_us": 2.955,
+        "max_us": 41.806
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 70.779,
+        "p95_us": 96.126,
+        "p99_us": 114.2,
+        "max_us": 218.325
+      },
+      "durable_save_rate": {
+        "saves_per_s": 13984.378,
+        "entity_updates_per_s": 895000.18
+      },
+      "frame_work_60hz": {
+        "samples": 9,
+        "p50_us": 5861.889,
+        "p95_us": 68845.45,
+        "p99_us": 68845.45,
+        "max_us": 68845.45
+      },
+      "frame_start_lateness": {
+        "samples": 9,
+        "p50_us": 72.747,
+        "p95_us": 95.582,
+        "p99_us": 95.582,
+        "max_us": 95.582
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 8,
+        "over_budget": 3,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 80.243
+      },
+      "reclaim": {
+        "elapsed_ms": 0.057
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 64944,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 465.728,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 173.397,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-2-after-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-264210-1791443759406106790"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.129,
+        "p95_us": 1.558,
+        "p99_us": 1.825,
+        "max_us": 12.579
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.318,
+        "p95_us": 11.009,
+        "p99_us": 17.025,
+        "max_us": 43.508
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.878,
+        "p95_us": 3.754,
+        "p99_us": 4.355,
+        "max_us": 27.389
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 98.11,
+        "p95_us": 125.269,
+        "p99_us": 144.648,
+        "max_us": 222.179
+      },
+      "durable_save_rate": {
+        "saves_per_s": 9869.906,
+        "entity_updates_per_s": 631674.003
+      },
+      "frame_work_60hz": {
+        "samples": 25,
+        "p50_us": 64.716,
+        "p95_us": 120.001,
+        "p99_us": 158.601,
+        "max_us": 158.601
+      },
+      "frame_start_lateness": {
+        "samples": 25,
+        "p50_us": 73.763,
+        "p95_us": 86.19,
+        "p99_us": 87.079,
+        "max_us": 87.079
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 25,
+        "over_budget": 0,
+        "last_observed_save": 3952
+      },
+      "checkpoint": {
+        "elapsed_ms": 64.725
+      },
+      "reclaim": {
+        "elapsed_ms": 0.044
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 125872,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 344.907,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 189.619,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-2-after-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-264219-1791443765721596713"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 2.385,
+        "p95_us": 3.287,
+        "p99_us": 4.207,
+        "max_us": 21.673
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 21.719,
+        "p95_us": 42.494,
+        "p99_us": 56.054,
+        "max_us": 83.88
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.527,
+        "p95_us": 5.378,
+        "p99_us": 6.315,
+        "max_us": 23.333
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 38.685,
+        "p95_us": 73.769,
+        "p99_us": 101.517,
+        "max_us": 180.845
+      },
+      "durable_save_rate": {
+        "saves_per_s": 23061.535,
+        "entity_updates_per_s": 1475938.222
+      },
+      "frame_work_60hz": {
+        "samples": 11,
+        "p50_us": 232.298,
+        "p95_us": 284.595,
+        "p99_us": 284.595,
+        "max_us": 284.595
+      },
+      "frame_start_lateness": {
+        "samples": 11,
+        "p50_us": 69.035,
+        "p95_us": 152.893,
+        "p99_us": 152.893,
+        "max_us": 152.893
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 11,
+        "over_budget": 0,
+        "last_observed_save": 3901
+      },
+      "checkpoint": {
+        "elapsed_ms": 11.067
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 13036,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 33.966,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.366,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-2-before-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-264228-1791443772978634434"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.013,
+        "p95_us": 1.395,
+        "p99_us": 1.698,
+        "max_us": 19.117
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 11.124,
+        "p95_us": 14.609,
+        "p99_us": 19.859,
+        "max_us": 40.556
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.367,
+        "p95_us": 3.103,
+        "p99_us": 3.747,
+        "max_us": 18.062
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 96.407,
+        "p95_us": 124.65,
+        "p99_us": 144.068,
+        "max_us": 358.018
+      },
+      "durable_save_rate": {
+        "saves_per_s": 10038.404,
+        "entity_updates_per_s": 642457.84
+      },
+      "frame_work_60hz": {
+        "samples": 8,
+        "p50_us": 24443.266,
+        "p95_us": 96638.527,
+        "p99_us": 96638.527,
+        "max_us": 96638.527
+      },
+      "frame_start_lateness": {
+        "samples": 8,
+        "p50_us": 70.493,
+        "p95_us": 89.446,
+        "p99_us": 89.446,
+        "max_us": 89.446
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 7,
+        "over_budget": 7,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 59.917
+      },
+      "reclaim": {
+        "elapsed_ms": 0.051
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65364,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 493.859,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 174.4,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-2-before-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-264223-1791443767635600593"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.186,
+        "p95_us": 1.73,
+        "p99_us": 2.116,
+        "max_us": 13.114
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.753,
+        "p95_us": 12.413,
+        "p99_us": 18.195,
+        "max_us": 33.547
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.134,
+        "p95_us": 4.037,
+        "p99_us": 4.828,
+        "max_us": 31.887
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 438.575,
+        "p95_us": 607.742,
+        "p99_us": 696.395,
+        "max_us": 776.37
+      },
+      "durable_save_rate": {
+        "saves_per_s": 2230.327,
+        "entity_updates_per_s": 142740.958
+      },
+      "frame_work_60hz": {
+        "samples": 111,
+        "p50_us": 49.566,
+        "p95_us": 94.441,
+        "p99_us": 153.884,
+        "max_us": 156.252
+      },
+      "frame_start_lateness": {
+        "samples": 111,
+        "p50_us": 69.966,
+        "p95_us": 86.728,
+        "p99_us": 118.883,
+        "max_us": 890.617
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 111,
+        "over_budget": 0,
+        "last_observed_save": 4089
+      },
+      "checkpoint": {
+        "elapsed_ms": 67.164
+      },
+      "reclaim": {
+        "elapsed_ms": 0.047
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 142584,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 483.562,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 204.522,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-2-before-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-264242-1791443775996144968"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 2.568,
+        "p95_us": 3.295,
+        "p99_us": 4.121,
+        "max_us": 18.496
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 23.358,
+        "p95_us": 40.001,
+        "p99_us": 44.884,
+        "max_us": 73.216
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.716,
+        "p95_us": 4.682,
+        "p99_us": 5.37,
+        "max_us": 19.533
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 41.769,
+        "p95_us": 89.433,
+        "p99_us": 136.749,
+        "max_us": 232.545
+      },
+      "durable_save_rate": {
+        "saves_per_s": 20477.167,
+        "entity_updates_per_s": 1310538.667
+      },
+      "frame_work_60hz": {
+        "samples": 12,
+        "p50_us": 220.376,
+        "p95_us": 293.693,
+        "p99_us": 293.693,
+        "max_us": 293.693
+      },
+      "frame_start_lateness": {
+        "samples": 12,
+        "p50_us": 74.392,
+        "p95_us": 88.858,
+        "p99_us": 88.858,
+        "max_us": 88.858
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 12,
+        "over_budget": 0,
+        "last_observed_save": 3722
+      },
+      "checkpoint": {
+        "elapsed_ms": 12.404
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 12656,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 36.011,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.372,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-3-after-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-264381-1791443871566116549"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.984,
+        "p95_us": 1.328,
+        "p99_us": 1.672,
+        "max_us": 28.423
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 10.712,
+        "p95_us": 13.523,
+        "p99_us": 19.843,
+        "max_us": 40.78
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.999,
+        "p95_us": 2.598,
+        "p99_us": 3.138,
+        "max_us": 15.029
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 66.355,
+        "p95_us": 91.252,
+        "p99_us": 102.952,
+        "max_us": 216.698
+      },
+      "durable_save_rate": {
+        "saves_per_s": 14306.772,
+        "entity_updates_per_s": 915633.396
+      },
+      "frame_work_60hz": {
+        "samples": 7,
+        "p50_us": 3477.079,
+        "p95_us": 130931.07,
+        "p99_us": 130931.07,
+        "max_us": 130931.07
+      },
+      "frame_start_lateness": {
+        "samples": 7,
+        "p50_us": 85.157,
+        "p95_us": 92.847,
+        "p99_us": 92.847,
+        "max_us": 92.847
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 6,
+        "over_budget": 3,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 93.608
+      },
+      "reclaim": {
+        "elapsed_ms": 0.075
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65076,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 529.706,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 270.464,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-3-after-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-264350-1791443856380996654"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.28,
+        "p95_us": 1.775,
+        "p99_us": 2.098,
+        "max_us": 19.979
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.262,
+        "p95_us": 11.625,
+        "p99_us": 16.365,
+        "max_us": 33.514
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.012,
+        "p95_us": 3.936,
+        "p99_us": 4.643,
+        "max_us": 15.352
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 112.475,
+        "p95_us": 147.843,
+        "p99_us": 163.942,
+        "max_us": 345.154
+      },
+      "durable_save_rate": {
+        "saves_per_s": 8841.973,
+        "entity_updates_per_s": 565886.284
+      },
+      "frame_work_60hz": {
+        "samples": 28,
+        "p50_us": 53.724,
+        "p95_us": 151.622,
+        "p99_us": 161.675,
+        "max_us": 161.675
+      },
+      "frame_start_lateness": {
+        "samples": 28,
+        "p50_us": 75.676,
+        "p95_us": 119.445,
+        "p99_us": 920.802,
+        "max_us": 920.802
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 28,
+        "over_budget": 0,
+        "last_observed_save": 3977
+      },
+      "checkpoint": {
+        "elapsed_ms": 64.676
+      },
+      "reclaim": {
+        "elapsed_ms": 0.049
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 125864,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 392.757,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 168.296,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-3-after-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-264387-1791443874657085121"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 4.324,
+        "p95_us": 5.367,
+        "p99_us": 6.789,
+        "max_us": 22.845
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 41.607,
+        "p95_us": 51.859,
+        "p99_us": 61.5,
+        "max_us": 221.51
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 6.01,
+        "p95_us": 7.664,
+        "p99_us": 9.856,
+        "max_us": 63.598
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 70.919,
+        "p95_us": 147.75,
+        "p99_us": 183.474,
+        "max_us": 1106.56
+      },
+      "durable_save_rate": {
+        "saves_per_s": 12664.871,
+        "entity_updates_per_s": 810551.747
+      },
+      "frame_work_60hz": {
+        "samples": 20,
+        "p50_us": 241.944,
+        "p95_us": 275.679,
+        "p99_us": 1716.729,
+        "max_us": 1716.729
+      },
+      "frame_start_lateness": {
+        "samples": 20,
+        "p50_us": 77.916,
+        "p95_us": 326.129,
+        "p99_us": 387.096,
+        "max_us": 387.096
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 20,
+        "over_budget": 0,
+        "last_observed_save": 4025
+      },
+      "checkpoint": {
+        "elapsed_ms": 22.001
+      },
+      "reclaim": {
+        "elapsed_ms": 0.001
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 12560,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 44.633,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.566,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-3-before-native.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-native-264264-1791443783334329460"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 6.63,
+        "p95_us": 7.796,
+        "p99_us": 15.448,
+        "max_us": 59.828
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 133.182,
+        "p95_us": 187.286,
+        "p99_us": 222.171,
+        "max_us": 373.824
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 15.695,
+        "p95_us": 21.073,
+        "p99_us": 52.421,
+        "max_us": 81.163
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 1441.739,
+        "p95_us": 2138.0,
+        "p99_us": 2412.281,
+        "max_us": 3090.492
+      },
+      "durable_save_rate": {
+        "saves_per_s": 644.129,
+        "entity_updates_per_s": 41224.27
+      },
+      "frame_work_60hz": {
+        "samples": 41,
+        "p50_us": 1922.138,
+        "p95_us": 1221257.137,
+        "p99_us": 1759279.871,
+        "max_us": 1759279.871
+      },
+      "frame_start_lateness": {
+        "samples": 41,
+        "p50_us": 383.228,
+        "p95_us": 1026.178,
+        "p99_us": 1041.861,
+        "max_us": 1041.861
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 40,
+        "over_budget": 5,
+        "last_observed_save": 4096
+      },
+      "checkpoint": {
+        "elapsed_ms": 952.726
+      },
+      "reclaim": {
+        "elapsed_ms": 0.807
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 65260,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 7670.859,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 2836.721,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-3-before-snapshot.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-snapshot-264246-1791443777865213299"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.224,
+        "p95_us": 1.731,
+        "p99_us": 2.101,
+        "max_us": 13.988
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 8.705,
+        "p95_us": 10.969,
+        "p99_us": 17.202,
+        "max_us": 28.716
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 3.107,
+        "p95_us": 4.076,
+        "p99_us": 4.884,
+        "max_us": 33.686
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 492.455,
+        "p95_us": 601.539,
+        "p99_us": 694.08,
+        "max_us": 863.996
+      },
+      "durable_save_rate": {
+        "saves_per_s": 2017.936,
+        "entity_updates_per_s": 129147.919
+      },
+      "frame_work_60hz": {
+        "samples": 122,
+        "p50_us": 50.354,
+        "p95_us": 98.202,
+        "p99_us": 168.032,
+        "max_us": 1885.987
+      },
+      "frame_start_lateness": {
+        "samples": 122,
+        "p50_us": 76.748,
+        "p95_us": 92.917,
+        "p99_us": 1010.935,
+        "max_us": 1085.636
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 122,
+        "over_budget": 0,
+        "last_observed_save": 4071
+      },
+      "checkpoint": {
+        "elapsed_ms": 66.216
+      },
+      "reclaim": {
+        "elapsed_ms": 0.052
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 142500,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28178200
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 40081556
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 40081556
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 492.713,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 188.13,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "cpu-paired-3-before-sqlite_bulk.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 4096,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/dev/shm/skrin-world-sqlite_bulk-264315-1791443821092241447"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 49.719,
+        "p95_us": 92.104,
+        "p99_us": 108.047,
+        "max_us": 150.307
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 384.472,
+        "p95_us": 771.296,
+        "p99_us": 805.574,
+        "max_us": 1789.685
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 63.073,
+        "p95_us": 93.067,
+        "p99_us": 137.078,
+        "max_us": 177.836
+      },
+      "durable_save": {
+        "samples": 4096,
+        "p50_us": 768.018,
+        "p95_us": 2363.516,
+        "p99_us": 5778.412,
+        "max_us": 16136.602
+      },
+      "durable_save_rate": {
+        "saves_per_s": 974.857,
+        "entity_updates_per_s": 62390.82
+      },
+      "frame_work_60hz": {
+        "samples": 232,
+        "p50_us": 3796.171,
+        "p95_us": 18632.486,
+        "p99_us": 25526.639,
+        "max_us": 40070.383
+      },
+      "frame_start_lateness": {
+        "samples": 232,
+        "p50_us": 202.441,
+        "p95_us": 3728.383,
+        "p99_us": 6187.142,
+        "max_us": 9532.003
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 231,
+        "over_budget": 14,
+        "last_observed_save": 4095
+      },
+      "checkpoint": {
+        "elapsed_ms": 166.854
+      },
+      "reclaim": {
+        "elapsed_ms": 0.003
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 4096
+        }
+      ],
+      "saved_rss_kib": 13020,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 103076944
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 6164480
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 6164480
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 489.37,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 5.457,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-group_snapshot-w1.txt",
+      "workload": {
+        "mode": "group_snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-group_snapshot-264647-1791443907409652698"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.669,
+        "p95_us": 1.051,
+        "p99_us": 1.317,
+        "max_us": 6.825
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.546,
+        "p95_us": 9.055,
+        "p99_us": 11.298,
+        "max_us": 48.166
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.775,
+        "p95_us": 2.484,
+        "p99_us": 3.13,
+        "max_us": 10.815
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 7033.239,
+        "p95_us": 7680.71,
+        "p99_us": 13527.52,
+        "max_us": 14498.568
+      },
+      "durable_save_rate": {
+        "saves_per_s": 139.666,
+        "entity_updates_per_s": 8938.646
+      },
+      "frame_work_60hz": {
+        "samples": 55,
+        "p50_us": 28.822,
+        "p95_us": 64.355,
+        "p99_us": 76.011,
+        "max_us": 76.011
+      },
+      "frame_start_lateness": {
+        "samples": 55,
+        "p50_us": 85.904,
+        "p95_us": 135.106,
+        "p99_us": 156.63,
+        "max_us": 156.63
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 55,
+        "over_budget": 0,
+        "last_observed_save": 125
+      },
+      "checkpoint": {
+        "elapsed_ms": 99.738
+      },
+      "reclaim": {
+        "elapsed_ms": 5.726
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 106488,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 167.144,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 160.006,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-group_snapshot-w8.txt",
+      "workload": {
+        "mode": "group_snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-group_snapshot-264674-1791443924729551044"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.674,
+        "p95_us": 1.059,
+        "p99_us": 1.341,
+        "max_us": 6.663
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.526,
+        "p95_us": 9.252,
+        "p99_us": 12.28,
+        "max_us": 87.677
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.76,
+        "p95_us": 2.5,
+        "p99_us": 3.168,
+        "max_us": 6.756
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 11055.244,
+        "p95_us": 13987.877,
+        "p99_us": 13988.717,
+        "max_us": 13988.911
+      },
+      "durable_save_rate": {
+        "saves_per_s": 716.785,
+        "entity_updates_per_s": 45874.251
+      },
+      "frame_work_60hz": {
+        "samples": 11,
+        "p50_us": 25.454,
+        "p95_us": 36.184,
+        "p99_us": 36.184,
+        "max_us": 36.184
+      },
+      "frame_start_lateness": {
+        "samples": 11,
+        "p50_us": 148.043,
+        "p95_us": 187.022,
+        "p99_us": 187.022,
+        "max_us": 187.022
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 11,
+        "over_budget": 0,
+        "last_observed_save": 112
+      },
+      "checkpoint": {
+        "elapsed_ms": 162.161
+      },
+      "reclaim": {
+        "elapsed_ms": 10.02
+      },
+      "sync_groups": [
+        {
+          "requests": 8,
+          "groups": 16
+        }
+      ],
+      "saved_rss_kib": 106596,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 185.783,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 148.004,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-native-w1.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-native-264624-1791443893762675515"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.646,
+        "p95_us": 0.955,
+        "p99_us": 1.233,
+        "max_us": 9.097
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 9.31,
+        "p95_us": 10.979,
+        "p99_us": 12.075,
+        "max_us": 50.724
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.434,
+        "p95_us": 1.93,
+        "p99_us": 2.25,
+        "max_us": 80.38
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 9377.807,
+        "p95_us": 14593.607,
+        "p99_us": 22785.993,
+        "max_us": 39276.654
+      },
+      "durable_save_rate": {
+        "saves_per_s": 105.181,
+        "entity_updates_per_s": 6731.606
+      },
+      "frame_work_60hz": {
+        "samples": 1,
+        "p50_us": 1216980.706,
+        "p95_us": 1216980.706,
+        "p99_us": 1216980.706,
+        "max_us": 1216980.706
+      },
+      "frame_start_lateness": {
+        "samples": 1,
+        "p50_us": 0.078,
+        "p95_us": 0.078,
+        "p99_us": 0.078,
+        "max_us": 0.078
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 0,
+        "over_budget": 1,
+        "last_observed_save": 128
+      },
+      "checkpoint": {
+        "elapsed_ms": 146.218
+      },
+      "reclaim": {
+        "elapsed_ms": 5.685
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 64248,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 187.691,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 149.062,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-snapshot-w1.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-snapshot-264640-1791443900434096559"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.661,
+        "p95_us": 1.067,
+        "p99_us": 1.328,
+        "max_us": 7.021
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.476,
+        "p95_us": 8.957,
+        "p99_us": 11.2,
+        "max_us": 81.689
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.783,
+        "p95_us": 2.548,
+        "p99_us": 3.446,
+        "max_us": 43.427
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 5959.1,
+        "p95_us": 6740.59,
+        "p99_us": 8485.285,
+        "max_us": 12601.603
+      },
+      "durable_save_rate": {
+        "saves_per_s": 162.826,
+        "entity_updates_per_s": 10420.893
+      },
+      "frame_work_60hz": {
+        "samples": 48,
+        "p50_us": 28.414,
+        "p95_us": 78.19,
+        "p99_us": 100.152,
+        "max_us": 100.152
+      },
+      "frame_start_lateness": {
+        "samples": 48,
+        "p50_us": 112.43,
+        "p95_us": 149.033,
+        "p99_us": 186.14,
+        "max_us": 186.14
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 48,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 108.937
+      },
+      "reclaim": {
+        "elapsed_ms": 6.229
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 106472,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 170.527,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 144.746,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-sqlite-w1.txt",
+      "workload": {
+        "mode": "sqlite",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite-264658-1791443913140422130"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.656,
+        "p95_us": 2.005,
+        "p99_us": 2.209,
+        "max_us": 6.576
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.433,
+        "p95_us": 20.599,
+        "p99_us": 51.604,
+        "max_us": 97.223
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.198,
+        "p95_us": 2.773,
+        "p99_us": 3.165,
+        "max_us": 10.855
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 5961.216,
+        "p95_us": 6873.444,
+        "p99_us": 12866.265,
+        "max_us": 13610.405
+      },
+      "durable_save_rate": {
+        "saves_per_s": 162.056,
+        "entity_updates_per_s": 10371.564
+      },
+      "frame_work_60hz": {
+        "samples": 48,
+        "p50_us": 121.265,
+        "p95_us": 227.927,
+        "p99_us": 313.93,
+        "max_us": 313.93
+      },
+      "frame_start_lateness": {
+        "samples": 48,
+        "p50_us": 120.304,
+        "p95_us": 163.759,
+        "p99_us": 179.698,
+        "max_us": 179.698
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 48,
+        "over_budget": 0,
+        "last_observed_save": 126
+      },
+      "checkpoint": {
+        "elapsed_ms": 38.554
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12260,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 9.311,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.388,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-sqlite_batch-w8.txt",
+      "workload": {
+        "mode": "sqlite_batch",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_batch-264689-1791443937836886523"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 2.059,
+        "p95_us": 2.511,
+        "p99_us": 2.897,
+        "max_us": 10.4
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 20.605,
+        "p95_us": 29.463,
+        "p99_us": 56.507,
+        "max_us": 100.272
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.391,
+        "p95_us": 3.25,
+        "p99_us": 3.97,
+        "max_us": 54.045
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 10118.468,
+        "p95_us": 14867.154,
+        "p99_us": 14867.154,
+        "max_us": 14867.154
+      },
+      "durable_save_rate": {
+        "saves_per_s": 850.976,
+        "entity_updates_per_s": 54462.455
+      },
+      "frame_work_60hz": {
+        "samples": 10,
+        "p50_us": 128.437,
+        "p95_us": 265.253,
+        "p99_us": 265.253,
+        "max_us": 265.253
+      },
+      "frame_start_lateness": {
+        "samples": 10,
+        "p50_us": 109.376,
+        "p95_us": 148.737,
+        "p99_us": 148.737,
+        "max_us": 148.737
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 10,
+        "over_budget": 0,
+        "last_observed_save": 120
+      },
+      "checkpoint": {
+        "elapsed_ms": 72.817
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 8,
+          "groups": 16
+        }
+      ],
+      "saved_rss_kib": 12392,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 26676624
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.422,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.453,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-sqlite_bulk-w1.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_bulk-264664-1791443917730407613"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.667,
+        "p95_us": 2.031,
+        "p99_us": 2.286,
+        "max_us": 39.01
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.264,
+        "p95_us": 19.543,
+        "p99_us": 22.967,
+        "max_us": 74.488
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.222,
+        "p95_us": 2.815,
+        "p99_us": 3.125,
+        "max_us": 11.007
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 10844.056,
+        "p95_us": 15017.616,
+        "p99_us": 22566.423,
+        "max_us": 22757.263
+      },
+      "durable_save_rate": {
+        "saves_per_s": 94.013,
+        "entity_updates_per_s": 6016.811
+      },
+      "frame_work_60hz": {
+        "samples": 82,
+        "p50_us": 138.848,
+        "p95_us": 228.571,
+        "p99_us": 323.719,
+        "max_us": 323.719
+      },
+      "frame_start_lateness": {
+        "samples": 82,
+        "p50_us": 118.817,
+        "p95_us": 192.228,
+        "p99_us": 207.282,
+        "max_us": 207.282
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 82,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 75.986
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12288,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.61,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.393,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-1-sqlite_bulk-w8.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_bulk-264681-1791443931435956951"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.659,
+        "p95_us": 2.036,
+        "p99_us": 2.233,
+        "max_us": 6.014
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.193,
+        "p95_us": 19.224,
+        "p99_us": 24.93,
+        "max_us": 97.298
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.203,
+        "p95_us": 2.799,
+        "p99_us": 3.251,
+        "max_us": 40.439
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 43764.018,
+        "p95_us": 76769.424,
+        "p99_us": 82192.015,
+        "max_us": 84343.455
+      },
+      "durable_save_rate": {
+        "saves_per_s": 105.902,
+        "entity_updates_per_s": 6777.76
+      },
+      "frame_work_60hz": {
+        "samples": 73,
+        "p50_us": 134.261,
+        "p95_us": 271.44,
+        "p99_us": 376.228,
+        "max_us": 376.228
+      },
+      "frame_start_lateness": {
+        "samples": 73,
+        "p50_us": 118.982,
+        "p95_us": 182.446,
+        "p99_us": 216.69,
+        "max_us": 216.69
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 73,
+        "over_budget": 0,
+        "last_observed_save": 126
+      },
+      "checkpoint": {
+        "elapsed_ms": 68.34
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12424,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.745,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.467,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-group_snapshot-w1.txt",
+      "workload": {
+        "mode": "group_snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-group_snapshot-264816-1791443988936971176"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.663,
+        "p95_us": 1.046,
+        "p99_us": 1.304,
+        "max_us": 38.172
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.539,
+        "p95_us": 8.853,
+        "p99_us": 10.615,
+        "max_us": 46.097
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.766,
+        "p95_us": 2.47,
+        "p99_us": 3.151,
+        "max_us": 38.884
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 7655.948,
+        "p95_us": 14844.78,
+        "p99_us": 15682.837,
+        "max_us": 18913.694
+      },
+      "durable_save_rate": {
+        "saves_per_s": 112.252,
+        "entity_updates_per_s": 7184.123
+      },
+      "frame_work_60hz": {
+        "samples": 69,
+        "p50_us": 28.782,
+        "p95_us": 40.364,
+        "p99_us": 82.448,
+        "max_us": 82.448
+      },
+      "frame_start_lateness": {
+        "samples": 69,
+        "p50_us": 107.088,
+        "p95_us": 142.284,
+        "p99_us": 255.556,
+        "max_us": 255.556
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 69,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 127.63
+      },
+      "reclaim": {
+        "elapsed_ms": 8.012
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 106544,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 176.421,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 148.801,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-group_snapshot-w8.txt",
+      "workload": {
+        "mode": "group_snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-group_snapshot-264746-1791443959257532037"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.673,
+        "p95_us": 1.049,
+        "p99_us": 1.288,
+        "max_us": 38.069
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.528,
+        "p95_us": 8.913,
+        "p99_us": 10.699,
+        "max_us": 48.673
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.752,
+        "p95_us": 2.47,
+        "p99_us": 3.184,
+        "max_us": 9.152
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 7523.821,
+        "p95_us": 16030.152,
+        "p99_us": 16030.816,
+        "max_us": 16030.923
+      },
+      "durable_save_rate": {
+        "saves_per_s": 831.924,
+        "entity_updates_per_s": 53243.144
+      },
+      "frame_work_60hz": {
+        "samples": 10,
+        "p50_us": 29.113,
+        "p95_us": 85.824,
+        "p99_us": 85.824,
+        "max_us": 85.824
+      },
+      "frame_start_lateness": {
+        "samples": 10,
+        "p50_us": 91.183,
+        "p95_us": 144.277,
+        "p99_us": 144.277,
+        "max_us": 144.277
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 10,
+        "over_budget": 0,
+        "last_observed_save": 120
+      },
+      "checkpoint": {
+        "elapsed_ms": 125.249
+      },
+      "reclaim": {
+        "elapsed_ms": 11.587
+      },
+      "sync_groups": [
+        {
+          "requests": 8,
+          "groups": 16
+        }
+      ],
+      "saved_rss_kib": 106664,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 172.129,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 148.091,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-native-w1.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-native-264801-1791443975848064852"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.643,
+        "p95_us": 0.96,
+        "p99_us": 1.194,
+        "max_us": 5.245
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 9.196,
+        "p95_us": 10.838,
+        "p99_us": 11.688,
+        "max_us": 47.51
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.338,
+        "p95_us": 1.826,
+        "p99_us": 2.118,
+        "max_us": 39.372
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 6473.767,
+        "p95_us": 13648.986,
+        "p99_us": 14985.707,
+        "max_us": 15732.507
+      },
+      "durable_save_rate": {
+        "saves_per_s": 127.652,
+        "entity_updates_per_s": 8169.701
+      },
+      "frame_work_60hz": {
+        "samples": 1,
+        "p50_us": 1002767.212,
+        "p95_us": 1002767.212,
+        "p99_us": 1002767.212,
+        "max_us": 1002767.212
+      },
+      "frame_start_lateness": {
+        "samples": 1,
+        "p50_us": 0.073,
+        "p95_us": 0.073,
+        "p99_us": 0.073,
+        "max_us": 0.073
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 0,
+        "over_budget": 1,
+        "last_observed_save": 128
+      },
+      "checkpoint": {
+        "elapsed_ms": 124.006
+      },
+      "reclaim": {
+        "elapsed_ms": 10.3
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 64248,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 167.688,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 142.554,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-snapshot-w1.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-snapshot-264806-1791443981723642536"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.666,
+        "p95_us": 1.053,
+        "p99_us": 1.3,
+        "max_us": 37.939
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.422,
+        "p95_us": 8.773,
+        "p99_us": 10.645,
+        "max_us": 89.287
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.738,
+        "p95_us": 2.481,
+        "p99_us": 3.098,
+        "max_us": 6.174
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 6669.928,
+        "p95_us": 13978.935,
+        "p99_us": 17445.059,
+        "max_us": 60386.952
+      },
+      "durable_save_rate": {
+        "saves_per_s": 121.682,
+        "entity_updates_per_s": 7787.643
+      },
+      "frame_work_60hz": {
+        "samples": 64,
+        "p50_us": 33.674,
+        "p95_us": 95.132,
+        "p99_us": 141.681,
+        "max_us": 141.681
+      },
+      "frame_start_lateness": {
+        "samples": 64,
+        "p50_us": 108.385,
+        "p95_us": 184.041,
+        "p99_us": 193.421,
+        "max_us": 193.421
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 64,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 837.764
+      },
+      "reclaim": {
+        "elapsed_ms": 5.271
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 106400,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 174.723,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 144.911,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-sqlite-w1.txt",
+      "workload": {
+        "mode": "sqlite",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite-264712-1791443943211622679"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.673,
+        "p95_us": 2.022,
+        "p99_us": 2.234,
+        "max_us": 9.178
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.156,
+        "p95_us": 18.987,
+        "p99_us": 23.984,
+        "max_us": 100.141
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.226,
+        "p95_us": 2.83,
+        "p99_us": 3.276,
+        "max_us": 43.978
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 7459.231,
+        "p95_us": 11180.745,
+        "p99_us": 12729.07,
+        "max_us": 14045.615
+      },
+      "durable_save_rate": {
+        "saves_per_s": 126.882,
+        "entity_updates_per_s": 8120.434
+      },
+      "frame_work_60hz": {
+        "samples": 61,
+        "p50_us": 130.901,
+        "p95_us": 217.258,
+        "p99_us": 331.995,
+        "max_us": 331.995
+      },
+      "frame_start_lateness": {
+        "samples": 61,
+        "p50_us": 107.299,
+        "p95_us": 138.272,
+        "p99_us": 204.569,
+        "max_us": 204.569
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 61,
+        "over_budget": 0,
+        "last_observed_save": 126
+      },
+      "checkpoint": {
+        "elapsed_ms": 53.635
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12376,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.669,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.491,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-sqlite_batch-w8.txt",
+      "workload": {
+        "mode": "sqlite_batch",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_batch-264780-1791443970826040930"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.641,
+        "p95_us": 1.991,
+        "p99_us": 2.175,
+        "max_us": 6.88
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.001,
+        "p95_us": 18.642,
+        "p99_us": 20.477,
+        "max_us": 58.728
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.185,
+        "p95_us": 2.725,
+        "p99_us": 3.062,
+        "max_us": 37.57
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 6584.884,
+        "p95_us": 17012.253,
+        "p99_us": 17012.253,
+        "max_us": 17012.253
+      },
+      "durable_save_rate": {
+        "saves_per_s": 952.685,
+        "entity_updates_per_s": 60971.828
+      },
+      "frame_work_60hz": {
+        "samples": 9,
+        "p50_us": 138.901,
+        "p95_us": 206.364,
+        "p99_us": 206.364,
+        "max_us": 206.364
+      },
+      "frame_start_lateness": {
+        "samples": 9,
+        "p50_us": 102.541,
+        "p95_us": 181.249,
+        "p99_us": 181.249,
+        "max_us": 181.249
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 9,
+        "over_budget": 0,
+        "last_observed_save": 120
+      },
+      "checkpoint": {
+        "elapsed_ms": 51.344
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 8,
+          "groups": 16
+        }
+      ],
+      "saved_rss_kib": 12408,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 26676624
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.295,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.476,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-sqlite_bulk-w1.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_bulk-264720-1791443949118863601"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.672,
+        "p95_us": 2.02,
+        "p99_us": 2.289,
+        "max_us": 8.453
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.077,
+        "p95_us": 18.774,
+        "p99_us": 20.695,
+        "max_us": 56.401
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.195,
+        "p95_us": 2.755,
+        "p99_us": 3.134,
+        "max_us": 41.073
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 6556.773,
+        "p95_us": 12996.28,
+        "p99_us": 15125.051,
+        "max_us": 15172.894
+      },
+      "durable_save_rate": {
+        "saves_per_s": 121.772,
+        "entity_updates_per_s": 7793.416
+      },
+      "frame_work_60hz": {
+        "samples": 64,
+        "p50_us": 133.307,
+        "p95_us": 240.107,
+        "p99_us": 397.263,
+        "max_us": 397.263
+      },
+      "frame_start_lateness": {
+        "samples": 64,
+        "p50_us": 106.022,
+        "p95_us": 140.936,
+        "p99_us": 174.343,
+        "max_us": 174.343
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 64,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 61.776
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12284,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.861,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.392,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-2-sqlite_bulk-w8.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_bulk-264772-1791443965000222795"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.682,
+        "p95_us": 2.082,
+        "p99_us": 2.352,
+        "max_us": 8.364
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.271,
+        "p95_us": 19.236,
+        "p99_us": 26.218,
+        "max_us": 107.419
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.233,
+        "p95_us": 2.871,
+        "p99_us": 3.355,
+        "max_us": 41.698
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 36795.681,
+        "p95_us": 66180.33,
+        "p99_us": 72447.004,
+        "max_us": 73595.266
+      },
+      "durable_save_rate": {
+        "saves_per_s": 120.11,
+        "entity_updates_per_s": 7687.035
+      },
+      "frame_work_60hz": {
+        "samples": 64,
+        "p50_us": 138.152,
+        "p95_us": 227.475,
+        "p99_us": 284.349,
+        "max_us": 284.349
+      },
+      "frame_start_lateness": {
+        "samples": 64,
+        "p50_us": 110.501,
+        "p95_us": 177.331,
+        "p99_us": 184.513,
+        "max_us": 184.513
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 64,
+        "over_budget": 0,
+        "last_observed_save": 125
+      },
+      "checkpoint": {
+        "elapsed_ms": 56.483
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12196,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.652,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.375,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-group_snapshot-w1.txt",
+      "workload": {
+        "mode": "group_snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-group_snapshot-264872-1791444020304960933"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.658,
+        "p95_us": 1.033,
+        "p99_us": 1.295,
+        "max_us": 6.667
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.517,
+        "p95_us": 9.211,
+        "p99_us": 40.186,
+        "max_us": 89.237
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.741,
+        "p95_us": 2.473,
+        "p99_us": 3.202,
+        "max_us": 32.666
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 10794.199,
+        "p95_us": 14826.467,
+        "p99_us": 15827.312,
+        "max_us": 16969.073
+      },
+      "durable_save_rate": {
+        "saves_per_s": 92.512,
+        "entity_updates_per_s": 5920.777
+      },
+      "frame_work_60hz": {
+        "samples": 84,
+        "p50_us": 30.237,
+        "p95_us": 69.515,
+        "p99_us": 93.484,
+        "max_us": 93.484
+      },
+      "frame_start_lateness": {
+        "samples": 84,
+        "p50_us": 112.091,
+        "p95_us": 168.389,
+        "p99_us": 208.13,
+        "max_us": 208.13
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 84,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 144.223
+      },
+      "reclaim": {
+        "elapsed_ms": 12.432
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 106588,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 183.305,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 144.843,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-group_snapshot-w8.txt",
+      "workload": {
+        "mode": "group_snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-group_snapshot-264927-1791444040418708076"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.66,
+        "p95_us": 1.055,
+        "p99_us": 1.381,
+        "max_us": 6.953
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.488,
+        "p95_us": 9.078,
+        "p99_us": 10.771,
+        "max_us": 48.81
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.719,
+        "p95_us": 2.416,
+        "p99_us": 3.095,
+        "max_us": 7.787
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 8659.713,
+        "p95_us": 12350.395,
+        "p99_us": 12351.006,
+        "max_us": 12351.119
+      },
+      "durable_save_rate": {
+        "saves_per_s": 897.885,
+        "entity_updates_per_s": 57464.616
+      },
+      "frame_work_60hz": {
+        "samples": 9,
+        "p50_us": 31.715,
+        "p95_us": 56.431,
+        "p99_us": 56.431,
+        "max_us": 56.431
+      },
+      "frame_start_lateness": {
+        "samples": 9,
+        "p50_us": 92.608,
+        "p95_us": 136.762,
+        "p99_us": 136.762,
+        "max_us": 136.762
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 9,
+        "over_budget": 0,
+        "last_observed_save": 112
+      },
+      "checkpoint": {
+        "elapsed_ms": 127.678
+      },
+      "reclaim": {
+        "elapsed_ms": 9.131
+      },
+      "sync_groups": [
+        {
+          "requests": 8,
+          "groups": 16
+        }
+      ],
+      "saved_rss_kib": 106700,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 174.273,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 145.063,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-native-w1.txt",
+      "workload": {
+        "mode": "native",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-native-264841-1791444007180562682"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.654,
+        "p95_us": 0.965,
+        "p99_us": 1.258,
+        "max_us": 39.631
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 9.301,
+        "p95_us": 10.953,
+        "p99_us": 12.341,
+        "max_us": 93.352
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.373,
+        "p95_us": 1.856,
+        "p99_us": 2.174,
+        "max_us": 7.244
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 8221.022,
+        "p95_us": 14815.125,
+        "p99_us": 15913.625,
+        "max_us": 15958.825
+      },
+      "durable_save_rate": {
+        "saves_per_s": 112.573,
+        "entity_updates_per_s": 7204.677
+      },
+      "frame_work_60hz": {
+        "samples": 1,
+        "p50_us": 1137127.577,
+        "p95_us": 1137127.577,
+        "p99_us": 1137127.577,
+        "max_us": 1137127.577
+      },
+      "frame_start_lateness": {
+        "samples": 1,
+        "p50_us": 0.052,
+        "p95_us": 0.052,
+        "p99_us": 0.052,
+        "max_us": 0.052
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 0,
+        "over_budget": 1,
+        "last_observed_save": 128
+      },
+      "checkpoint": {
+        "elapsed_ms": 133.146
+      },
+      "reclaim": {
+        "elapsed_ms": 6.125
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 64216,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 180.281,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 149.141,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-snapshot-w1.txt",
+      "workload": {
+        "mode": "snapshot",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-snapshot-264846-1791444013557201371"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 0.661,
+        "p95_us": 1.039,
+        "p99_us": 1.278,
+        "max_us": 6.832
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 7.503,
+        "p95_us": 8.802,
+        "p99_us": 10.803,
+        "max_us": 44.682
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 1.755,
+        "p95_us": 2.485,
+        "p99_us": 3.071,
+        "max_us": 6.53
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 6525.25,
+        "p95_us": 12316.075,
+        "p99_us": 13014.804,
+        "max_us": 50199.783
+      },
+      "durable_save_rate": {
+        "saves_per_s": 125.306,
+        "entity_updates_per_s": 8019.594
+      },
+      "frame_work_60hz": {
+        "samples": 62,
+        "p50_us": 29.626,
+        "p95_us": 63.094,
+        "p99_us": 102.375,
+        "max_us": 102.375
+      },
+      "frame_start_lateness": {
+        "samples": 62,
+        "p50_us": 106.954,
+        "p95_us": 182.55,
+        "p99_us": 194.478,
+        "max_us": 194.478
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 62,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 149.99
+      },
+      "reclaim": {
+        "elapsed_ms": 6.603
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 106544,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 173.83,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 142.99,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-sqlite-w1.txt",
+      "workload": {
+        "mode": "sqlite",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite-264900-1791444028011778066"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.674,
+        "p95_us": 2.044,
+        "p99_us": 2.313,
+        "max_us": 6.413
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.219,
+        "p95_us": 19.064,
+        "p99_us": 22.255,
+        "max_us": 105.591
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.2,
+        "p95_us": 2.798,
+        "p99_us": 3.188,
+        "max_us": 11.871
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 9449.405,
+        "p95_us": 12846.511,
+        "p99_us": 16283.32,
+        "max_us": 33609.297
+      },
+      "durable_save_rate": {
+        "saves_per_s": 106.408,
+        "entity_updates_per_s": 6810.118
+      },
+      "frame_work_60hz": {
+        "samples": 73,
+        "p50_us": 140.605,
+        "p95_us": 233.726,
+        "p99_us": 272.215,
+        "max_us": 272.215
+      },
+      "frame_start_lateness": {
+        "samples": 73,
+        "p50_us": 109.444,
+        "p95_us": 168.825,
+        "p99_us": 209.699,
+        "max_us": 209.699
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 73,
+        "over_budget": 0,
+        "last_observed_save": 127
+      },
+      "checkpoint": {
+        "elapsed_ms": 66.698
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12352,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.809,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.371,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-sqlite_batch-w8.txt",
+      "workload": {
+        "mode": "sqlite_batch",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_batch-264834-1791444001816989784"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.677,
+        "p95_us": 2.043,
+        "p99_us": 2.307,
+        "max_us": 6.331
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.528,
+        "p95_us": 21.261,
+        "p99_us": 56.375,
+        "max_us": 146.346
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.207,
+        "p95_us": 2.87,
+        "p99_us": 3.219,
+        "max_us": 7.391
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 7258.541,
+        "p95_us": 14932.232,
+        "p99_us": 14932.232,
+        "max_us": 14932.232
+      },
+      "durable_save_rate": {
+        "saves_per_s": 928.785,
+        "entity_updates_per_s": 59442.26
+      },
+      "frame_work_60hz": {
+        "samples": 9,
+        "p50_us": 143.585,
+        "p95_us": 253.013,
+        "p99_us": 253.013,
+        "max_us": 253.013
+      },
+      "frame_start_lateness": {
+        "samples": 9,
+        "p50_us": 87.135,
+        "p95_us": 130.313,
+        "p99_us": 130.313,
+        "max_us": 130.313
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 9,
+        "over_budget": 0,
+        "last_observed_save": 120
+      },
+      "checkpoint": {
+        "elapsed_ms": 59.778
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 8,
+          "groups": 16
+        }
+      ],
+      "saved_rss_kib": 12308,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 26676624
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.836,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.38,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-sqlite_bulk-w1.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 1,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_bulk-264908-1791444034078858981"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.678,
+        "p95_us": 2.045,
+        "p99_us": 2.307,
+        "max_us": 8.45
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.325,
+        "p95_us": 19.527,
+        "p99_us": 24.647,
+        "max_us": 104.688
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.221,
+        "p95_us": 2.793,
+        "p99_us": 3.276,
+        "max_us": 9.114
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 7803.551,
+        "p95_us": 11979.946,
+        "p99_us": 13923.362,
+        "max_us": 25064.533
+      },
+      "durable_save_rate": {
+        "saves_per_s": 118.16,
+        "entity_updates_per_s": 7562.208
+      },
+      "frame_work_60hz": {
+        "samples": 65,
+        "p50_us": 142.941,
+        "p95_us": 272.515,
+        "p99_us": 352.486,
+        "max_us": 352.486
+      },
+      "frame_start_lateness": {
+        "samples": 65,
+        "p50_us": 130.347,
+        "p95_us": 177.712,
+        "p99_us": 185.855,
+        "max_us": 185.855
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 65,
+        "over_budget": 0,
+        "last_observed_save": 125
+      },
+      "checkpoint": {
+        "elapsed_ms": 61.064
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12400,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.637,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.442,
+          "cache_policy": "no_advice"
+        }
+      ]
+    },
+    {
+      "file": "nvme-3-sqlite_bulk-w8.txt",
+      "workload": {
+        "mode": "sqlite_bulk",
+        "rows": 100000,
+        "items": 100000,
+        "saves": 128,
+        "batch": 64,
+        "window": 8,
+        "durability": "sync_before_ack",
+        "maintenance": "explicit",
+        "scratch": "/home/mikpe/.cache/skrin-world-sqlite_bulk-264825-1791443995670840886"
+      },
+      "point": {
+        "samples": 4000,
+        "p50_us": 1.654,
+        "p95_us": 2.064,
+        "p99_us": 2.299,
+        "max_us": 5.862
+      },
+      "area": {
+        "samples": 4000,
+        "p50_us": 18.038,
+        "p95_us": 18.684,
+        "p99_us": 20.491,
+        "max_us": 60.423
+      },
+      "inventory": {
+        "samples": 4000,
+        "p50_us": 2.214,
+        "p95_us": 2.83,
+        "p99_us": 3.24,
+        "max_us": 39.568
+      },
+      "durable_save": {
+        "samples": 128,
+        "p50_us": 39885.544,
+        "p95_us": 71695.104,
+        "p99_us": 75166.338,
+        "max_us": 77265.054
+      },
+      "durable_save_rate": {
+        "saves_per_s": 113.846,
+        "entity_updates_per_s": 7286.12
+      },
+      "frame_work_60hz": {
+        "samples": 68,
+        "p50_us": 133.808,
+        "p95_us": 229.884,
+        "p99_us": 334.52,
+        "max_us": 334.52
+      },
+      "frame_start_lateness": {
+        "samples": 68,
+        "p50_us": 108.521,
+        "p95_us": 177.05,
+        "p99_us": 186.405,
+        "max_us": 186.405
+      },
+      "frame_overlap": {
+        "completed_while_writer_active": 68,
+        "over_budget": 0,
+        "last_observed_save": 126
+      },
+      "checkpoint": {
+        "elapsed_ms": 56.798
+      },
+      "reclaim": {
+        "elapsed_ms": 0.0
+      },
+      "sync_groups": [
+        {
+          "requests": 1,
+          "groups": 128
+        }
+      ],
+      "saved_rss_kib": 12200,
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 28526504
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 8.574,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.42,
+          "cache_policy": "no_advice"
+        }
+      ]
+    }
+  ]
+}

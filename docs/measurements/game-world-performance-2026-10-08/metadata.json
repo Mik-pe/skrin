@@ -1,0 +1,772 @@
+{
+  "start_utc": "2026-10-08T07:18:13.415789+00:00",
+  "source_commit": "66544f664ba10ab83e87fc1278b6a9353624331b",
+  "baseline_commit": "fd4c486a330eed20b54bbdafd0cf70c0444faf72",
+  "compiler": "rustc 1.89.0 (29483883e 2025-08-04)\nbinary: rustc\ncommit-hash: 29483883eed69d5fb4db01964cdf2af4d86e9cb2\ncommit-date: 2025-08-04\nhost: x86_64-unknown-linux-gnu\nrelease: 1.89.0\nLLVM version: 20.1.7",
+  "uname": "Linux mikparchy 7.2.5-3-omarchy #1 SMP PREEMPT_DYNAMIC Mon, 14 Sep 2026 19:55:01 +0000 x86_64 GNU/Linux",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  8\nOn-line CPU(s) list:                     0-7\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz\nCPU family:                              6\nModel:                                   126\nThread(s) per core:                      2\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                5\nMicrocode version:                       0xce\nCPU(s) scaling MHz:                      50%\nCPU max MHz:                             3700.0000\nCPU min MHz:                             400.0000\nBogoMIPS:                                2995.20\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves split_lock_detect dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm md_clear flush_l1d arch_capabilities\nVirtualization:                          VT-x\nL1d cache:                               192 KiB (4 instances)\nL1i cache:                               128 KiB (4 instances)\nL2 cache:                                2 MiB (4 instances)\nL3 cache:                                6 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-7\nVulnerability Gather data sampling:      Mitigation; Microcode\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Mitigation; Aligned branch/return thunks\nVulnerability Itlb multihit:             KVM: Mitigation: Split huge pages\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; Enhanced IBRS\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\nVulnerability Srbds:                     Mitigation; Microcode\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected",
+  "filesystem": "/dev/mapper/root[/@home] btrfs rw,relatime,compress=zstd:3,ssd,space_cache=v2,subvolid=257,subvol=/@home",
+  "devices": "NAME        MODEL                         SIZE TYPE  MOUNTPOINTS\nzram0                                     7.3G disk  [SWAP]\nnvme0n1     KBG40ZNS256G TOSHIBA MEMORY 238.5G disk  \n\u251c\u2500nvme0n1p1                                 2G part  /boot\n\u2514\u2500nvme0n1p2                             236.5G part  \n  \u2514\u2500root                                236.5G crypt /var/log\n                                                     /home\n                                                     /var/cache/pacman/pkg\n                                                     /",
+  "governor": "powersave",
+  "binary_sha256": {
+    "before": "d0eb5a20701474c04bd0d471bee83188ccbfca0470c63a8ed1fc3ef58c403208",
+    "after": "7d691e21cd6d13049c1ed2d0aa9d1fa5678b229cd90cf80e278c0e67c89796ac"
+  },
+  "source_sha256": {
+    "crates/skrin/benches/game_world.rs": "39d1eb8f508617143bc0c2bab45fae3cbd60b1fc896a8b42d98b1450c47dde69",
+    "crates/skrin/benches/support/game_sqlite.rs": "fec681aba43a1ddd366dce1c628c0e40359201eb4a859e49094d5854b03006f6",
+    "crates/skrin/examples/support/world.rs": "35dda1f5526332351d7d497bda16be83a6aa73a347c45cbf8eae937d835dd5c2"
+  },
+  "runs": [
+    {
+      "output": "nvme-1-native-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "native",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:18:13.749951+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        " 264478 python3         13.9",
+        " 251741 Runner.Worker    2.4",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251788 kworker/u32:13-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:20.423841+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-snapshot-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "snapshot",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:18:20.424032+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        " 264478 python3          0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251788 kworker/u32:13-  0.7",
+        " 165886 kworker/u32:2-b  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:27.399427+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-group_snapshot-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:18:27.399731+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-k  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251788 kworker/u32:13-  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251707 kworker/u32:5-b  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:33.130253+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-sqlite-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:18:33.130447+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251788 kworker/u32:13-  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251707 kworker/u32:5-w  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:37.719912+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-sqlite_bulk-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_bulk",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:18:37.720101+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251788 kworker/u32:13-  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251707 kworker/u32:5-e  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:44.718995+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-group_snapshot-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:18:44.719189+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 165886 kworker/u32:2-b  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:51.425960+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-sqlite_bulk-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_bulk",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:18:51.426155+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-k  0.7",
+        " 251789 kworker/u32:14-  0.7",
+        " 251706 kworker/u32:4-b  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 251707 kworker/u32:5-w  0.6"
+      ],
+      "end_utc": "2026-10-08T07:18:57.826594+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-1-sqlite_batch-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_batch",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:18:57.826844+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-k  0.7",
+        " 251706 kworker/u32:4-k  0.6",
+        " 251789 kworker/u32:14-  0.6",
+        " 251707 kworker/u32:5-k  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251788 kworker/u32:13-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:03.201395+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-sqlite-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:19:03.201617+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-k  0.7",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251789 kworker/u32:14-  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 251707 kworker/u32:5-k  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:09.108462+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-sqlite_bulk-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_bulk",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:19:09.108697+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251789 kworker/u32:14-  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 251707 kworker/u32:5-k  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:19.247345+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-group_snapshot-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:19:19.247561+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-k  0.8",
+        " 102182 kworker/u32:12-  0.8",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-k  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251789 kworker/u32:14-  0.6",
+        " 251707 kworker/u32:5-b  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:24.989957+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-sqlite_bulk-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_bulk",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:19:24.990167+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 165886 kworker/u32:2-k  0.6",
+        " 251707 kworker/u32:5-k  0.6",
+        " 251789 kworker/u32:14-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:30.815835+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-sqlite_batch-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_batch",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:19:30.816051+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-k  0.7",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 251789 kworker/u32:14-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:35.837918+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-native-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "native",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:19:35.838141+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 161930 kworker/u32:26-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:41.713368+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-snapshot-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "snapshot",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:19:41.713643+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-b  0.6",
+        " 251707 kworker/u32:5-k  0.6",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.6",
+        " 161930 kworker/u32:26-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:48.926678+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-2-group_snapshot-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:19:48.926934+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-k  0.6",
+        " 251707 kworker/u32:5-k  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:19:55.660482+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-sqlite_bulk-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_bulk",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:19:55.660811+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-b  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.6"
+      ],
+      "end_utc": "2026-10-08T07:20:01.806925+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-sqlite_batch-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_batch",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:20:01.807163+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-k  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251706 kworker/u32:4-b  0.6",
+        " 251788 kworker/u32:13-  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:07.170130+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-native-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "native",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:20:07.170367+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.8",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-e  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251789 kworker/u32:14-  0.5",
+        " 251706 kworker/u32:4-b  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:13.546856+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-snapshot-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "snapshot",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:20:13.547108+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "3259919 codex            0.8",
+        "  96551 kworker/u32:7-b  0.7",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-k  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251707 kworker/u32:5-b  0.6",
+        " 251789 kworker/u32:14-  0.5",
+        " 251706 kworker/u32:4-b  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:20.294511+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-group_snapshot-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:20:20.294841+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        "3259919 codex            0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "  96551 kworker/u32:7-b  0.7",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-k  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251789 kworker/u32:14-  0.5",
+        " 251707 kworker/u32:5-b  0.5",
+        " 251706 kworker/u32:4-b  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:28.001212+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-sqlite-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:20:28.001475+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        "3259919 codex            0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "  96551 kworker/u32:7-b  0.7",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-k  0.7",
+        " 165886 kworker/u32:2-b  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251789 kworker/u32:14-  0.5",
+        " 251707 kworker/u32:5-f  0.5",
+        " 251706 kworker/u32:4-b  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:34.068320+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-sqlite_bulk-w1.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "sqlite_bulk",
+        "100000",
+        "128",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:20:34.068566+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        "3259919 codex            0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "  96551 kworker/u32:7-b  0.7",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-k  0.7",
+        " 165886 kworker/u32:2-b  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251789 kworker/u32:14-  0.6",
+        " 251707 kworker/u32:5-k  0.5",
+        " 251706 kworker/u32:4-k  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:40.408263+00:00",
+      "exit_code": 0
+    },
+    {
+      "output": "nvme-3-group_snapshot-w8.txt",
+      "argv": [
+        "/tmp/skrin-game-world-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:20:40.408559+00:00",
+      "processes_start": [
+        "PID COMMAND         %CPU",
+        "  96844 kworker/u32:10-  0.8",
+        "3259919 codex            0.8",
+        " 126720 kworker/u32:20-  0.8",
+        "  96551 kworker/u32:7-b  0.7",
+        " 102182 kworker/u32:12-  0.7",
+        "  82129 kworker/u32:8-b  0.7",
+        " 165886 kworker/u32:2-k  0.6",
+        " 161930 kworker/u32:26-  0.6",
+        " 251789 kworker/u32:14-  0.6",
+        " 251707 kworker/u32:5-b  0.5",
+        " 251706 kworker/u32:4-k  0.5"
+      ],
+      "end_utc": "2026-10-08T07:20:46.386386+00:00",
+      "exit_code": 0
+    }
+  ],
+  "caveats": "Shared workstation; other repository Actions runner executing Java compilation/test workloads. No control of CPU clocks/device caches/background filesystem load. No local compilation/validation during measurements. tmpfs results exclude physical durability. All runs retained; no outlier rejection.",
+  "end_utc": "2026-10-08T07:20:46.386725+00:00",
+  "cpu_campaign": {
+    "pairs": 3,
+    "before_after_order": [
+      "before/after",
+      "after/before",
+      "before/after"
+    ],
+    "mode_order": [
+      "snapshot",
+      "native",
+      "sqlite_bulk"
+    ],
+    "argv_template": [
+      "/tmp/skrin-game-world-VERSION",
+      "/dev/shm",
+      "MODE",
+      "100000",
+      "4096",
+      "64"
+    ],
+    "file_end_timestamps_utc": {
+      "cpu-before-1-native.txt": "2026-10-08T07:12:28.115593+00:00",
+      "cpu-before-1-snapshot.txt": "2026-10-08T07:12:25.852600+00:00",
+      "cpu-before-1-sqlite_bulk.txt": "2026-10-08T07:12:29.516589+00:00",
+      "cpu-before-2-native.txt": "2026-10-08T07:12:33.176578+00:00",
+      "cpu-before-2-snapshot.txt": "2026-10-08T07:12:37.337566+00:00",
+      "cpu-before-2-sqlite_bulk.txt": "2026-10-08T07:12:30.930585+00:00",
+      "cpu-before-3-native.txt": "2026-10-08T07:12:43.739547+00:00",
+      "cpu-before-3-snapshot.txt": "2026-10-08T07:12:41.481554+00:00",
+      "cpu-before-3-sqlite_bulk.txt": "2026-10-08T07:12:45.138543+00:00",
+      "cpu-paired-1-after-native.txt": "2026-10-08T07:15:57.054861+00:00",
+      "cpu-paired-1-after-snapshot.txt": "2026-10-08T07:15:54.129873+00:00",
+      "cpu-paired-1-after-sqlite_bulk.txt": "2026-10-08T07:15:59.402852+00:00",
+      "cpu-paired-1-before-native.txt": "2026-10-08T07:15:47.973898+00:00",
+      "cpu-paired-1-before-snapshot.txt": "2026-10-08T07:15:44.979910+00:00",
+      "cpu-paired-1-before-sqlite_bulk.txt": "2026-10-08T07:15:50.276888+00:00",
+      "cpu-paired-2-after-native.txt": "2026-10-08T07:16:05.709826+00:00",
+      "cpu-paired-2-after-snapshot.txt": "2026-10-08T07:16:02.881838+00:00",
+      "cpu-paired-2-after-sqlite_bulk.txt": "2026-10-08T07:16:07.632818+00:00",
+      "cpu-paired-2-before-native.txt": "2026-10-08T07:16:15.988784+00:00",
+      "cpu-paired-2-before-snapshot.txt": "2026-10-08T07:16:12.962797+00:00",
+      "cpu-paired-2-before-sqlite_bulk.txt": "2026-10-08T07:16:17.860777+00:00",
+      "cpu-paired-3-after-native.txt": "2026-10-08T07:17:54.646360+00:00",
+      "cpu-paired-3-after-snapshot.txt": "2026-10-08T07:17:51.552374+00:00",
+      "cpu-paired-3-after-sqlite_bulk.txt": "2026-10-08T07:17:57.854345+00:00",
+      "cpu-paired-3-before-native.txt": "2026-10-08T07:17:01.037595+00:00",
+      "cpu-paired-3-before-snapshot.txt": "2026-10-08T07:16:23.322754+00:00",
+      "cpu-paired-3-before-sqlite_bulk.txt": "2026-10-08T07:17:36.358441+00:00"
+    },
+    "timestamps_note": "File completion times from mtime; not exact CPU campaign start timestamps. Nine earlier baseline pilot runs are retained separately as cpu-before-* and excluded from the paired campaign medians. CPU campaign ran while another repository runner performed Java compilation/tests; neither process CPU cost nor disk power-loss durability is isolated.",
+    "code_state": "Bench and engine committed clean. Documentation edits during later physical campaign do not affect executable."
+  }
+}
