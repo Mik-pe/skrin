@@ -202,6 +202,14 @@ reader availability alongside writer contention tails and memory costs. The exec
 
 ## Measure the right thing
 
+The next performance target is [native game-world persistence](docs/game-world.md):
+typed entities, indexed areas/inventories, atomic saves and coherent frame reads.
+Run the SQL-free application example with `cargo run -p skrin --example game_world --locked`
+(optionally pass a **new** directory path on Unix). The `game_world` benchmark
+compares native/snapshot Skrin reads and a benchmark-only SQLite adapter with
+equivalent durable application work; see [methodology](docs/benchmarks.md#game-world).
+This direction does not add SQL to Skrin or establish a cross-engine speed claim.
+
 ```sh
 cargo bench -p skrin --bench baseline
 cargo bench -p skrin --bench baseline -- --durable /tmp
