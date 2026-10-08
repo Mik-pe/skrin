@@ -1,0 +1,36 @@
+workload,mode=native,rows=100000,items=100000,saves=512,batch=64,window=1,durability=sync_before_ack,maintenance=explicit,scratch=/dev/shm/skrin-world-native-312836-1791445805078997944
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 53784 kB
+memory,phase=seeded,VmHWM: 53784 kB
+point,samples=4000,p50_us=0.931,p95_us=1.262,p99_us=1.564,max_us=19.080
+point_rate,operations_per_s=963366.774
+area,samples=4000,p50_us=9.503,p95_us=12.348,p99_us=23.188,max_us=72.230
+area_rate,operations_per_s=98978.757
+inventory,samples=4000,p50_us=1.351,p95_us=1.826,p99_us=2.305,max_us=39.317
+inventory_rate,operations_per_s=664921.027
+sync_groups,requests=1,groups=512
+durable_save,samples=512,p50_us=50.675,p95_us=60.454,p99_us=93.193,max_us=168.712
+durable_save_rate,saves_per_s=18936.490,entity_updates_per_s=1211935.389
+frame_work_60hz,samples=2,p50_us=20.940,p95_us=14166.593,p99_us=14166.593,max_us=14166.593
+frame_start_lateness,samples=2,p50_us=0.039,p95_us=84.290,p99_us=84.290,max_us=84.290
+frame_overlap,completed_while_writer_active=2,over_budget=0,last_observed_save=314
+memory,phase=saved,VmRSS: 54468 kB
+memory,phase=saved,VmHWM: 54468 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=13161240
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=171.773,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 53888 kB
+memory,phase=reopen_before_verify,VmHWM: 53888 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=55.461
+disk,phase=published_overlap,logical_regular_file_bytes=24799380
+reclaim,elapsed_ms=0.051
+disk,phase=after_reclaim,logical_regular_file_bytes=24799380
+memory,phase=after_maintenance,VmRSS: 54776 kB
+memory,phase=after_maintenance,VmHWM: 54776 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=150.547,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 83372 kB
+memory,phase=reopen_before_verify,VmHWM: 94168 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/dev/shm/skrin-world-native-312836-1791445805078997944

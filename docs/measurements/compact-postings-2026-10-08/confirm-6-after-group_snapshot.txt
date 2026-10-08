@@ -1,0 +1,36 @@
+workload,mode=group_snapshot,rows=100000,items=100000,saves=1024,batch=64,window=8,durability=sync_before_ack,maintenance=explicit,scratch=/home/mikpe/.cache/skrin-world-group_snapshot-315078-1791446107477219087
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 94760 kB
+memory,phase=seeded,VmHWM: 94760 kB
+point,samples=4000,p50_us=0.628,p95_us=1.016,p99_us=1.289,max_us=37.167
+point_rate,operations_per_s=1365861.787
+area,samples=4000,p50_us=6.987,p95_us=7.957,p99_us=10.087,max_us=45.034
+area_rate,operations_per_s=139549.915
+inventory,samples=4000,p50_us=1.754,p95_us=2.524,p99_us=3.161,max_us=11.393
+inventory_rate,operations_per_s=534880.565
+sync_groups,requests=8,groups=128
+durable_save,samples=1024,p50_us=13353.482,p95_us=23577.729,p99_us=26398.286,max_us=527167.444
+durable_save_rate,saves_per_s=454.882,entity_updates_per_s=29112.418
+frame_work_60hz,samples=136,p50_us=30.459,p95_us=62.813,p99_us=82.666,max_us=105.531
+frame_start_lateness,samples=136,p50_us=110.596,p95_us=185.118,p99_us=218.313,max_us=232.195
+frame_overlap,completed_while_writer_active=136,over_budget=0,last_observed_save=1016
+memory,phase=saved,VmRSS: 107156 kB
+memory,phase=saved,VmHWM: 107156 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=15306520
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=213.199,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 53992 kB
+memory,phase=reopen_before_verify,VmHWM: 53992 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=207.396
+disk,phase=published_overlap,logical_regular_file_bytes=26982548
+reclaim,elapsed_ms=23.297
+disk,phase=after_reclaim,logical_regular_file_bytes=26982548
+memory,phase=after_maintenance,VmRSS: 109268 kB
+memory,phase=after_maintenance,VmHWM: 109268 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=154.443,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 83380 kB
+memory,phase=reopen_before_verify,VmHWM: 94272 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/home/mikpe/.cache/skrin-world-group_snapshot-315078-1791446107477219087

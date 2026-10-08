@@ -5,6 +5,7 @@
 //! Readers block writers. Indexes are rebuilt and checked before recovery repairs
 //! a tail; ordinary commits touch only changed rows and their index postings.
 use crate::directory::Directory;
+use crate::postings::Posting;
 use crate::{Database, Decoder, Encoder, Error, MaintenanceOptions, Record, Result, Schema};
 use std::collections::{BTreeMap, BTreeSet};
 use std::marker::PhantomData;
@@ -183,7 +184,7 @@ impl<C: Catalog> Record for Stored<C> {
 #[derive(Default)]
 pub(crate) struct Indexes {
     pub(crate) primary: BTreeMap<(u64, u64), u64>,
-    pub(crate) secondary: BTreeMap<u64, BTreeMap<Vec<u8>, BTreeSet<u64>>>,
+    pub(crate) secondary: BTreeMap<u64, BTreeMap<Vec<u8>, Posting>>,
     pub(crate) next_slot: u64,
 }
 #[derive(PartialEq, Eq)]

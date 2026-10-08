@@ -1,0 +1,506 @@
+{
+  "start_utc": "2026-10-08T07:49:38.112399+00:00",
+  "baseline_source": "e1e2f0f4ed88de9919a88b816e3862d4cf0a30cd",
+  "baseline_binary_compiled_source": "66544f664ba10ab83e87fc1278b6a9353624331b (engine/benchmark identical to merged baseline)",
+  "candidate_source": "eb686c96ff742ca5528ef5d572eb11192f48d74b",
+  "binary_sha256": {
+    "before": "7d691e21cd6d13049c1ed2d0aa9d1fa5678b229cd90cf80e278c0e67c89796ac",
+    "after": "8baa2db0b283e27969e6822ed6d4fd52f5e9667737e5914fb44f7d193edea627"
+  },
+  "compiler": "rustc 1.89.0 (29483883e 2025-08-04)\nbinary: rustc\ncommit-hash: 29483883eed69d5fb4db01964cdf2af4d86e9cb2\ncommit-date: 2025-08-04\nhost: x86_64-unknown-linux-gnu\nrelease: 1.89.0\nLLVM version: 20.1.7",
+  "host": "Linux mikparchy 7.2.5-3-omarchy #1 SMP PREEMPT_DYNAMIC Mon, 14 Sep 2026 19:55:01 +0000 x86_64 GNU/Linux",
+  "filesystem": "/dev/mapper/root[/@home] btrfs rw,relatime,compress=zstd:3,ssd,space_cache=v2,subvolid=257,subvol=/@home",
+  "devices": "NAME        MODEL                         SIZE TYPE  MOUNTPOINTS\nzram0                                     7.3G disk  [SWAP]\nnvme0n1     KBG40ZNS256G TOSHIBA MEMORY 238.5G disk  \n\u251c\u2500nvme0n1p1                                 2G part  /boot\n\u2514\u2500nvme0n1p2                             236.5G part  \n  \u2514\u2500root                                236.5G crypt /var/log\n                                                     /home\n                                                     /var/cache/pacman/pkg\n                                                     /",
+  "runs": [
+    {
+      "file": "cpu-1-before-native.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/dev/shm",
+        "native",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:49:38.390453+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312385 routine_results  247",
+        " 312401 python3         15.2",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.7",
+        " 281846 kworker/u32:26-  1.7",
+        " 312228 Xvfb             1.7",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.5",
+        " 251707 kworker/u32:5-b  1.3"
+      ],
+      "end_utc": "2026-10-08T07:49:40.243058+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-1-after-native.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/dev/shm",
+        "native",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:49:40.243240+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312385 routine_results  235",
+        " 312401 python3          3.0",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.7",
+        " 281846 kworker/u32:26-  1.7",
+        " 284358 kworker/u32:27-  1.5",
+        " 312228 Xvfb             1.5",
+        " 281845 kworker/u32:23-  1.5",
+        " 251707 kworker/u32:5-b  1.3"
+      ],
+      "end_utc": "2026-10-08T07:49:41.881268+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-1-before-snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/dev/shm",
+        "snapshot",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:49:41.881459+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312385 routine_results  204",
+        " 281844 kworker/u32:22-  1.9",
+        " 312401 python3          1.7",
+        " 270687 Runner.Worker    1.7",
+        " 281846 kworker/u32:26-  1.7",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 312228 Xvfb             1.4",
+        " 251707 kworker/u32:5-b  1.3"
+      ],
+      "end_utc": "2026-10-08T07:49:44.704558+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-1-after-snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/dev/shm",
+        "snapshot",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:49:44.704739+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312385 routine_results  205",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.7",
+        " 281846 kworker/u32:26-  1.7",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-k  1.3",
+        " 278365 kworker/u32:17-  1.3"
+      ],
+      "end_utc": "2026-10-08T07:49:47.333219+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "nvme-1-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:49:47.333460+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312385 routine_results  195",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.7",
+        " 281846 kworker/u32:26-  1.7",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.3"
+      ],
+      "end_utc": "2026-10-08T07:49:57.640652+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "nvme-1-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:49:57.640842+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312511 time_zone_journ  9.5",
+        " 312509 time_zone_journ  2.0",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.7",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-k  1.3"
+      ],
+      "end_utc": "2026-10-08T07:50:05.068552+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-2-after-native.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/dev/shm",
+        "native",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:05.068768+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312570 ugla_eval-a1d5f  106",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-k  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:06.692269+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-2-before-native.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/dev/shm",
+        "native",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:06.692452+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312881 connected_acces  9.8",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-k  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:08.395959+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-2-after-snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/dev/shm",
+        "snapshot",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:08.396139+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312896 connected_acces 90.3",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-k  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:10.776968+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-2-before-snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/dev/shm",
+        "snapshot",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:10.777168+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312896 connected_acces 93.3",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:13.274062+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "nvme-2-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:50:13.274283+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312896 connected_acces 94.6",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:19.047389+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "nvme-2-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:50:19.047699+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312896 connected_acces 94.0",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:24.851371+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-3-before-native.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/dev/shm",
+        "native",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:24.851658+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312970 eval_run-e840db 62.0",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.5",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-k  1.3",
+        " 251704 kworker/u32:1-k  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:26.413788+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-3-after-native.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/dev/shm",
+        "native",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:26.413996+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312970 eval_run-e840db 40.5",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.4",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-k  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:27.888169+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-3-before-snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/dev/shm",
+        "snapshot",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:27.888381+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 312970 eval_run-e840db 30.0",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.4",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-k  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:30.363664+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "cpu-3-after-snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/dev/shm",
+        "snapshot",
+        "100000",
+        "512",
+        "64",
+        "1"
+      ],
+      "start_utc": "2026-10-08T07:50:30.363892+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 313015 eval_tools-b72d 81.8",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.4",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-k  1.3",
+        " 251704 kworker/u32:1-b  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:32.897759+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "nvme-3-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:50:32.897988+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 313051 extension_owner  244",
+        " 313067 cargo           45.2",
+        " 313070 cargo           18.0",
+        " 313090 cargo            4.5",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.4",
+        " 281845 kworker/u32:23-  1.4"
+      ],
+      "end_utc": "2026-10-08T07:50:38.995365+00:00",
+      "exit_code": 0
+    },
+    {
+      "file": "nvme-3-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "128",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:50:38.995613+00:00",
+      "processes": [
+        "PID COMMAND         %CPU",
+        " 313186 journey-8a8a943 52.1",
+        " 281844 kworker/u32:22-  1.9",
+        " 270687 Runner.Worker    1.6",
+        " 281846 kworker/u32:26-  1.6",
+        " 284358 kworker/u32:27-  1.4",
+        " 281845 kworker/u32:23-  1.4",
+        " 251707 kworker/u32:5-b  1.3",
+        " 251704 kworker/u32:1-k  1.3",
+        " 278365 kworker/u32:17-  1.2"
+      ],
+      "end_utc": "2026-10-08T07:50:47.634064+00:00",
+      "exit_code": 0
+    }
+  ],
+  "notes": "Shared workstation, uncontrolled background user/automation work, caches, clocks and filesystem scheduling. No local compilation or tests during runs. tmpfs is a production-path scheduling/CPU/storage proxy, not physical durability. All repeats retained; no rejected outliers.",
+  "end_utc": "2026-10-08T07:50:47.634292+00:00",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  8\nOn-line CPU(s) list:                     0-7\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Core(TM) i5-1035G7 CPU @ 1.20GHz\nCPU family:                              6\nModel:                                   126\nThread(s) per core:                      2\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                5\nMicrocode version:                       0xce\nCPU(s) scaling MHz:                      52%\nCPU max MHz:                             3700.0000\nCPU min MHz:                             400.0000\nBogoMIPS:                                2995.20\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves split_lock_detect dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm md_clear flush_l1d arch_capabilities\nVirtualization:                          VT-x\nL1d cache:                               192 KiB (4 instances)\nL1i cache:                               128 KiB (4 instances)\nL2 cache:                                2 MiB (4 instances)\nL3 cache:                                6 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-7\nVulnerability Gather data sampling:      Mitigation; Microcode\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Mitigation; Aligned branch/return thunks\nVulnerability Itlb multihit:             KVM: Mitigation: Split huge pages\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; Enhanced IBRS\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\nVulnerability Srbds:                     Mitigation; Microcode\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\n",
+  "memory_total": "MemTotal:        7701944 kB"
+}

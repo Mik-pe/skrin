@@ -1,0 +1,20 @@
+cross_version,writer=before,reader=after,phase=cpu
+fresh_process_open,elapsed_ms=184.855,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 83328 kB
+memory,phase=reopen_before_verify,VmHWM: 94148 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+cross_version,writer=after,reader=before,phase=cpu
+fresh_process_open,elapsed_ms=157.399,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 82196 kB
+memory,phase=reopen_before_verify,VmHWM: 93028 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+cross_version,writer=before,reader=after,phase=confirm
+fresh_process_open,elapsed_ms=156.940,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 83464 kB
+memory,phase=reopen_before_verify,VmHWM: 94172 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+cross_version,writer=after,reader=before,phase=confirm
+fresh_process_open,elapsed_ms=159.604,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 82352 kB
+memory,phase=reopen_before_verify,VmHWM: 93128 kB
+fresh_process_exact_rows_indexes_and_operations=verified

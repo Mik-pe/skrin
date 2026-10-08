@@ -249,3 +249,8 @@ resident lookup and snapshot frame results; no general durable speedup is claime
 
 [Repeated optimized CPU and durable pipeline measurements](measurements/game-world-performance-2026-10-08.md)
 include both SQLite controls, all per-run tails and the remaining memory cost.
+
+[Compact derived-index memory measurements](measurements/compact-postings-2026-10-08.md)
+retain 30 before/after runs, longer SSD confirmation runs, byte-identical file
+images and cross-version reopen checks. They establish a local RAM reduction,
+with no new durable latency improvement claimed.

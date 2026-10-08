@@ -23,6 +23,7 @@ mod log;
 mod maintenance_options;
 #[cfg(all(test, unix))]
 mod persistence_model;
+mod postings;
 mod reservation;
 mod snapshot;
 #[cfg(test)]

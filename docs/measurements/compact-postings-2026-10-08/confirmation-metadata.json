@@ -1,0 +1,187 @@
+{
+  "start_utc": "2026-10-08T07:53:17.762252+00:00",
+  "purpose": "Resolve adverse short physical-write measurements with longer independently synced request pipelines. Original short runs retained. Same binaries, settings and scratch filesystem. No local compilation/test jobs during measurement.",
+  "runs": [
+    {
+      "file": "confirm-1-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:53:17.762269+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:53:27.833819+00:00"
+    },
+    {
+      "file": "confirm-1-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:53:27.834006+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:53:35.422030+00:00"
+    },
+    {
+      "file": "confirm-2-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:53:35.422251+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:53:44.415255+00:00"
+    },
+    {
+      "file": "confirm-2-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:53:44.415504+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:53:51.346428+00:00"
+    },
+    {
+      "file": "confirm-3-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:53:51.346603+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:53:58.123698+00:00"
+    },
+    {
+      "file": "confirm-3-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:53:58.123870+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:54:06.250354+00:00"
+    },
+    {
+      "file": "confirm-4-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:54:06.250582+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:54:17.122944+00:00"
+    },
+    {
+      "file": "confirm-4-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:54:17.123115+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:54:28.468392+00:00"
+    },
+    {
+      "file": "confirm-5-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:54:28.468571+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:54:42.158148+00:00"
+    },
+    {
+      "file": "confirm-5-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:54:42.158326+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:54:57.447348+00:00"
+    },
+    {
+      "file": "confirm-6-before-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-before",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:54:57.447664+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:55:07.476145+00:00"
+    },
+    {
+      "file": "confirm-6-after-group_snapshot.txt",
+      "argv": [
+        "/tmp/skrin-postings-after",
+        "/home/mikpe/.cache",
+        "group_snapshot",
+        "100000",
+        "1024",
+        "64",
+        "8"
+      ],
+      "start_utc": "2026-10-08T07:55:07.476332+00:00",
+      "exit_code": 0,
+      "end_utc": "2026-10-08T07:55:23.264737+00:00"
+    }
+  ],
+  "end_utc": "2026-10-08T07:55:23.264910+00:00"
+}
