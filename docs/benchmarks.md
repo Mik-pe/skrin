@@ -189,7 +189,9 @@ Fresh children verify exact state **before and after** serialized maintenance,
 including pre-checkpoint WAL replay. Opening timings exclude subsequent full
 verification, use no cache eviction/advice, and are not device-cold timings.
 Post-save reopening for maintenance rebuilds native/index state and, in snapshot
-mode, immutable roots; it is outside save/checkpoint timing. Snapshot leases are
+mode, immutable roots; it is outside save/checkpoint timing. Skrin eagerly decodes/rebuilds all data/indexes on
+open; SQLite loads pages lazily and full verification happens outside that timer.
+These are different amounts of work, not a recovery-speed ranking. Snapshot leases are
 released before maintenance. Checkpoint and reclaim are separate timings;
 SQLite checkpoint(TRUNCATE) includes WAL reclamation and its reclaim step is a
 no-op. Skrin retains its previous generation. These maintenance contracts differ;
@@ -203,3 +205,7 @@ SQLite WAL/shared-memory files and Skrin's retained generations; metadata,
 physical allocation and quotas are excluded. The workload stores narrow fixed
 records and a finite save history; it does not establish behavior for large
 assets, unlimited operation-ID retention or worlds larger than RAM.
+
+[The nine-run local NVMe baseline](measurements/game-world-2026-10-08.md) retains
+all adverse save tails, starved native frames and memory/lifecycle costs alongside
+resident lookup and snapshot frame results; no general durable speedup is claimed.

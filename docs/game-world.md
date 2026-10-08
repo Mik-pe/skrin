@@ -59,6 +59,11 @@ The synthetic frame includes coherence checks but no rendering, physics or
 complete engine scheduler. Repeated physical-device runs determine whether the
 targets hold. Long frames and adverse repeats stay in the report.
 
+The [first nine-run local baseline](measurements/game-world-2026-10-08.md) records
+successful exact recovery and snapshot frame-work p99 below the target in all
+three repeats, with substantial memory cost and adverse save tails. It establishes
+an optimization baseline, not a generally faster-than-SQLite result.
+
 SQLite is one external yardstick for the equivalent application operation. It
 uses prepared statements, corresponding indexes, application-side typed
 get/modify/replace, WAL/FULL synchronization and explicit checkpoints. Skrin's
