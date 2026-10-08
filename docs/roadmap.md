@@ -1,6 +1,17 @@
 # Direction and release gates
 
-Skrin is a Rust-native embedded database, not a SQL server or a wrapper around a different database. Keep the native typed API, explicit durability and measurable overhead.
+Skrin is a Rust-native embedded database, not a SQL server or a wrapper around a different database. Keep the native typed API, explicit durability and measurable overhead. **Skrin must never support SQL syntax:** no SQL parser, SQL query API or SQL compatibility layer, now or in a future milestone.
+
+## Product target: native game-world persistence
+
+Optimize durable changed-state storage, typed point/area/inventory lookup and
+coherent frame reads for a Rust game world. The [executable game workload and
+performance targets](game-world.md) define the next performance milestone.
+Measure useful work, synchronization, frame tails, memory and recovery together;
+use SQLite only as an external benchmark adapter. The permanent prohibition of
+SQL syntax is a product constraint. Choose future data structures and batching from
+profiling evidence and application access patterns. Windows persistence remains
+a required future step for broad desktop-game use.
 
 ## Delivered foundations
 

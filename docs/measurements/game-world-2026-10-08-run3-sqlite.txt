@@ -1,0 +1,35 @@
+workload,mode=sqlite,rows=100000,items=100000,saves=128,batch=64,durability=sync_before_ack,maintenance=explicit,scratch=/home/mikpe/.cache/skrin-world-evidence-20261008/skrin-world-sqlite-221612-1791442439032009417
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 11736 kB
+memory,phase=seeded,VmHWM: 11736 kB
+point,samples=4000,p50_us=2.094,p95_us=2.633,p99_us=3.469,max_us=42.554
+point_rate,operations_per_s=443873.672
+area,samples=4000,p50_us=20.559,p95_us=22.580,p99_us=30.200,max_us=56.410
+area_rate,operations_per_s=47628.290
+inventory,samples=4000,p50_us=2.631,p95_us=3.302,p99_us=3.789,max_us=25.229
+inventory_rate,operations_per_s=359553.761
+durable_save,samples=128,p50_us=6174.945,p95_us=12926.207,p99_us=14196.193,max_us=15238.853
+durable_save_rate,saves_per_s=125.441,entity_updates_per_s=8028.214
+frame_work_60hz,samples=62,p50_us=141.578,p95_us=204.826,p99_us=248.217,max_us=248.217
+frame_start_lateness,samples=62,p50_us=68.645,p95_us=113.000,p99_us=125.837,max_us=125.837
+frame_overlap,completed_while_writer_active=62,over_budget=0,last_observed_save=127
+memory,phase=saved,VmRSS: 12276 kB
+memory,phase=saved,VmHWM: 12276 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=29218664
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=26.257,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5144 kB
+memory,phase=reopen_before_verify,VmHWM: 5144 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=56.324
+disk,phase=published_overlap,logical_regular_file_bytes=5627904
+reclaim,elapsed_ms=0.000
+disk,phase=after_reclaim,logical_regular_file_bytes=5627904
+memory,phase=after_maintenance,VmRSS: 9984 kB
+memory,phase=after_maintenance,VmHWM: 11796 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=0.438,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5164 kB
+memory,phase=reopen_before_verify,VmHWM: 5164 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/home/mikpe/.cache/skrin-world-evidence-20261008/skrin-world-sqlite-221612-1791442439032009417

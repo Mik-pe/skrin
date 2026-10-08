@@ -143,6 +143,18 @@ jobs:
 
       - name: Run immutable snapshot admission and memory lifecycle
         run: cargo +${{ matrix.rust }} run -p skrin --example snapshots --locked
+      - name: Run typed game-world frames and atomic saves
+        run: cargo +${{ matrix.rust }} run -p skrin --example game_world --locked
+      - name: Run game-world save, backup and verified reopen
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: cargo +${{ matrix.rust }} run -p skrin --example game_world --locked -- "$RUNNER_TEMP/world-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Smoke equivalent durable game-world workloads
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: |
+          for mode in native snapshot sqlite; do
+            cargo +${{ matrix.rust }} bench -p skrin --bench game_world --locked -- "$RUNNER_TEMP" "$mode" 67 73 13
+          done
       - name: Run snapshot pins, group retries, backup and offline migration
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash

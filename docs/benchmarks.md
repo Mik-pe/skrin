@@ -107,3 +107,105 @@ tails and read rates when judging whether the added version machinery is useful.
 [Recorded 24-run NVMe comparison](measurements/snapshots-2026-10-07.md) preserves
 all low-load/saturated writer/read tails and sample counts, including sparse
 starved borrowed-reader observations and worse snapshot writer contention tails.
+
+## Game world
+
+The [application workload and product targets](game-world.md) prioritize native
+state persistence and retrieval. SQL is confined to a benchmark adapter through
+`rusqlite = 0.40.2` with bundled SQLite 3.53.2, cached statements and checked
+unsigned conversions. This is a development dependency; it adds no SQLite
+runtime dependency or SQL API to Skrin. Building development targets now needs
+a C compiler for the bundled comparator.
+
+```sh
+cargo +1.89.0 bench -p skrin --bench game_world --no-run --locked
+cargo +1.89.0 bench -p skrin --bench game_world --locked -- /local/scratch native   100000 128 64
+cargo +1.89.0 bench -p skrin --bench game_world --locked -- /local/scratch snapshot 100000 128 64
+cargo +1.89.0 bench -p skrin --bench game_world --locked -- /local/scratch sqlite   100000 128 64
+```
+
+Run the built executable in separate fresh processes, rotating native/snapshot/
+SQLite order across at least three repeats. Also smoke `67 73 13`: it wraps
+entity ranges and moves the same item again. Arguments require an existing
+scratch parent, mode, 2..1M entities, 1..1M saves and a batch of 1..min(rows,1024).
+Each run creates an exclusive directory and **retains it even on success**.
+Output identifies the exact path; inspect/clean only these test-owned directories.
+A `--verify DB MODE ROWS SAVES BATCH` child invocation checks an existing run.
+
+Every entity has area/x/y/revision (four u64s), and every item has owner/kind
+(two u64s). Each save changes `BATCH` successive wrapping entity positions,
+moves one item to the next owner and inserts a complete operation ID/request
+(five u64s). Entities are grouped in areas of 64. Seed commits insert 256
+entities and 256 items each, outside timing. Both engines have area and owner
+indexes and use the same application-side typed get/modify/replace operations.
+Skrin uses its production catalog codec/WAL/index validator, with no special
+benchmark storage path. SQLite uses integer primary keys, normal rowid tables,
+corresponding non-unique indexes and prepared statements. All generated values
+fit SQLite's signed integer range; this is not a full-u64 compatibility claim.
+
+SQLite settings are WAL, synchronous FULL, fullfsync/checkpoint_fullfsync ON,
+a 64 MiB page cache per connection, mmap disabled and wal_autocheckpoint=0.
+Checkpoint-on-close is also disabled so the pre-maintenance child actually
+reopens the WAL. WAL/FULL and explicit maintenance settings are checked rather
+than assumed. Statements are cached and both readers warm their query paths
+before sampling. On macOS, fullfsync is necessary to request the stronger flush
+boundary used by Skrin's standard-library sync_all. OS/device behavior remains
+conditional for both. See SQLite's primary documentation for
+[synchronization](https://www.sqlite.org/pragma.html#pragma_synchronous),
+[WAL checkpoints](https://www.sqlite.org/wal.html) and
+[checkpoint-on-close](https://www.sqlite.org/c3ref/c_dbconfig_defensive.html#sqlitedbconfignockptonclose).
+
+Read phases each sample 4,000 point, area and inventory operations. Each operation
+acquires/releases a coherent view and materializes identical native integer
+values; isolated SQLite SELECTs use their implicit statement read transaction,
+avoiding unnecessary explicit BEGIN/ROLLBACK. Multi-query frames use an explicit
+read transaction. Indexed results include full rows ordered by primary key. Area results
+have up to 64 rows, inventories initially one. These are resident/warmed reads;
+Skrin holds its entire typed world/indexes in RAM and SQLite has a warmed page
+cache. Do not describe this as equal memory cost or a cold-storage comparison.
+Timings include Instant overhead, enum dispatch and adapter/materialization costs.
+
+The save phase has **one unpaced writer** making independent immediate synced
+transactions. One reader starts with it at a barrier and requests synthetic
+frame work at 60 Hz: one coherent view, 64 point lookups, one full area read,
+one inventory read, and a saved-operation watermark. Every returned value is
+checked against that view's exact acknowledged save prefix. Skrin derives the
+watermark from its committed sequence; SQLite reads MAX(operation ID)+1. This
+small observability difference is included in frame costs. Frame work includes
+coherence assertions but excludes real rendering/physics. Start lateness is
+reported separately from work duration; missed periods are skipped. Frame count,
+frames completed while the writer is active, over-budget work and last observed
+save are reported. Fast writer phases or starved readers can have very few frame
+samples: their p99 may just be the maximum, not a steady-state latency estimate.
+Snapshots may observe the preceding synchronized state during pending writes.
+This measures availability/freshness as well as speed; it is not a real-time bound.
+
+Report durable save percentiles/max, wall-time saves/s and changed entities/s.
+Retry/no-op and mismatched-operation rejection checks are outside timing. The
+complete state is checked: all fields in all rows, every save request, counts,
+sequence/watermark and both indexes. An independent iterative integration model
+validates the closed-form reference across wrapping ranges/repeated transfers.
+Fresh children verify exact state **before and after** serialized maintenance,
+including pre-checkpoint WAL replay. Opening timings exclude subsequent full
+verification, use no cache eviction/advice, and are not device-cold timings.
+Post-save reopening for maintenance rebuilds native/index state and, in snapshot
+mode, immutable roots; it is outside save/checkpoint timing. Skrin eagerly decodes/rebuilds all data/indexes on
+open; SQLite loads pages lazily and full verification happens outside that timer.
+These are different amounts of work, not a recovery-speed ranking. Snapshot leases are
+released before maintenance. Checkpoint and reclaim are separate timings;
+SQLite checkpoint(TRUNCATE) includes WAL reclamation and its reclaim step is a
+no-op. Skrin retains its previous generation. These maintenance contracts differ;
+report them rather than treating their pauses/disk bytes as interchangeable.
+
+Linux RSS/high-water samples are whole-process observations including adapters,
+threads, sample buffers, native rows/indexes and allocator retention. The binary
+contains both engines even in single-mode runs. Children report memory before
+full verification. Disk samples sum logical regular-file bytes only, including
+SQLite WAL/shared-memory files and Skrin's retained generations; metadata,
+physical allocation and quotas are excluded. The workload stores narrow fixed
+records and a finite save history; it does not establish behavior for large
+assets, unlimited operation-ID retention or worlds larger than RAM.
+
+[The nine-run local NVMe baseline](measurements/game-world-2026-10-08.md) retains
+all adverse save tails, starved native frames and memory/lifecycle costs alongside
+resident lookup and snapshot frame results; no general durable speedup is claimed.

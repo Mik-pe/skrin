@@ -1,5 +1,13 @@
 # Changelog
 
+## Native game-world persistence target
+
+- Define a Rust-native, SQL-free direction around durable dirty-state saves, typed area/inventory retrieval and coherent frame reads.
+- Permanently exclude SQL syntax, parsers, SQL query APIs and SQL compatibility layers in contributor instructions and product documentation.
+- Add a runnable game-world save/backup/reopen example, atomic inventory rollback and retry checks, and an independent wrapping-workload reference model.
+- Add a production-path native/snapshot benchmark and a pinned benchmark-only SQLite WAL/FULL adapter, reporting save/read/frame tails, RSS, maintenance/disk overlap and exact fresh-process WAL/snapshot recovery.
+- Keep engine APIs, persistence semantics and existing format fixtures unchanged; document workload targets and platform/RAM/maintenance boundaries.
+
 ## Reproducible contributor verification
 
 - Verify every baseline row and exact sequence after volatile/synced benchmark phases and fresh reopen, outside reported timing sections.

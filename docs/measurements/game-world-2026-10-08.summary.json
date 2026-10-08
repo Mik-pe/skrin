@@ -1,0 +1,1477 @@
+{
+  "aggregation": "median of three per-process statistics; no pooled percentiles; all per-run values retained",
+  "runs": [
+    {
+      "mode": "native",
+      "repeat": 1,
+      "output": "game-world-2026-10-08-run1-native.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 63560
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 63560
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 64100
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 64100
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 63416
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 63416
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 64156
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 64156
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 82076
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 91332
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 0.689,
+          "p95_us": 1.029,
+          "p99_us": 1.552,
+          "max_us": 55.793
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 9.991,
+          "p95_us": 20.862,
+          "p99_us": 55.569,
+          "max_us": 104.682
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 1.654,
+          "p95_us": 2.144,
+          "p99_us": 2.806,
+          "max_us": 12.554
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 5684.922,
+          "p95_us": 22342.591,
+          "p99_us": 440369.501,
+          "max_us": 722232.56
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 47.079,
+          "entity_updates_per_s": 3013.044
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 1,
+          "p50_us": 2718829.908,
+          "p95_us": 2718829.908,
+          "p99_us": 2718829.908,
+          "max_us": 2718829.908
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 1,
+          "p50_us": 0.08,
+          "p95_us": 0.08,
+          "p99_us": 0.08,
+          "max_us": 0.08
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 0,
+          "over_budget": 1,
+          "last_observed_save": 128
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 445.62,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 340.498,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 425.991
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 5.117
+        }
+      ]
+    },
+    {
+      "mode": "snapshot",
+      "repeat": 1,
+      "output": "game-world-2026-10-08-run1-snapshot.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 104476
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 104476
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 107924
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 107924
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 63512
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 63512
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 107936
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 107936
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 82164
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 92156
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 0.736,
+          "p95_us": 1.215,
+          "p99_us": 1.662,
+          "max_us": 49.227
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 7.891,
+          "p95_us": 10.791,
+          "p99_us": 44.419,
+          "max_us": 100.304
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 2.273,
+          "p95_us": 3.133,
+          "p99_us": 4.379,
+          "max_us": 45.713
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 8526.532,
+          "p95_us": 17340.873,
+          "p99_us": 56714.259,
+          "max_us": 938424.596
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 58.225,
+          "entity_updates_per_s": 3726.398
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 132,
+          "p50_us": 40.205,
+          "p95_us": 49.185,
+          "p99_us": 123.813,
+          "max_us": 136.311
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 132,
+          "p50_us": 67.781,
+          "p95_us": 126.672,
+          "p99_us": 297.978,
+          "max_us": 1415.613
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 132,
+          "over_budget": 0,
+          "last_observed_save": 126
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 344.271,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 178.686,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 2224.261
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 12.983
+        }
+      ]
+    },
+    {
+      "mode": "sqlite",
+      "repeat": 1,
+      "output": "game-world-2026-10-08-run1-sqlite.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 11680
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 11680
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 12216
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 12216
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 5004
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 5004
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 9660
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 11900
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 4944
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 4944
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 2.194,
+          "p95_us": 2.915,
+          "p99_us": 4.009,
+          "max_us": 40.158
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 21.584,
+          "p95_us": 44.01,
+          "p99_us": 52.365,
+          "max_us": 87.318
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 2.589,
+          "p95_us": 4.521,
+          "p99_us": 32.44,
+          "max_us": 56.444
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 11433.296,
+          "p95_us": 1574139.106,
+          "p99_us": 2044722.64,
+          "max_us": 2231801.58
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 7.908,
+          "entity_updates_per_s": 506.142
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 972,
+          "p50_us": 115.899,
+          "p95_us": 212.014,
+          "p99_us": 302.151,
+          "max_us": 2096.672
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 972,
+          "p50_us": 75.052,
+          "p95_us": 185.713,
+          "p99_us": 962.643,
+          "max_us": 10734.146
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 972,
+          "over_budget": 0,
+          "last_observed_save": 127
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 29218664
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 1839.371,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.406,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 3094.372
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 0.0
+        }
+      ]
+    },
+    {
+      "mode": "sqlite",
+      "repeat": 2,
+      "output": "game-world-2026-10-08-run2-sqlite.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 11700
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 11700
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 12240
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 12240
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 5136
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 5136
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 9680
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 11536
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 4964
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 4964
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 2.148,
+          "p95_us": 3.446,
+          "p99_us": 4.184,
+          "max_us": 49.307
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 21.15,
+          "p95_us": 42.916,
+          "p99_us": 64.367,
+          "max_us": 124.772
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 2.505,
+          "p95_us": 3.318,
+          "p99_us": 3.915,
+          "max_us": 47.395
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 9814.059,
+          "p95_us": 15193.71,
+          "p99_us": 16057.12,
+          "max_us": 17700.459
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 100.078,
+          "entity_updates_per_s": 6404.961
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 77,
+          "p50_us": 150.197,
+          "p95_us": 235.037,
+          "p99_us": 311.418,
+          "max_us": 311.418
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 77,
+          "p50_us": 96.406,
+          "p95_us": 147.373,
+          "p99_us": 916.774,
+          "max_us": 916.774
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 77,
+          "over_budget": 0,
+          "last_observed_save": 126
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 29218664
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 10.5,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.426,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 138.087
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 0.0
+        }
+      ]
+    },
+    {
+      "mode": "native",
+      "repeat": 2,
+      "output": "game-world-2026-10-08-run2-native.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 63732
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 63732
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 64272
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 64272
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 63512
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 63512
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 64288
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 64288
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 82052
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 91308
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 0.871,
+          "p95_us": 1.195,
+          "p99_us": 1.476,
+          "max_us": 10.439
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 10.409,
+          "p95_us": 13.672,
+          "p99_us": 16.538,
+          "max_us": 30.146
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 1.784,
+          "p95_us": 2.342,
+          "p99_us": 2.932,
+          "max_us": 16.252
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 10439.127,
+          "p95_us": 14826.28,
+          "p99_us": 15731.196,
+          "max_us": 15824.587
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 98.12,
+          "entity_updates_per_s": 6279.688
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 1,
+          "p50_us": 1304543.541,
+          "p95_us": 1304543.541,
+          "p99_us": 1304543.541,
+          "max_us": 1304543.541
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 1,
+          "p50_us": 0.47,
+          "p95_us": 0.47,
+          "p99_us": 0.47,
+          "max_us": 0.47
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 0,
+          "over_budget": 1,
+          "last_observed_save": 128
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 229.627,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 197.419,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 172.704
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 9.758
+        }
+      ]
+    },
+    {
+      "mode": "snapshot",
+      "repeat": 2,
+      "output": "game-world-2026-10-08-run2-snapshot.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 104468
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 104468
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 107900
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 107900
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 63532
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 63532
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 107976
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 107976
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 82088
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 91144
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 1.006,
+          "p95_us": 1.462,
+          "p99_us": 1.835,
+          "max_us": 10.203
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 8.361,
+          "p95_us": 11.424,
+          "p99_us": 13.936,
+          "max_us": 50.793
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 2.469,
+          "p95_us": 3.22,
+          "p99_us": 4.46,
+          "max_us": 24.605
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 10378.949,
+          "p95_us": 15416.584,
+          "p99_us": 25643.541,
+          "max_us": 32786.18
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 94.319,
+          "entity_updates_per_s": 6036.43
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 82,
+          "p50_us": 40.286,
+          "p95_us": 56.136,
+          "p99_us": 77.224,
+          "max_us": 77.224
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 82,
+          "p50_us": 85.161,
+          "p95_us": 103.495,
+          "p99_us": 436.985,
+          "max_us": 436.985
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 82,
+          "over_budget": 0,
+          "last_observed_save": 127
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 1029.432,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 165.217,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 179.463
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 10.736
+        }
+      ]
+    },
+    {
+      "mode": "snapshot",
+      "repeat": 3,
+      "output": "game-world-2026-10-08-run3-snapshot.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 104432
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 104432
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 107880
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 107880
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 63460
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 63460
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 107944
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 107944
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 82016
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 91216
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 0.834,
+          "p95_us": 1.223,
+          "p99_us": 1.689,
+          "max_us": 7.547
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 8.268,
+          "p95_us": 10.711,
+          "p99_us": 13.553,
+          "max_us": 32.812
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 2.363,
+          "p95_us": 3.1,
+          "p99_us": 4.928,
+          "max_us": 22.029
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 6558.823,
+          "p95_us": 13208.72,
+          "p99_us": 13649.934,
+          "max_us": 15298.998
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 121.489,
+          "entity_updates_per_s": 7775.283
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 64,
+          "p50_us": 37.978,
+          "p95_us": 47.526,
+          "p99_us": 78.932,
+          "max_us": 78.932
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 64,
+          "p50_us": 83.357,
+          "p95_us": 122.124,
+          "p99_us": 134.177,
+          "max_us": 134.177
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 64,
+          "over_budget": 0,
+          "last_observed_save": 127
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 189.583,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 160.152,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 621.636
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 9.716
+        }
+      ]
+    },
+    {
+      "mode": "sqlite",
+      "repeat": 3,
+      "output": "game-world-2026-10-08-run3-sqlite.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 11736
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 11736
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 12276
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 12276
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 5144
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 5144
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 9984
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 11796
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 5164
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 5164
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 2.094,
+          "p95_us": 2.633,
+          "p99_us": 3.469,
+          "max_us": 42.554
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 20.559,
+          "p95_us": 22.58,
+          "p99_us": 30.2,
+          "max_us": 56.41
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 2.631,
+          "p95_us": 3.302,
+          "p99_us": 3.789,
+          "max_us": 25.229
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 6174.945,
+          "p95_us": 12926.207,
+          "p99_us": 14196.193,
+          "max_us": 15238.853
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 125.441,
+          "entity_updates_per_s": 8028.214
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 62,
+          "p50_us": 141.578,
+          "p95_us": 204.826,
+          "p99_us": 248.217,
+          "max_us": 248.217
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 62,
+          "p50_us": 68.645,
+          "p95_us": 113.0,
+          "p99_us": 125.837,
+          "max_us": 125.837
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 62,
+          "over_budget": 0,
+          "last_observed_save": 127
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 29218664
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 5627904
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 5627904
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 26.257,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 0.438,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 56.324
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 0.0
+        }
+      ]
+    },
+    {
+      "mode": "native",
+      "repeat": 3,
+      "output": "game-world-2026-10-08-run3-native.txt",
+      "memory": [
+        {
+          "phase": "seeded",
+          "VmRSS_kib": 63644
+        },
+        {
+          "phase": "seeded",
+          "VmHWM_kib": 63644
+        },
+        {
+          "phase": "saved",
+          "VmRSS_kib": 64124
+        },
+        {
+          "phase": "saved",
+          "VmHWM_kib": 64124
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 63504
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 63504
+        },
+        {
+          "phase": "after_maintenance",
+          "VmRSS_kib": 64188
+        },
+        {
+          "phase": "after_maintenance",
+          "VmHWM_kib": 64188
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmRSS_kib": 82008
+        },
+        {
+          "phase": "reopen_before_verify",
+          "VmHWM_kib": 91212
+        }
+      ],
+      "point": [
+        {
+          "samples": 4000,
+          "p50_us": 0.687,
+          "p95_us": 1.045,
+          "p99_us": 1.37,
+          "max_us": 40.836
+        }
+      ],
+      "area": [
+        {
+          "samples": 4000,
+          "p50_us": 9.683,
+          "p95_us": 11.512,
+          "p99_us": 43.563,
+          "max_us": 61.994
+        }
+      ],
+      "inventory": [
+        {
+          "samples": 4000,
+          "p50_us": 1.721,
+          "p95_us": 2.199,
+          "p99_us": 2.697,
+          "max_us": 41.372
+        }
+      ],
+      "durable_save": [
+        {
+          "samples": 128,
+          "p50_us": 9505.188,
+          "p95_us": 118027.328,
+          "p99_us": 176421.3,
+          "max_us": 1704625.272
+        }
+      ],
+      "durable_save_rate": [
+        {
+          "saves_per_s": 29.289,
+          "entity_updates_per_s": 1874.472
+        }
+      ],
+      "frame_work_60hz": [
+        {
+          "samples": 1,
+          "p50_us": 4370340.244,
+          "p95_us": 4370340.244,
+          "p99_us": 4370340.244,
+          "max_us": 4370340.244
+        }
+      ],
+      "frame_start_lateness": [
+        {
+          "samples": 1,
+          "p50_us": 0.084,
+          "p95_us": 0.084,
+          "p99_us": 0.084,
+          "max_us": 0.084
+        }
+      ],
+      "frame_overlap": [
+        {
+          "completed_while_writer_active": 0,
+          "over_budget": 1,
+          "last_observed_save": 128
+        }
+      ],
+      "disk": [
+        {
+          "phase": "before_checkpoint",
+          "logical_regular_file_bytes": 11552280
+        },
+        {
+          "phase": "published_overlap",
+          "logical_regular_file_bytes": 23162004
+        },
+        {
+          "phase": "after_reclaim",
+          "logical_regular_file_bytes": 23162004
+        }
+      ],
+      "fresh_process_open": [
+        {
+          "elapsed_ms": 227.619,
+          "cache_policy": "no_advice"
+        },
+        {
+          "elapsed_ms": 169.541,
+          "cache_policy": "no_advice"
+        }
+      ],
+      "checkpoint": [
+        {
+          "elapsed_ms": 153.254
+        }
+      ],
+      "reclaim": [
+        {
+          "elapsed_ms": 5.739
+        }
+      ]
+    }
+  ],
+  "medians": {
+    "native": {
+      "point": {
+        "p50_us": 0.689,
+        "p95_us": 1.045,
+        "p99_us": 1.476
+      },
+      "area": {
+        "p50_us": 9.991,
+        "p95_us": 13.672,
+        "p99_us": 43.563
+      },
+      "inventory": {
+        "p50_us": 1.721,
+        "p95_us": 2.199,
+        "p99_us": 2.806
+      },
+      "durable_save": {
+        "p50_us": 9505.188,
+        "p95_us": 22342.591,
+        "p99_us": 176421.3
+      },
+      "frame_work_60hz": {
+        "p50_us": 2718829.908,
+        "p95_us": 2718829.908,
+        "p99_us": 2718829.908
+      },
+      "save_rate_range": [
+        29.289,
+        98.12
+      ],
+      "frame_sample_counts": [
+        1,
+        1,
+        1
+      ],
+      "frame_overlap_counts": [
+        0,
+        0,
+        0
+      ],
+      "over_budget": [
+        1,
+        1,
+        1
+      ]
+    },
+    "snapshot": {
+      "point": {
+        "p50_us": 0.834,
+        "p95_us": 1.223,
+        "p99_us": 1.689
+      },
+      "area": {
+        "p50_us": 8.268,
+        "p95_us": 10.791,
+        "p99_us": 13.936
+      },
+      "inventory": {
+        "p50_us": 2.363,
+        "p95_us": 3.133,
+        "p99_us": 4.46
+      },
+      "durable_save": {
+        "p50_us": 8526.532,
+        "p95_us": 15416.584,
+        "p99_us": 25643.541
+      },
+      "frame_work_60hz": {
+        "p50_us": 40.205,
+        "p95_us": 49.185,
+        "p99_us": 78.932
+      },
+      "save_rate_range": [
+        58.225,
+        121.489
+      ],
+      "frame_sample_counts": [
+        132,
+        82,
+        64
+      ],
+      "frame_overlap_counts": [
+        132,
+        82,
+        64
+      ],
+      "over_budget": [
+        0,
+        0,
+        0
+      ]
+    },
+    "sqlite": {
+      "point": {
+        "p50_us": 2.148,
+        "p95_us": 2.915,
+        "p99_us": 4.009
+      },
+      "area": {
+        "p50_us": 21.15,
+        "p95_us": 42.916,
+        "p99_us": 52.365
+      },
+      "inventory": {
+        "p50_us": 2.589,
+        "p95_us": 3.318,
+        "p99_us": 3.915
+      },
+      "durable_save": {
+        "p50_us": 9814.059,
+        "p95_us": 15193.71,
+        "p99_us": 16057.12
+      },
+      "frame_work_60hz": {
+        "p50_us": 141.578,
+        "p95_us": 212.014,
+        "p99_us": 302.151
+      },
+      "save_rate_range": [
+        7.908,
+        125.441
+      ],
+      "frame_sample_counts": [
+        972,
+        77,
+        62
+      ],
+      "frame_overlap_counts": [
+        972,
+        77,
+        62
+      ],
+      "over_budget": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}

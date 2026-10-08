@@ -17,6 +17,10 @@
 
 **Skrin** is a small, typed, embedded database written in Rust. Work with ordinary Rust values, borrow reads without decoding, and commit changes through one controlled write path. No SQL parser. No network server. No second database hidden underneath.
 
+**SQL syntax will never be supported.** Skrin's API consists of native typed
+operations; a SQL parser, SQL query API and SQL compatibility layer are
+permanently outside the project's scope.
+
 *Skrin* is Swedish for a small chest: a place to keep things worth saving.
 
 > **Experimental, not production-certified.** The transaction and recovery engine is executable and tested, including managed checkpoints, verified backups and offline migrations. API compatibility is not frozen. Publishing remains disabled; no SpacetimeDB performance claim is made.
@@ -201,6 +205,14 @@ cooperative native-memory accounting is not an allocator/process cap.
 reader availability alongside writer contention tails and memory costs. The executable `group_commit` example covers dropped responses, operation-ID retry and managed maintenance.
 
 ## Measure the right thing
+
+The next performance target is [native game-world persistence](docs/game-world.md):
+typed entities, indexed areas/inventories, atomic saves and coherent frame reads.
+Run the SQL-free application example with `cargo run -p skrin --example game_world --locked`
+(optionally pass a **new** directory path on Unix). The `game_world` benchmark
+compares native/snapshot Skrin reads and a benchmark-only SQLite adapter with
+equivalent durable application work; see [methodology](docs/benchmarks.md#game-world).
+This direction does not add SQL to Skrin or establish a cross-engine speed claim.
 
 ```sh
 cargo bench -p skrin --bench baseline

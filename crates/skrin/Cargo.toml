@@ -37,3 +37,11 @@ harness = false
 [[bench]]
 name = "snapshots"
 harness = false
+
+[[bench]]
+name = "game_world"
+harness = false
+
+[dev-dependencies]
+# Comparator only; Skrin's engine and public API do not depend on SQLite.
+rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled", "cache", "fallible_uint"] }
