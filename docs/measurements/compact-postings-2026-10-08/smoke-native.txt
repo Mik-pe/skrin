@@ -1,0 +1,36 @@
+workload,mode=native,rows=67,items=67,saves=73,batch=13,window=8,durability=sync_before_ack,maintenance=explicit,scratch=/dev/shm/skrin-world-native-317063-1791446247879785527
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 3720 kB
+memory,phase=seeded,VmHWM: 3720 kB
+point,samples=4000,p50_us=0.078,p95_us=0.093,p99_us=0.123,max_us=4.629
+point_rate,operations_per_s=8496230.860
+area,samples=4000,p50_us=0.646,p95_us=1.874,p99_us=1.979,max_us=7.656
+area_rate,operations_per_s=928998.071
+inventory,samples=4000,p50_us=0.135,p95_us=0.179,p99_us=0.210,max_us=3.293
+inventory_rate,operations_per_s=5820552.370
+sync_groups,requests=1,groups=73
+durable_save,samples=73,p50_us=51.949,p95_us=107.448,p99_us=144.180,max_us=144.180
+durable_save_rate,saves_per_s=84378.529,entity_updates_per_s=1096920.877
+frame_work_60hz,samples=1,p50_us=72.503,p95_us=72.503,p99_us=72.503,max_us=72.503
+frame_start_lateness,samples=1,p50_us=0.048,p95_us=0.048,p99_us=0.048,max_us=0.048
+frame_overlap,completed_while_writer_active=1,over_budget=0,last_observed_save=3
+memory,phase=saved,VmRSS: 4220 kB
+memory,phase=saved,VmHWM: 4220 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=79051
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=0.613,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 3600 kB
+memory,phase=reopen_before_verify,VmHWM: 3600 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=0.119
+disk,phase=published_overlap,logical_regular_file_bytes=92477
+reclaim,elapsed_ms=0.041
+disk,phase=after_reclaim,logical_regular_file_bytes=92477
+memory,phase=after_maintenance,VmRSS: 4260 kB
+memory,phase=after_maintenance,VmHWM: 4260 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=0.197,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 3512 kB
+memory,phase=reopen_before_verify,VmHWM: 3512 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/dev/shm/skrin-world-native-317063-1791446247879785527

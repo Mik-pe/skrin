@@ -1,0 +1,36 @@
+workload,mode=snapshot,rows=100000,items=100000,saves=512,batch=64,window=1,durability=sync_before_ack,maintenance=explicit,scratch=/dev/shm/skrin-world-snapshot-312472-1791445781893573489
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 104548 kB
+memory,phase=seeded,VmHWM: 104548 kB
+point,samples=4000,p50_us=0.786,p95_us=1.233,p99_us=1.604,max_us=9.580
+point_rate,operations_per_s=1125182.772
+area,samples=4000,p50_us=10.284,p95_us=12.387,p99_us=15.793,max_us=29.908
+area_rate,operations_per_s=97224.141
+inventory,samples=4000,p50_us=2.479,p95_us=3.229,p99_us=3.927,max_us=16.408
+inventory_rate,operations_per_s=382555.763
+sync_groups,requests=1,groups=512
+durable_save,samples=512,p50_us=80.894,p95_us=101.127,p99_us=122.854,max_us=131.837
+durable_save_rate,saves_per_s=11974.313,entity_updates_per_s=766356.035
+frame_work_60hz,samples=3,p50_us=51.270,p95_us=136.623,p99_us=136.623,max_us=136.623
+frame_start_lateness,samples=3,p50_us=62.400,p95_us=67.807,p99_us=67.807,max_us=67.807
+frame_overlap,completed_while_writer_active=3,over_budget=0,last_observed_save=401
+memory,phase=saved,VmRSS: 110700 kB
+memory,phase=saved,VmHWM: 110700 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=13161240
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=248.035,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 63568 kB
+memory,phase=reopen_before_verify,VmHWM: 63568 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=60.961
+disk,phase=published_overlap,logical_regular_file_bytes=24799380
+reclaim,elapsed_ms=0.056
+disk,phase=after_reclaim,logical_regular_file_bytes=24799380
+memory,phase=after_maintenance,VmRSS: 112300 kB
+memory,phase=after_maintenance,VmHWM: 112300 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=204.751,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 82312 kB
+memory,phase=reopen_before_verify,VmHWM: 93156 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/dev/shm/skrin-world-snapshot-312472-1791445781893573489
