@@ -135,13 +135,16 @@ impl<C: Catalog> CatalogView<C> {
     ) -> Result<Self> {
         let mut view = self.clone();
         for p in &delta.removed {
-            view.rows = view.rows.remove(&p.address);
+            if !p.retain_address {
+                view.rows = view.rows.remove(&p.address);
+            }
             for (id, key) in &p.keys {
                 view.postings =
                     view.postings
                         .remove(&(*id, Arc::from(key.as_slice()), p.address.1));
             }
         }
+        let mut replacements = Vec::new();
         for p in &delta.added {
             let row = &changes[&p.slot]
                 .as_ref()
@@ -150,15 +153,16 @@ impl<C: Catalog> CatalogView<C> {
                 .as_ref()
                 .expect("native staged row")
                 .1;
-            view.rows = view.rows.insert(
-                p.address,
-                row.clone(),
-                row_bytes(
-                    row.as_ref(),
-                    footprint,
-                    VersionTree::<(u64, u64), Arc<C::Row>>::node_bytes(),
-                )?,
-            );
+            let bytes = row_bytes(
+                row.as_ref(),
+                footprint,
+                VersionTree::<(u64, u64), Arc<C::Row>>::node_bytes(),
+            )?;
+            if p.retain_address {
+                replacements.push((p.address, row.clone(), bytes));
+            } else {
+                view.rows = view.rows.insert(p.address, row.clone(), bytes);
+            }
             for (id, key) in &p.keys {
                 view.postings = view.postings.insert(
                     (*id, Arc::from(key.as_slice()), p.address.1),
@@ -167,6 +171,8 @@ impl<C: Catalog> CatalogView<C> {
                 );
             }
         }
+        replacements.sort_unstable_by_key(|(address, _, _)| *address);
+        view.rows = view.rows.replace_many(&replacements);
         Ok(view)
     }
 }

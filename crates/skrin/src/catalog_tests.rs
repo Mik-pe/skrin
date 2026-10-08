@@ -659,3 +659,72 @@ fn grouped_catalog_short_writes_and_shared_sync_recover_only_coherent_prefixes()
         assert_eq!(read.get::<Transfers>(8).unwrap().is_some(), committed == 2);
     }
 }
+
+#[test]
+fn replacement_delta_keeps_primary_and_only_changes_affected_postings() {
+    let disk = TestStorage::new(initial());
+    let db = reopen(&disk);
+    let indexes = db.indexes.read().unwrap();
+    let read = db.database.read().unwrap();
+    let slot = indexes.primary[&(1, 1)];
+    let old = &read.state.rows[&slot].data.as_ref().unwrap().1;
+    let Row::Account(old) = old else {
+        panic!("account")
+    };
+    let prepare = |email: &str, balance| {
+        indexes
+            .prepare(
+                &read.state.rows,
+                &BTreeMap::from([(
+                    slot,
+                    Some(Stored::row(
+                        1,
+                        Row::Account(Account {
+                            email: email.into(),
+                            balance,
+                        }),
+                    )),
+                )]),
+            )
+            .unwrap()
+    };
+    let unchanged = prepare(&old.email, old.balance);
+    assert!(unchanged.removed[0].retain_address && unchanged.added[0].retain_address);
+    assert!(unchanged.removed[0].keys.is_empty() && unchanged.added[0].keys.is_empty());
+    let balance = prepare(&old.email, old.balance + 1);
+    assert_eq!(
+        balance.removed[0].keys,
+        vec![(2, old.balance.to_be_bytes().to_vec())]
+    );
+    assert_eq!(
+        balance.added[0].keys,
+        vec![(2, (old.balance + 1).to_be_bytes().to_vec())]
+    );
+    // Filtering must not exempt unchanged unique keys from final-view validation.
+    let collision = BTreeMap::from([
+        (
+            slot,
+            Some(Stored::row(
+                1,
+                Row::Account(Account {
+                    email: old.email.clone(),
+                    balance: old.balance + 1,
+                }),
+            )),
+        ),
+        (
+            indexes.next_slot,
+            Some(Stored::row(
+                3,
+                Row::Account(Account {
+                    email: old.email.clone(),
+                    balance: 9,
+                }),
+            )),
+        ),
+    ]);
+    assert!(matches!(
+        indexes.prepare(&read.state.rows, &collision),
+        Err(Error::UniqueViolation { index_id: 1 })
+    ));
+}

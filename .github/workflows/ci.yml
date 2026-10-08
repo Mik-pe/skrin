@@ -152,8 +152,10 @@ jobs:
       - name: Smoke equivalent durable game-world workloads
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: |
-          for mode in native snapshot sqlite; do
-            cargo +${{ matrix.rust }} bench -p skrin --bench game_world --locked -- "$RUNNER_TEMP" "$mode" 67 73 13
+          for mode in native snapshot group_snapshot sqlite sqlite_bulk sqlite_batch; do
+            for window in 1 8; do
+              cargo +${{ matrix.rust }} bench -p skrin --bench game_world --locked -- "$RUNNER_TEMP" "$mode" 67 73 13 "$window"
+            done
           done
       - name: Run snapshot pins, group retries, backup and offline migration
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
