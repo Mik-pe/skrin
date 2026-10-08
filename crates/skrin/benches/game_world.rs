@@ -5,7 +5,9 @@ mod sqlite;
 #[path = "../examples/support/world.rs"]
 mod world;
 use skrin::catalog::{CatalogDatabase, CatalogRead};
-use skrin::versioned::{CatalogSnapshot, SnapshotCatalog};
+use skrin::group_commit::GroupCommitOptions;
+use skrin::versioned::{CatalogSnapshot, GroupSnapshotCatalog, SnapshotCatalog};
+use std::collections::BTreeMap;
 use std::hint::black_box;
 use std::path::{Path, PathBuf};
 use std::sync::{
@@ -23,7 +25,8 @@ fn invalid(message: &str) -> Box<dyn std::error::Error + Send + Sync> {
 enum Store {
     Native(Arc<CatalogDatabase<World>>),
     Snapshot(SnapshotCatalog<World>),
-    Sqlite(rusqlite::Connection),
+    Group(GroupSnapshotCatalog<World>),
+    Sqlite(rusqlite::Connection, bool, bool),
 }
 enum View<'a> {
     Native(CatalogRead<'a, World>),
@@ -45,27 +48,53 @@ impl std::ops::Deref for SqliteRead<'_> {
 }
 impl Store {
     fn open(mode: &str, path: &Path) -> BenchResult<Self> {
-        if mode == "sqlite" {
-            return Ok(Self::Sqlite(sqlite::open(path)?));
+        if mode.starts_with("sqlite") {
+            return Ok(Self::Sqlite(
+                sqlite::open(path)?,
+                mode != "sqlite",
+                mode == "sqlite_batch",
+            ));
         }
         let db = CatalogDatabase::<World>::open_dir(path)?;
         if mode == "snapshot" {
             Ok(Self::Snapshot(
                 db.into_snapshots(snapshot_options(), footprint)?,
             ))
+        } else if mode == "group_snapshot" {
+            Ok(Self::Group(
+                db.into_snapshots(snapshot_options(), footprint)?
+                    .into_group_commit(GroupCommitOptions {
+                        queue_capacity: 64,
+                        max_transactions: 8,
+                        max_delay: Duration::from_millis(1),
+                    })?,
+            ))
         } else {
             Ok(Self::Native(Arc::new(db)))
         }
     }
     fn create(mode: &str, path: &Path, rows: u64) -> BenchResult<Self> {
-        if mode == "sqlite" {
-            return Ok(Self::Sqlite(sqlite::create(path, rows)?));
+        if mode.starts_with("sqlite") {
+            return Ok(Self::Sqlite(
+                sqlite::create(path, rows)?,
+                mode != "sqlite",
+                mode == "sqlite_batch",
+            ));
         }
         let db = CatalogDatabase::<World>::create_dir(path)?;
         seed(&db, rows)?;
         if mode == "snapshot" {
             Ok(Self::Snapshot(
                 db.into_snapshots(snapshot_options(), footprint)?,
+            ))
+        } else if mode == "group_snapshot" {
+            Ok(Self::Group(
+                db.into_snapshots(snapshot_options(), footprint)?
+                    .into_group_commit(GroupCommitOptions {
+                        queue_capacity: 64,
+                        max_transactions: 8,
+                        max_delay: Duration::from_millis(1),
+                    })?,
             ))
         } else {
             Ok(Self::Native(Arc::new(db)))
@@ -75,21 +104,23 @@ impl Store {
         match self {
             Self::Native(db) => Ok(Self::Native(db.clone())),
             Self::Snapshot(db) => Ok(Self::Snapshot(db.clone())),
-            Self::Sqlite(_) => Ok(Self::Sqlite(sqlite::open(path)?)),
+            Self::Group(db) => Ok(Self::Group(db.clone())),
+            Self::Sqlite(_, bulk, batch) => Ok(Self::Sqlite(sqlite::open(path)?, *bulk, *batch)),
         }
     }
     fn view(&self) -> BenchResult<View<'_>> {
         match self {
             Self::Native(db) => Ok(View::Native(db.read()?)),
             Self::Snapshot(db) => Ok(View::Snapshot(db.snapshot()?)),
-            Self::Sqlite(db) => Ok(View::Sqlite(SqliteRead::Frame(sqlite::read(db)?))),
+            Self::Group(db) => Ok(View::Snapshot(db.snapshot()?)),
+            Self::Sqlite(db, _, _) => Ok(View::Sqlite(SqliteRead::Frame(sqlite::read(db)?))),
         }
     }
     fn query_view(&self) -> BenchResult<View<'_>> {
         match self {
             // Each isolated SELECT already has a coherent implicit transaction.
             // Avoid adding unnecessary BEGIN/ROLLBACK costs to the comparator.
-            Self::Sqlite(db) => Ok(View::Sqlite(SqliteRead::Statement(db))),
+            Self::Sqlite(db, _, _) => Ok(View::Sqlite(SqliteRead::Statement(db))),
             _ => self.view(),
         }
     }
@@ -97,8 +128,44 @@ impl Store {
         Ok(match self {
             Self::Native(db) => db.write(|tx| save(tx, r))?,
             Self::Snapshot(db) => db.write(|tx| save(tx, r))?,
-            Self::Sqlite(db) => sqlite::save(db, r)?,
+            Self::Group(db) => db.submit(move |tx| save(tx, r))?.wait()?.value,
+            Self::Sqlite(db, bulk, _) => sqlite::save(db, r, *bulk)?,
         })
+    }
+    fn save_window(
+        &mut self,
+        requests: &[Save],
+    ) -> BenchResult<(Vec<Duration>, BTreeMap<u64, usize>)> {
+        let start = Instant::now();
+        let mut samples = Vec::with_capacity(requests.len());
+        let mut groups = BTreeMap::new();
+        match self {
+            Self::Group(db) => {
+                let mut pending = Vec::with_capacity(requests.len());
+                for &r in requests {
+                    pending.push(db.submit(move |tx| save(tx, r))?);
+                }
+                for p in pending {
+                    let receipt = p.wait()?;
+                    assert!(receipt.value);
+                    groups.insert(receipt.synchronized_sequence, receipt.transactions_in_group);
+                    samples.push(start.elapsed());
+                }
+            }
+            Self::Sqlite(db, _, true) => {
+                sqlite::save_batch(db, requests)?;
+                samples.resize(requests.len(), start.elapsed());
+                groups.insert(requests[0].id, requests.len());
+            }
+            _ => {
+                for &r in requests {
+                    assert!(self.save(r)?);
+                    groups.insert(r.id, 1);
+                    samples.push(start.elapsed());
+                }
+            }
+        }
+        Ok((samples, groups))
     }
     fn checkpoint(&self) -> BenchResult<()> {
         match self {
@@ -108,7 +175,10 @@ impl Store {
             Self::Snapshot(db) => {
                 db.checkpoint()?;
             }
-            Self::Sqlite(db) => sqlite::checkpoint(db)?,
+            Self::Group(db) => {
+                db.checkpoint()?;
+            }
+            Self::Sqlite(db, _, _) => sqlite::checkpoint(db)?,
         }
         Ok(())
     }
@@ -120,7 +190,10 @@ impl Store {
             Self::Snapshot(db) => {
                 db.reclaim()?;
             }
-            Self::Sqlite(_) => {} // checkpoint(TRUNCATE) already reclaims WAL.
+            Self::Group(db) => {
+                db.reclaim()?;
+            }
+            Self::Sqlite(_, _, _) => {} // checkpoint(TRUNCATE) already reclaims WAL.
         }
         Ok(())
     }
@@ -321,6 +394,7 @@ fn concurrent(
     rows: u64,
     saves: u64,
     batch: u64,
+    window: u64,
 ) -> BenchResult<Store> {
     let ready = Arc::new(Barrier::new(2));
     let done = Arc::new(AtomicBool::new(false));
@@ -337,12 +411,22 @@ fn concurrent(
         barrier.wait();
         let phase = Instant::now();
         let mut samples = Vec::new();
-        for id in 0..saves {
-            let start = Instant::now();
-            assert!(writer.save(Save { id, rows, batch })?);
-            samples.push(start.elapsed());
+        let mut histogram = BTreeMap::new();
+        for first in (0..saves).step_by(window as usize) {
+            let requests: Vec<_> = (first..saves.min(first + window))
+                .map(|id| Save { id, rows, batch })
+                .collect();
+            let (times, groups) = writer.save_window(&requests)?;
+            samples.extend(times);
+            for size in groups.into_values() {
+                *histogram.entry(size).or_insert(0usize) += 1;
+            }
         }
-        Ok((writer, samples, phase.elapsed()))
+        let elapsed = phase.elapsed();
+        for (frames, count) in histogram {
+            println!("sync_groups,requests={frames},groups={count}");
+        }
+        Ok((writer, samples, elapsed))
     });
     ready.wait();
     let period = Duration::from_nanos(16_666_667);
@@ -449,8 +533,12 @@ fn disk(path: &Path, phase: &str) -> BenchResult<()> {
 }
 fn reopen(mode: &str, path: &Path, rows: u64, saves: u64, batch: u64) -> BenchResult<()> {
     let start = Instant::now();
-    let db = if mode == "sqlite" {
-        Store::Sqlite(sqlite::open(path)?)
+    let db = if mode.starts_with("sqlite") {
+        Store::Sqlite(
+            sqlite::open(path)?,
+            mode != "sqlite",
+            mode == "sqlite_batch",
+        )
     } else {
         Store::Native(Arc::new(CatalogDatabase::<World>::open_dir(path)?))
     };
@@ -470,16 +558,25 @@ fn main() -> BenchResult<()> {
         .collect();
     let verify_only = args.first().is_some_and(|a| a == "--verify");
     let offset = usize::from(verify_only);
-    if args.len() != 5 + offset {
+    if !(5 + offset..=6 + offset).contains(&args.len()) {
         return Err(invalid(
-            "usage: game_world [--verify] PARENT_OR_DB native|snapshot|sqlite ROWS SAVES BATCH",
+            "usage: game_world [--verify] PARENT_OR_DB native|snapshot|group_snapshot|sqlite|sqlite_bulk|sqlite_batch ROWS SAVES BATCH [WINDOW]",
         ));
     }
     let path = PathBuf::from(&args[offset]);
     let mode = args[offset + 1]
         .to_str()
         .ok_or_else(|| invalid("invalid mode"))?;
-    if !["native", "snapshot", "sqlite"].contains(&mode) {
+    if ![
+        "native",
+        "snapshot",
+        "group_snapshot",
+        "sqlite",
+        "sqlite_bulk",
+        "sqlite_batch",
+    ]
+    .contains(&mode)
+    {
         return Err(invalid("unknown mode"));
     }
     let number = |n: usize| -> BenchResult<u64> {
@@ -491,6 +588,14 @@ fn main() -> BenchResult<()> {
     let rows = number(2)?;
     let saves = number(3)?;
     let batch = number(4)?;
+    let window = if args.len() == 6 + offset {
+        number(5)?
+    } else {
+        1
+    };
+    if !(1..=8).contains(&window) {
+        return Err(invalid("window must be 1..=8"));
+    }
     if !(2..=1_000_000).contains(&rows)
         || !(1..=1_000_000).contains(&saves)
         || batch == 0
@@ -516,13 +621,13 @@ fn main() -> BenchResult<()> {
         std::fs::File::open(&path)?.sync_all()?;
     }
     // Kept even on success so raw output identifies reviewable/reopenable data.
-    let database = scratch.join(if mode == "sqlite" {
+    let database = scratch.join(if mode.starts_with("sqlite") {
         "world.sqlite"
     } else {
         "world"
     });
     println!(
-        "workload,mode={mode},rows={rows},items={rows},saves={saves},batch={batch},durability=sync_before_ack,maintenance=explicit,scratch={}",
+        "workload,mode={mode},rows={rows},items={rows},saves={saves},batch={batch},window={window},durability=sync_before_ack,maintenance=explicit,scratch={}",
         scratch.display()
     );
     println!("sqlite_comparator_version={}", rusqlite::version());
@@ -532,7 +637,7 @@ fn main() -> BenchResult<()> {
     read_phase(&db, rows)?;
     let reader = db.reader(&database)?;
     frame(&reader, rows, batch, 0)?; // Prepare reader queries before the barrier.
-    let db = concurrent(db, &reader, rows, saves, batch)?;
+    let db = concurrent(db, &reader, rows, saves, batch, window)?;
     drop(reader);
     verify_store(&db, rows, saves, batch)?;
     memory("saved")?;

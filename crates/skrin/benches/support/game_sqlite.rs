@@ -141,42 +141,66 @@ pub fn saved_count(c: &Connection) -> BenchResult<u64> {
 pub fn counts(c: &Connection) -> BenchResult<(u64, u64, u64)> {
     Ok(c.query_row("SELECT (SELECT COUNT(*) FROM entities),(SELECT COUNT(*) FROM items),(SELECT COUNT(*) FROM saves)", [], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?)
 }
-pub fn save(c: &mut Connection, request: Save) -> BenchResult<bool> {
+pub fn save(c: &mut Connection, request: Save, bulk: bool) -> BenchResult<bool> {
     let tx = c.transaction_with_behavior(TransactionBehavior::Immediate)?;
-    if let Some(old) = get_saved(&tx, request.id)? {
+    let changed = save_in(&tx, request, bulk)?;
+    tx.commit()?;
+    Ok(changed)
+}
+// An additional control allows SQLite to amortize FULL sync across an atomic
+// application batch. It is stronger all-or-none semantics than independent
+// Skrin frames, and must be reported separately, never hidden from comparisons.
+pub fn save_batch(c: &mut Connection, requests: &[Save]) -> BenchResult<()> {
+    let tx = c.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    for &request in requests {
+        assert!(save_in(&tx, request, true)?);
+    }
+    tx.commit()?;
+    Ok(())
+}
+fn save_in(tx: &Transaction<'_>, request: Save, bulk: bool) -> BenchResult<bool> {
+    if let Some(old) = get_saved(tx, request.id)? {
         if old != request.saved() {
             return Err(invalid("save ID reused for another request"));
         }
-        tx.commit()?;
         return Ok(false);
     }
-    for offset in 0..request.batch {
-        let key = (request.first() + offset) % request.rows;
-        // Same application get/modify/replace path and values as Skrin. Do not
-        // substitute SQL arithmetic for the typed world workload.
-        let mut e = get_entity(&tx, key)?.ok_or_else(|| invalid("missing entity"))?;
-        e.x += 1;
-        e.revision += 1;
-        assert_eq!(
-            tx.prepare_cached("UPDATE entities SET area=?2,x=?3,y=?4,revision=?5 WHERE id=?1")?
-                .execute(params![key, e.area, e.x, e.y, e.revision])?,
-            1
-        );
+    if bulk {
+        let first = request.first();
+        let end = (first + request.batch).min(request.rows);
+        let mut update = tx.prepare_cached(
+            "UPDATE entities SET x=x+1,revision=revision+1 WHERE id>=?1 AND id<?2",
+        )?;
+        let mut changed = update.execute(params![first, end])?;
+        if end - first < request.batch {
+            changed += update.execute(params![0, request.batch - (end - first)])?;
+        }
+        assert_eq!(changed as u64, request.batch);
+    } else {
+        // Reuse statement handles across the whole transaction. Only changed
+        // columns are assigned so SQLite need not maintain the area index.
+        let mut get = tx.prepare_cached("SELECT area,x,y,revision FROM entities WHERE id=?1")?;
+        let mut put = tx.prepare_cached("UPDATE entities SET x=?2,revision=?3 WHERE id=?1")?;
+        for offset in 0..request.batch {
+            let key = (request.first() + offset) % request.rows;
+            let mut e = get.query_row([key], |r| decode_entity(r, 0))?;
+            e.x += 1;
+            e.revision += 1;
+            assert_eq!(put.execute(params![key, e.x, e.revision])?, 1);
+        }
     }
-    let mut i = get_item(&tx, request.item())?.ok_or_else(|| invalid("missing item"))?;
-    if i.owner != request.from() || get_entity(&tx, request.to())?.is_none() {
+    let i = get_item(tx, request.item())?.ok_or_else(|| invalid("missing item"))?;
+    if i.owner != request.from() || get_entity(tx, request.to())?.is_none() {
         return Err(invalid("unexpected item owner or missing recipient"));
     }
-    i.owner = request.to();
     assert_eq!(
-        tx.prepare_cached("UPDATE items SET owner=?2,kind=?3 WHERE id=?1")?
-            .execute(params![request.item(), i.owner, i.kind])?,
+        tx.prepare_cached("UPDATE items SET owner=?2 WHERE id=?1")?
+            .execute(params![request.item(), request.to()])?,
         1
     );
     let s = request.saved();
     tx.prepare_cached("INSERT INTO saves VALUES(?1,?2,?3,?4,?5,?6)")?
         .execute(params![request.id, s.item, s.from, s.to, s.first, s.count])?;
-    tx.commit()?;
     Ok(true)
 }
 pub fn read(c: &Connection) -> BenchResult<Transaction<'_>> {
