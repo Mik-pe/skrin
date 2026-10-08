@@ -11,7 +11,7 @@ def fields(line):
     return result
 def parse(path):
     data=path.read_text()
-    if 'completed,scratch_retained=' not in data: return None
+    assert 'completed,scratch_retained=' in data, f'incomplete/failed run: {path}'
     assert data.count('fresh_process_exact_rows_indexes_and_operations=verified')==2,path
     result={'file':path.name}
     for name in ['workload','point','area','inventory','durable_save','durable_save_rate','frame_work_60hz','frame_start_lateness','frame_overlap','checkpoint','reclaim']:
