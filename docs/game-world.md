@@ -2,8 +2,10 @@
 
 Skrin's product target is fast, embedded, typed state for Rust applications,
 starting with a game world. Persist changed data, retrieve native values and
-publish coherent transactions with predictable application costs. SQL syntax,
-a query planner, replication and a network service are outside this milestone.
+publish coherent transactions with predictable application costs. **Skrin must
+never support SQL syntax:** a SQL parser, SQL query API and SQL compatibility
+layer are permanently excluded, not deferred. Replication and a network service
+are outside this milestone.
 The application's Rust schema and operations define the API. A comparator does
 not define Skrin's architecture.
 

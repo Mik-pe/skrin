@@ -2,6 +2,12 @@
 
 Skrin is an embedded, typed Rust database, not a SQL server or a wrapper around another database. Keep the public API small and executable; do not add placeholder crates or APIs for speculative features.
 
+Skrin must never support SQL syntax. This is a permanent product constraint, not
+a deferred feature: do not add a SQL parser, SQL query API or SQL compatibility
+layer. Design native typed operations around application data and access
+patterns. External benchmark adapters may use another database's own interface;
+that interface must never become a Skrin engine dependency or product API.
+
 Read `README.md`, `docs/architecture.md`, `docs/durability.md`, `docs/file-format.md`, and `docs/managed-storage.md` before changing the engine.
 
 ## Invariants

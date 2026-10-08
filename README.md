@@ -17,6 +17,10 @@
 
 **Skrin** is a small, typed, embedded database written in Rust. Work with ordinary Rust values, borrow reads without decoding, and commit changes through one controlled write path. No SQL parser. No network server. No second database hidden underneath.
 
+**SQL syntax will never be supported.** Skrin's API consists of native typed
+operations; a SQL parser, SQL query API and SQL compatibility layer are
+permanently outside the project's scope.
+
 *Skrin* is Swedish for a small chest: a place to keep things worth saving.
 
 > **Experimental, not production-certified.** The transaction and recovery engine is executable and tested, including managed checkpoints, verified backups and offline migrations. API compatibility is not frozen. Publishing remains disabled; no SpacetimeDB performance claim is made.
