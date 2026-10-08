@@ -84,7 +84,13 @@ The underlying standalone v1 and managed v1/v2 framing remains unchanged, includ
 
 ## Resources and evidence
 
-Data, the logical-to-physical primary map and every derived index live in RAM. Each row contributes one posting to every declared index. Snapshot recovery builds those indexes before exposure. Maintenance is explicit and serialized. Offline import/backup/migration can temporarily hold source/destination native tables and validation index maps; encoded budgets do not reserve process memory. Linux `reserve_file_data` is available for checkpoint/backup/migration, with the same data-only allocation and extra snapshot preflight contract. The internal descriptor occupies one storage row; public catalog stats/checkpoint row counts exclude it.
+Data, the logical-to-physical primary map and every derived index live in RAM. Each row contributes one posting to every declared index. One/two-row posting
+sets store sorted row IDs inline; larger sets use a BTreeSet and return to inline
+storage when they shrink to two. This avoids a separate heap tree node for the
+common unique/small non-unique case without making large shared-key updates
+linear. Snapshot recovery builds those indexes before exposure. This derived
+in-memory representation changes no persisted codec or index definition;
+immutable snapshot posting trees still contain one entry per indexed row. Maintenance is explicit and serialized. Offline import/backup/migration can temporarily hold source/destination native tables and validation index maps; encoded budgets do not reserve process memory. Linux `reserve_file_data` is available for checkpoint/backup/migration, with the same data-only allocation and extra snapshot preflight contract. The internal descriptor occupies one storage row; public catalog stats/checkpoint row counts exclude it.
 
 Tests cover an independent row/index model, final-view swaps and staged ranges, full-u64 keys, explicit legacy import, restart across WAL/checkpoints, independent backups, genuine V2 migration, descriptor mismatch and complete constraint corruption without tail repair, every short WAL write, uncertain sync, checkpoint I/O faults, production persistence images and subprocess exits during checkpoint/migration. These extend the existing engine's fault seam; they are not device power-loss certification.
 

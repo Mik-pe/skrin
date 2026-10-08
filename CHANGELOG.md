@@ -1,5 +1,10 @@
 # Changelog
 
+## Compact derived-index postings
+
+- Store one/two sorted primary IDs inline for each derived index key, promoting larger groups to a BTreeSet and demoting on shrink.
+- Preserve ordered lookup/ranges, final-view uniqueness, full-u64 IDs and the existing codec/recovery/sync contract.
+
 ## Measured native game-world optimization
 
 - Retain unchanged catalog primary/secondary entries after complete constraint validation.
