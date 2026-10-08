@@ -1,0 +1,36 @@
+workload,mode=sqlite_bulk,rows=100000,items=100000,saves=128,batch=64,window=8,durability=sync_before_ack,maintenance=explicit,scratch=/home/mikpe/.cache/skrin-world-sqlite_bulk-264772-1791443965000222795
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 11608 kB
+memory,phase=seeded,VmHWM: 11608 kB
+point,samples=4000,p50_us=1.682,p95_us=2.082,p99_us=2.352,max_us=8.364
+point_rate,operations_per_s=550053.568
+area,samples=4000,p50_us=18.271,p95_us=19.236,p99_us=26.218,max_us=107.419
+area_rate,operations_per_s=53280.642
+inventory,samples=4000,p50_us=2.233,p95_us=2.871,p99_us=3.355,max_us=41.698
+inventory_rate,operations_per_s=405085.525
+sync_groups,requests=1,groups=128
+durable_save,samples=128,p50_us=36795.681,p95_us=66180.330,p99_us=72447.004,max_us=73595.266
+durable_save_rate,saves_per_s=120.110,entity_updates_per_s=7687.035
+frame_work_60hz,samples=64,p50_us=138.152,p95_us=227.475,p99_us=284.349,max_us=284.349
+frame_start_lateness,samples=64,p50_us=110.501,p95_us=177.331,p99_us=184.513,max_us=184.513
+frame_overlap,completed_while_writer_active=64,over_budget=0,last_observed_save=125
+memory,phase=saved,VmRSS: 12196 kB
+memory,phase=saved,VmHWM: 12196 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=28526504
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=8.652,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5064 kB
+memory,phase=reopen_before_verify,VmHWM: 5064 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=56.483
+disk,phase=published_overlap,logical_regular_file_bytes=5627904
+reclaim,elapsed_ms=0.000
+disk,phase=after_reclaim,logical_regular_file_bytes=5627904
+memory,phase=after_maintenance,VmRSS: 9824 kB
+memory,phase=after_maintenance,VmHWM: 11408 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=0.375,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5016 kB
+memory,phase=reopen_before_verify,VmHWM: 5016 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/home/mikpe/.cache/skrin-world-sqlite_bulk-264772-1791443965000222795

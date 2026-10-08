@@ -42,7 +42,12 @@ Managed checkpoints, explicit retention, backups and offline migrations are impl
 immutable path-copy AVL roots. The original baseline representation remains
 available. Versioned writers still use the production mutable rows, codec, WAL
 and index final-view validator under one exclusive writer boundary. Changed
-row/index paths are prepared before append; a short separate publication lock
+row/index paths are prepared before append. The complete final index projection
+is validated before unchanged primary addresses and secondary keys are filtered
+from the mutation delta. Existing row replacements are sorted and copy each
+shared AVL ancestor once in the replacement pass, preserving tree shape and untouched
+subtrees; inserts/deletes still use balanced tree operations. No full database
+copy occurs. A short separate publication lock
 swaps one coherent immutable root only after immediate/shared sync. Captured
 read versions never hold the production row/index locks across I/O.
 

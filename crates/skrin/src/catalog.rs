@@ -191,6 +191,9 @@ pub(crate) struct Projected {
     pub(crate) slot: u64,
     pub(crate) address: (u64, u64),
     pub(crate) keys: Vec<(u64, Vec<u8>)>,
+    // Prepared deltas retain an unchanged primary address and contain only
+    // changed secondary keys. Raw codec projections always leave this false.
+    pub(crate) retain_address: bool,
 }
 pub(crate) struct Delta {
     pub(crate) removed: Vec<Projected>,
@@ -219,6 +222,7 @@ fn project<C: Catalog>(slot: u64, row: &Stored<C>) -> Result<Projected> {
         slot,
         address: (table_id, *key),
         keys,
+        retain_address: false,
     })
 }
 impl Indexes {
@@ -262,11 +266,9 @@ impl Indexes {
         let mut addresses = BTreeSet::new();
         let mut unique = BTreeSet::new();
         for (&slot, replacement) in changes {
-            if let Some(old) = rows.get(&slot) {
-                removed.push(project::<C>(slot, old)?);
-            }
+            let mut old = rows.get(&slot).map(|r| project::<C>(slot, r)).transpose()?;
             if let Some(row) = replacement {
-                let p = project::<C>(slot, row)?;
+                let mut p = project::<C>(slot, row)?;
                 if !addresses.insert(p.address) {
                     return Err(Error::DuplicateKey(p.address.1));
                 }
@@ -294,14 +296,36 @@ impl Indexes {
                         }
                     }
                 }
+                // Validate the complete final projection before filtering. In
+                // particular unchanged unique keys still participate in swaps
+                // and collisions with other staged rows.
+                if let Some(previous) = &mut old
+                    && previous.address == p.address
+                {
+                    previous.retain_address = true;
+                    p.retain_address = true;
+                    previous.keys.retain(|key| {
+                        if let Some(at) = p.keys.iter().position(|new| new == key) {
+                            p.keys.remove(at);
+                            false
+                        } else {
+                            true
+                        }
+                    });
+                }
                 added.push(p);
+            }
+            if let Some(previous) = old {
+                removed.push(previous);
             }
         }
         Ok(Delta { removed, added })
     }
     pub(crate) fn apply(&mut self, delta: Delta) {
         for p in delta.removed {
-            self.primary.remove(&p.address);
+            if !p.retain_address {
+                self.primary.remove(&p.address);
+            }
             for (id, key) in p.keys {
                 let index = self.secondary.get_mut(&id).expect("existing index");
                 let posting = index.get_mut(&key).expect("existing posting");
@@ -313,7 +337,9 @@ impl Indexes {
         }
         for p in delta.added {
             self.next_slot = self.next_slot.max(p.slot.saturating_add(1));
-            self.primary.insert(p.address, p.slot);
+            if !p.retain_address {
+                self.primary.insert(p.address, p.slot);
+            }
             for (id, key) in p.keys {
                 self.secondary
                     .entry(id)
@@ -654,7 +680,17 @@ impl<C: Catalog> CatalogRead<'_, C> {
     }
     /// Indexed equality lookup ordered by primary key among equal index keys.
     pub fn lookup<T: Table<C>>(&self, id: u64, key: &[u8]) -> Result<Vec<(u64, &T::Record)>> {
-        self.index_range::<T>(id, key.to_vec()..=key.to_vec())
+        index::<C, T>(id)?;
+        let mut result = Vec::new();
+        if let Some(posting) = self.indexes.secondary.get(&id).and_then(|i| i.get(key)) {
+            result.reserve(posting.len());
+            for &primary in posting {
+                if let Some(row) = self.get::<T>(primary)? {
+                    result.push((primary, row));
+                }
+            }
+        }
+        Ok(result)
     }
     /// Indexed range scan in byte-key then primary-key order. Invalid bounds
     /// panic as for `BTreeMap::range`. Use explicit order-preserving key codecs.

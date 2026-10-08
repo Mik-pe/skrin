@@ -1,5 +1,13 @@
 # Changelog
 
+## Measured native game-world optimization
+
+- Retain unchanged catalog primary/secondary entries after complete constraint validation.
+- Coalesce immutable snapshot replacements so each shared ancestor is copied once in the replacement pass; retain original WAL/codecs/sync-before-publication.
+- Use borrowed keys for native indexed equality and reserve result capacity.
+- Strengthen SQLite statements and add direct arithmetic/atomic-batch controls plus bounded independent group-snapshot save pipelines.
+- Record paired before/after CPU-path runs and 24 rotated physical-device runs, including faster independent pipelines/reads, SQLite atomic-batch wins, write tails, starved borrowed readers and RAM/maintenance tradeoffs.
+
 ## Native game-world persistence target
 
 - Define a Rust-native, SQL-free direction around durable dirty-state saves, typed area/inventory retrieval and coherent frame reads.

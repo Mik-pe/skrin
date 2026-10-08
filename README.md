@@ -212,7 +212,10 @@ Run the SQL-free application example with `cargo run -p skrin --example game_wor
 (optionally pass a **new** directory path on Unix). The `game_world` benchmark
 compares native/snapshot Skrin reads and a benchmark-only SQLite adapter with
 equivalent durable application work; see [methodology](docs/benchmarks.md#game-world).
-This direction does not add SQL to Skrin or establish a cross-engine speed claim.
+[Repeated optimized measurements](docs/measurements/game-world-performance-2026-10-08.md)
+show faster resident reads and independent queued saves on the recorded workload.
+SQLite atomic batches remain faster at writes and use much less RAM; one-at-a-time
+saves show no general advantage. Skrin never supports SQL syntax.
 
 ```sh
 cargo bench -p skrin --bench baseline

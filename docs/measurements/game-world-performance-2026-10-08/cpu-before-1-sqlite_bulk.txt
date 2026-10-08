@@ -1,0 +1,36 @@
+workload,mode=sqlite_bulk,rows=100000,items=100000,saves=4096,batch=64,window=1,durability=sync_before_ack,maintenance=explicit,scratch=/dev/shm/skrin-world-sqlite_bulk-251683-1791443548122032438
+sqlite_comparator_version=3.53.2
+memory,phase=seeded,VmRSS: 11704 kB
+memory,phase=seeded,VmHWM: 11704 kB
+point,samples=4000,p50_us=1.679,p95_us=2.078,p99_us=2.301,max_us=42.719
+point_rate,operations_per_s=548332.644
+area,samples=4000,p50_us=18.140,p95_us=18.880,p99_us=20.787,max_us=97.571
+area_rate,operations_per_s=54243.640
+inventory,samples=4000,p50_us=2.283,p95_us=2.890,p99_us=3.316,max_us=42.458
+inventory_rate,operations_per_s=392556.077
+sync_groups,requests=1,groups=4096
+durable_save,samples=4096,p50_us=27.558,p95_us=52.393,p99_us=66.819,max_us=131.968
+durable_save_rate,saves_per_s=33144.482,entity_updates_per_s=2121246.818
+frame_work_60hz,samples=8,p50_us=121.636,p95_us=147.653,p99_us=147.653,max_us=147.653
+frame_start_lateness,samples=8,p50_us=128.640,p95_us=139.490,p99_us=139.490,max_us=139.490
+frame_overlap,completed_while_writer_active=8,over_budget=0,last_observed_save=3855
+memory,phase=saved,VmRSS: 12920 kB
+memory,phase=saved,VmHWM: 12920 kB
+disk,phase=before_checkpoint,logical_regular_file_bytes=103076944
+recovery,state=before_checkpoint_wal
+fresh_process_open,elapsed_ms=30.349,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5368 kB
+memory,phase=reopen_before_verify,VmHWM: 5368 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+checkpoint,elapsed_ms=12.630
+disk,phase=published_overlap,logical_regular_file_bytes=6164480
+reclaim,elapsed_ms=0.001
+disk,phase=after_reclaim,logical_regular_file_bytes=6164480
+memory,phase=after_maintenance,VmRSS: 9920 kB
+memory,phase=after_maintenance,VmHWM: 12564 kB
+recovery,state=after_checkpoint
+fresh_process_open,elapsed_ms=0.331,cache_policy=no_advice
+memory,phase=reopen_before_verify,VmRSS: 5020 kB
+memory,phase=reopen_before_verify,VmHWM: 5020 kB
+fresh_process_exact_rows_indexes_and_operations=verified
+completed,scratch_retained=/dev/shm/skrin-world-sqlite_bulk-251683-1791443548122032438

@@ -146,6 +146,32 @@ fn insert<K: Ord + Clone, V: Clone>(
         Ordering::Equal => node(key, value, own_weight, old.left.clone(), old.right.clone()),
     }
 }
+// Keys already exist and are strictly ordered. Replacements preserve the AVL
+// shape, so each affected ancestor is copied once without rotations or deletes.
+fn replace_many<K: Ord + Clone, V: Clone>(
+    root: &Link<K, V>,
+    updates: &[(K, V, u64)],
+) -> Link<K, V> {
+    if updates.is_empty() {
+        return root.clone();
+    }
+    let old = root.as_ref().expect("replacement key exists");
+    let split = updates.partition_point(|(key, _, _)| key < &old.key);
+    let found = updates.get(split).filter(|(key, _, _)| key == &old.key);
+    let right_start = split + usize::from(found.is_some());
+    let left = replace_many(&old.left, &updates[..split]);
+    let right = replace_many(&old.right, &updates[right_start..]);
+    let (value, own_weight) = found.map_or((&old.value, old.own_weight), |(_, value, weight)| {
+        (value, *weight)
+    });
+    Some(node(
+        old.key.clone(),
+        value.clone(),
+        own_weight,
+        left,
+        right,
+    ))
+}
 fn remove<K: Ord + Clone, V: Clone>(root: &Link<K, V>, key: &K) -> Link<K, V> {
     let old = root.as_ref()?;
     match key.cmp(&old.key) {
@@ -214,6 +240,17 @@ impl<K: Ord + Clone, V: Clone> VersionTree<K, V> {
     pub(crate) fn insert(&self, key: K, value: V, own_weight: u64) -> Self {
         Self {
             root: Some(insert(&self.root, key, value, own_weight)),
+        }
+    }
+    /// Replace existing keys in strictly increasing order, sharing untouched
+    /// subtrees. Internal preconditions are checked before tree traversal.
+    pub(crate) fn replace_many(&self, updates: &[(K, V, u64)]) -> Self {
+        assert!(
+            updates.windows(2).all(|pair| pair[0].0 < pair[1].0),
+            "ordered distinct replacements"
+        );
+        Self {
+            root: replace_many(&self.root, updates),
         }
     }
     pub(crate) fn remove(&self, key: &K) -> Self {
@@ -365,5 +402,49 @@ mod tests {
         assert!(tree.is_empty());
         assert_eq!(tree.accounted_bytes(), 0);
         assert_eq!(old.len(), 10000);
+    }
+}
+
+#[cfg(test)]
+mod replacement_tests {
+    use super::*;
+    #[test]
+    fn replacement_batch_preserves_old_roots_shape_weight_and_untouched_subtrees() {
+        let mut old = VersionTree::default();
+        for key in 0..1024u64 {
+            old = old.insert(key, key, 1);
+        }
+        for stride in [1, 3, 17, 1025] {
+            let updates: Vec<_> = (0..1024u64)
+                .step_by(stride)
+                .map(|k| (k, k + 10000, 3))
+                .collect();
+            let changed = old.replace_many(&updates);
+            assert_eq!(changed.len(), old.len());
+            assert_eq!(height(&changed.root), height(&old.root));
+            assert_eq!(changed.accounted_bytes(), 1024 + updates.len() as u64 * 2);
+            for key in 0..1024u64 {
+                assert_eq!(old.get(&key), Some(&key));
+                assert_eq!(
+                    changed.get(&key),
+                    Some(&(key + if key % stride as u64 == 0 { 10000 } else { 0 }))
+                );
+            }
+        }
+        let changed = old.replace_many(&[(0, 99, 5)]);
+        assert!(Arc::ptr_eq(
+            old.root.as_ref().unwrap().right.as_ref().unwrap(),
+            changed.root.as_ref().unwrap().right.as_ref().unwrap()
+        ));
+        let empty = old.replace_many(&[]);
+        assert!(Arc::ptr_eq(
+            old.root.as_ref().unwrap(),
+            empty.root.as_ref().unwrap()
+        ));
+    }
+    #[test]
+    #[should_panic(expected = "replacement key exists")]
+    fn missing_replacement_is_an_internal_error() {
+        VersionTree::<u64, u64>::default().replace_many(&[(1, 1, 1)]);
     }
 }
