@@ -39,7 +39,9 @@ Managed checkpoints, explicit retention, backups and offline migrations are impl
 ## Opt-in immutable read versions
 
 `versioned` consumes a native baseline once, moving rows into Arcs and building
-immutable path-copy AVL roots. The original baseline representation remains
+immutable AVL roots directly from ordered sources, allocating each final node
+once with logarithmic construction stack space. Ordinary updates copy changed
+paths. The original baseline representation remains
 available. Versioned writers still use the production mutable rows, codec, WAL
 and index final-view validator under one exclusive writer boundary. Changed
 row/index paths are prepared before append. The complete final index projection

@@ -1,5 +1,11 @@
 # Changelog
 
+## Direct immutable-root construction
+
+- Build initial single-table/catalog snapshot AVL roots directly from ordered resident rows/postings, allocating each final node once without a full-size temporary vector.
+- Preserve native rows, ordered indexes, cooperative accounting and subsequent path-copy updates; add retained-root and failed-assessment recovery checks plus a verified conversion benchmark.
+- Remove a redundant return in the non-Linux reservation refusal so Rust 1.89 Clippy also passes on macOS.
+
 ## Compact derived-index postings
 
 - Store one/two sorted primary IDs inline for each derived index key, promoting larger groups to a BTreeSet and demoting on shrink.

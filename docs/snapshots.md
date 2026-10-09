@@ -5,8 +5,11 @@
 baseline. Consume either handle with `into_snapshots(options, footprint)` to
 move its native rows into shared immutable values without changing persistent
 bytes, schema, committed sequence, directory ownership or WAL framing. The
-one-time conversion traverses the resident rows and builds immutable trees;
-it is not a full-table copy on ordinary commits.
+one-time conversion traverses the resident rows and builds immutable trees
+directly from ordered rows/postings. Each final tree node is allocated once,
+without path-copy insertion or a full-size temporary vector; construction uses
+logarithmic recursion space. Native row-to-Arc conversion and catalog slot
+lookups still have their own costs. Ordinary commits copy only changed paths.
 
 ```rust
 use skrin::versioned::SnapshotOptions;
@@ -158,3 +161,8 @@ record reader availability, writer contention tails, unequal completed read coun
 process HWM and conservative pins. Snapshot reader p99 acquisition was roughly
 33–35 µs in these workloads, with additional memory/sampling cost and variable
 writer tails; this is not a general fairness or writer-performance guarantee.
+
+[Repeated resident-conversion measurements](measurements/snapshot-build-2026-10-09.md)
+record faster direct root construction at 1k/10k/100k rows, unchanged cooperative
+root accounting and exact retained-state checks. They measure conversion of
+resident data, excluding storage recovery and durable writes.

@@ -96,6 +96,28 @@ fn verify(view: &CatalogSnapshot<Banking>, transfers: u64) {
     assert_eq!(scan.iter().map(|(k, _)| *k).collect::<Vec<_>>(), [1, 2]);
 }
 #[test]
+fn failed_initial_catalog_assessment_preserves_storage_rows_and_indexes() {
+    fn assess(row: &Row) -> Result<u64> {
+        if matches!(row, Row::Account(r) if r.email == "bob@example.test") {
+            Err(Error::InvalidOperation("unaccountable row".into()))
+        } else {
+            footprint(row)
+        }
+    }
+    let disk = TestStorage::new(initial());
+    let db = reopen(&disk);
+    let before = disk.image();
+    let syncs = disk.syncs();
+    assert!(matches!(
+        db.into_snapshots(options(), assess),
+        Err(Error::InvalidOperation(_))
+    ));
+    assert_eq!(disk.image(), before);
+    assert_eq!(disk.syncs(), syncs);
+    let db = reopen(&disk).into_snapshots(options(), footprint).unwrap();
+    verify(&db.snapshot().unwrap(), 0);
+}
+#[test]
 fn retained_catalog_roots_include_all_rows_unique_and_nonunique_postings() {
     let disk = TestStorage::new(initial());
     let db = reopen(&disk).into_snapshots(options(), footprint).unwrap();

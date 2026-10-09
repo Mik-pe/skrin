@@ -167,6 +167,43 @@ fn reader_backpressure_counts_clones_once_and_releases_capacity() {
     assert!(db.snapshot().unwrap().is_empty().unwrap());
 }
 #[test]
+fn failed_initial_assessment_preserves_storage_and_recovered_rows() {
+    fn assess(row: &Item) -> Result<u64> {
+        if row.0 == 7 {
+            Err(Error::InvalidOperation("unaccountable row".into()))
+        } else {
+            footprint(row)
+        }
+    }
+    let disk = TestStorage::new(file_header(Item::SCHEMA));
+    let db = durable(&disk);
+    db.write(|tx| {
+        for key in 0..17 {
+            tx.insert(key, Item(key))?;
+        }
+        Ok(())
+    })
+    .unwrap();
+    let before = disk.image();
+    let syncs = disk.syncs();
+    assert!(matches!(
+        db.into_snapshots(options(), assess),
+        Err(Error::InvalidOperation(_))
+    ));
+    assert_eq!(disk.image(), before);
+    assert_eq!(disk.syncs(), syncs);
+    let db = durable(&disk).into_snapshots(options(), footprint).unwrap();
+    let view = db.snapshot().unwrap();
+    assert_eq!(view.sequence().unwrap(), 1);
+    assert_eq!(
+        view.iter()
+            .unwrap()
+            .map(|(k, r)| (k, r.0))
+            .collect::<Vec<_>>(),
+        (0..17).map(|k| (k, k)).collect::<Vec<_>>()
+    );
+}
+#[test]
 fn footprint_refusal_and_callback_errors_precede_append_and_do_not_poison() {
     fn assess(row: &Item) -> Result<u64> {
         if row.0 == 99 {

@@ -145,6 +145,9 @@ jobs:
         run: cargo +${{ matrix.rust }} run -p skrin --example snapshots --locked
       - name: Run typed game-world frames and atomic saves
         run: cargo +${{ matrix.rust }} run -p skrin --example game_world --locked
+      - name: Smoke resident snapshot conversion and exact retained-state checks
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench snapshot_build --locked -- 1000
       - name: Run game-world save, backup and verified reopen
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash
