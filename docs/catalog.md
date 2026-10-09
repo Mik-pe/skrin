@@ -32,7 +32,13 @@ The actual example checks overflow/insufficient funds and rejects transfers to t
 
 An outer catalog lock covers the native engine lock and derived indexes. The write path prepares only touched primary/index entries, encodes one coalesced WAL frame across all affected tables, syncs it, publishes rows and applies its already-validated index delta before unlocking or returning success. Untouched rows/indexes are not cloned. Application panic or post-sync allocation failure can leave an acknowledged-on-disk transaction without a response; close/reopen as described in [durability](durability.md).
 
-Reads borrow native enum variants. `get::<Table>` is a primary lookup; `scan::<Table>` is an explicit full scan in logical primary-key order. `lookup` and `index_range` return borrowed rows in index-byte-key then primary-key order. Their result vectors allocate in proportion to the result; a range lookup is not a streaming query. Guards block writers and maintenance. Do not nest operations or hold a guard across `await`.
+Reads borrow native enum variants. `get::<Table>` is a primary lookup;
+`scan::<Table>` is an explicit full scan in logical primary-key order.
+`index_scan::<Table>` visits an index interval lazily in byte-key then primary-key
+order, composing with Rust `filter`/`map`/`take`. `lookup` and `index_range`
+materialize borrowed result vectors. Read guards block writers and maintenance.
+Do not nest operations or hold a guard across `await`. See [typed game queries](queries.md)
+for filtering, projection, coherent joins and snapshot pagination.
 
 ## Recovery, maintenance and migrations
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Native game queries
+
+- Add lazy typed `index_scan` to borrowed catalog reads and coherent immutable snapshots, composing with Rust filter/projection/limit operations.
+- Keep collected `index_range` APIs and staged-write semantics; validate malformed range bounds consistently even when an index is empty.
+- Add executable area/position queries, inventory kind filters, item/owner joins and complete ordering cursors, verified across retained frames, WAL reopen, checkpoint and backup.
+- Exercise laziness, independent range ordering, full-u64/empty cases and poison refusal; add a checked resident query smoke benchmark and native/CI example runs.
+
 ## Direct immutable-root construction
 
 - Build initial single-table/catalog snapshot AVL roots directly from ordered resident rows/postings, allocating each final node once without a full-size temporary vector.

@@ -336,6 +336,10 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
                 old.lookup::<Accounts>(1, b"alice@example.test"),
                 Err(Error::Poisoned)
             ));
+            assert!(matches!(
+                old.index_scan::<Accounts>(2, ..),
+                Err(Error::Poisoned)
+            ));
             assert!(matches!(db.snapshot(), Err(Error::Poisoned)));
             drop(old);
             drop(db);
@@ -362,6 +366,10 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
             Err(Error::CommitUncertain(_))
         ));
         assert!(matches!(old.scan::<Transfers>(), Err(Error::Poisoned)));
+        assert!(matches!(
+            old.index_scan::<Accounts>(2, ..),
+            Err(Error::Poisoned)
+        ));
         drop(old);
         drop(db);
         disk.clear_faults();
