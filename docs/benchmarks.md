@@ -1,5 +1,37 @@
 # Benchmark methodology
 
+## Resident cursor pages
+
+```sh
+cargo +1.89.0 bench -p skrin --bench cursor_queries --locked -- 100000 128
+cargo +1.89.0 bench -p skrin --bench cursor_queries --locked -- 100000 128 --sqlite-first
+```
+
+The source is [`cursor_queries.rs`](../crates/skrin/benches/cursor_queries.rs).
+It seeds 100,000 exact three-field rows into one equal-key group, then returns
+16 even-value rows after front/middle/late positions. Each mode materializes the
+same `(id, group, value)` vector, checked against independent arithmetic outside
+timing. Eight warmups precede each position's samples. The same cursor repeats;
+these are hot resident pages, not randomly varied world queries or persistence.
+
+Native/snapshot `query_after` seek directly; `query(...).filter(id > cursor)`
+is the old application prefix-scan control. SQLite uses an in-memory connection,
+one reused prepared statement and covering `(group_id, id, value)` index. The
+benchmark records and checks its covering ID seek plan before timing; this is
+an external adapter diagnostic, not a production reliance on SQLite plan text.
+SQLite documents both [statement compilation](https://www.sqlite.org/c3ref/prepare.html)
+and [EXPLAIN QUERY PLAN/covering indexes](https://www.sqlite.org/eqp.html).
+
+Alternate SQLite-first and Skrin-first fresh process runs. Seed, index build,
+snapshot conversion, statement preparation, plan diagnostics and exact checks
+are excluded from query timing. No durable write, storage/RAM cost, concurrent
+writer, cold cache or whole-application speed advantage is implied. SQL never
+enters Skrin's API/dependency graph; rusqlite is a development-only comparator.
+CI runs a 1,000-row/16-sample functional smoke; comparative results require the
+identified machine and repeated full run evidence.
+Give before/after checkouts different `--target-dir` folders; the recorded cursor
+work encountered stale artifacts when two checkouts shared a target directory.
+
 Run the optimized baseline with `cargo bench -p skrin --bench baseline`. Add `-- --durable /path/to/existing/local/directory` for actual synced transactions. The benchmark creates a unique new file using create-only semantics and removes only that owned file after closing it.
 
 ## What is measured

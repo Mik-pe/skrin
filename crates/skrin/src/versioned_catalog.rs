@@ -276,6 +276,22 @@ impl<C: Catalog> CatalogSnapshot<C> {
             crate::typed_index::bounds::<I::Key>(range)?,
         )
     }
+    /// Resume strictly after `(index key, primary key)` within the original
+    /// native bounds, seeking directly in this version's posting tree. The
+    /// cursor need not exist; before-range cursors start normally and beyond-
+    /// range cursors return no rows. Keep this same snapshot and predicates
+    /// across pages for a stable traversal. Input keys are not retained.
+    pub fn query_after<I: catalog::Index<C>>(
+        &self,
+        _index: I,
+        range: impl RangeBounds<I::Key>,
+        cursor: (&I::Key, u64),
+    ) -> Result<CatalogSnapshotIndexScan<'_, C, I::Table>> {
+        self.lease.check()?;
+        crate::typed_index::validate::<C, I>()?;
+        let resume = crate::typed_index::resume(range, cursor)?;
+        self.index_scan_from::<I::Table>(I::DEFINITION.id, resume.keys, resume.after, resume.empty)
+    }
     /// Lazily select equal native index keys in primary-key order. The index
     /// marker determines the record/key types; no table or ID argument is needed.
     pub fn matching<I: catalog::Index<C>>(
@@ -330,12 +346,24 @@ impl<C: Catalog> CatalogSnapshot<C> {
         id: u64,
         range: impl RangeBounds<Vec<u8>>,
     ) -> Result<CatalogSnapshotIndexScan<'_, C, T>> {
+        self.index_scan_from::<T>(id, range, None, false)
+    }
+    fn index_scan_from<T: Table<C>>(
+        &self,
+        id: u64,
+        range: impl RangeBounds<Vec<u8>>,
+        after: Option<u64>,
+        finished: bool,
+    ) -> Result<CatalogSnapshotIndexScan<'_, C, T>> {
         self.lease.check()?;
         let definition = catalog::index::<C, T>(id)?;
         catalog::validate_index_bounds(&range);
         let lower = match range.start_bound() {
             Bound::Unbounded => Bound::Included((id, Arc::from([]), 0)),
-            Bound::Included(key) => Bound::Included((id, Arc::from(key.as_slice()), 0)),
+            Bound::Included(key) => match after {
+                None => Bound::Included((id, Arc::from(key.as_slice()), 0)),
+                Some(primary) => Bound::Excluded((id, Arc::from(key.as_slice()), primary)),
+            },
             Bound::Excluded(key) => Bound::Excluded((id, Arc::from(key.as_slice()), u64::MAX)),
         };
         let upper = match range.end_bound() {
@@ -348,7 +376,7 @@ impl<C: Catalog> CatalogSnapshot<C> {
             rows: &self.lease.version.view.rows,
             id,
             table_id: definition.table_id,
-            finished: false,
+            finished,
             marker: PhantomData,
         })
     }

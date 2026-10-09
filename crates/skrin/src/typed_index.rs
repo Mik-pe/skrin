@@ -145,7 +145,7 @@ fn encode<K: IndexKey + ?Sized>(key: &K) -> Result<Vec<u8>> {
     check_size(bytes.len())?;
     Ok(bytes)
 }
-type KeyBounds = (Bound<Vec<u8>>, Bound<Vec<u8>>);
+pub(crate) type KeyBounds = (Bound<Vec<u8>>, Bound<Vec<u8>>);
 pub(crate) fn bounds<K: IndexKey + ?Sized>(range: impl RangeBounds<K>) -> Result<KeyBounds> {
     let encode_bound = |bound| match bound {
         Bound::Unbounded => Ok(Bound::Unbounded),
@@ -163,6 +163,36 @@ pub(crate) fn bounds<K: IndexKey + ?Sized>(range: impl RangeBounds<K>) -> Result
         return Err(Error::InvalidOperation("invalid typed index range".into()));
     }
     Ok((start, end))
+}
+pub(crate) struct Resume {
+    pub(crate) keys: KeyBounds,
+    // Only the first included key needs its posting seeked after this ID.
+    pub(crate) after: Option<u64>,
+    pub(crate) empty: bool,
+}
+pub(crate) fn resume<K: IndexKey + ?Sized>(
+    range: impl RangeBounds<K>,
+    cursor: (&K, u64),
+) -> Result<Resume> {
+    let mut keys = bounds(range)?;
+    let key = encode(cursor.0)?;
+    let empty = match &keys.1 {
+        Bound::Unbounded => false,
+        Bound::Included(end) => key > *end,
+        Bound::Excluded(end) => key >= *end,
+    };
+    let before = match &keys.0 {
+        Bound::Unbounded => false,
+        Bound::Included(start) => key < *start,
+        Bound::Excluded(start) => key <= *start,
+    };
+    let after = if empty || before {
+        None
+    } else {
+        keys.0 = Bound::Included(key);
+        Some(cursor.1)
+    };
+    Ok(Resume { keys, after, empty })
 }
 pub(crate) struct EqualKey(Vec<u8>);
 impl EqualKey {

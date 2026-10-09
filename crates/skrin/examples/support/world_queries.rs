@@ -22,19 +22,12 @@ pub fn visible_entities(
     if query.areas.is_empty() || query.x.is_empty() || query.y.is_empty() {
         return Err(Error::InvalidOperation("reversed visible bounds".into()));
     }
-    let lower = after.map_or(*query.areas.start(), |(area, _)| {
-        area.max(*query.areas.start())
-    });
-    if lower > *query.areas.end() {
-        return Ok(Vec::new());
-    }
-    Ok(frame
-        .query(Area, lower..=*query.areas.end())?
-        .filter(|(key, row)| {
-            after.is_none_or(|cursor| (row.area, *key) > cursor)
-                && query.x.contains(&row.x)
-                && query.y.contains(&row.y)
-        })
+    let rows = match after {
+        None => frame.query(Area, query.areas.clone())?,
+        Some((area, id)) => frame.query_after(Area, query.areas.clone(), (&area, id))?,
+    };
+    Ok(rows
+        .filter(|(_, row)| query.x.contains(&row.x) && query.y.contains(&row.y))
         .take(limit)
         .map(|(key, row)| (key, *row))
         .collect())
@@ -56,11 +49,11 @@ pub fn inventory(
     after: Option<u64>,
     limit: usize,
 ) -> Result<Vec<InventoryEntry>> {
-    frame
-        .matching(Owner, &owner)?
-        .filter(|(key, row)| {
-            after.is_none_or(|cursor| *key > cursor) && kind.is_none_or(|kind| row.kind == kind)
-        })
+    let rows = match after {
+        None => frame.matching(Owner, &owner)?,
+        Some(id) => frame.query_after(Owner, owner..=owner, (&owner, id))?,
+    };
+    rows.filter(|(_, row)| kind.is_none_or(|kind| row.kind == kind))
         .take(limit)
         .map(|(key, item)| {
             let owner = *frame.get::<Entities>(item.owner)?.ok_or_else(|| {

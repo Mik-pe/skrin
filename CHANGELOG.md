@@ -1,5 +1,12 @@
 # Changelog
 
+## Native cursor seeking
+
+- Add `query_after(index, bounds, (&key, primary_key))` on borrowed catalogs and immutable snapshots, retaining native types and lazy Rust composition.
+- Seek directly within large equal-key postings, intersect cursors with original bounds and accept absent cursor positions without `u64` overflow or extra lifetimes.
+- Convert game pages and inventory joins to the engine seek; verify boundary combinations, actual lazy borrowing, retained versions and production poison refusal.
+- Add a resident cursor benchmark with independent exact results, a reused prepared SQLite covering-index control and explicit in-memory scope.
+
 ## Ordinary game field codecs
 
 - Extend Record derive with fixed-width signed/unsigned integers, bool, exact float bits and recursive Option of supported fields, without defaults or field skipping.

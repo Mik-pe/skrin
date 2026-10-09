@@ -5,7 +5,7 @@
 //! Readers block writers. Indexes are rebuilt and checked before recovery repairs
 //! a tail; ordinary commits touch only changed rows and their index postings.
 use crate::directory::Directory;
-use crate::postings::{Posting, PostingIter};
+use crate::postings::{Posting, PostingScan};
 pub use crate::typed_index::{Index, IndexKey};
 use crate::{Database, Decoder, Encoder, Error, MaintenanceOptions, Record, Result, Schema};
 use std::collections::{BTreeMap, BTreeSet};
@@ -681,6 +681,38 @@ impl<C: Catalog> CatalogRead<'_, C> {
             crate::typed_index::bounds::<I::Key>(range)?,
         )
     }
+    /// Resume a native indexed query strictly after `(index key, primary key)`.
+    /// The cursor need not exist. Original bounds still apply; a cursor before
+    /// them starts normally and one beyond them returns no rows. Equal-key
+    /// postings are seeked, not repeatedly scanned. Keep the same view and
+    /// predicates across pages for a stable traversal. Keys are not retained.
+    pub fn query_after<I: Index<C>>(
+        &self,
+        _index: I,
+        range: impl RangeBounds<I::Key>,
+        cursor: (&I::Key, u64),
+    ) -> Result<CatalogIndexScan<'_, C, I::Table>> {
+        crate::typed_index::validate::<C, I>()?;
+        let resume = crate::typed_index::resume(range, cursor)?;
+        let mut scan = self.index_scan::<I::Table>(
+            I::DEFINITION.id,
+            (resume.keys.0.as_ref(), resume.keys.1.as_ref()),
+        )?;
+        if resume.empty {
+            scan.entries = None;
+        } else if let Some(primary) = resume.after
+            && let Some((key, posting)) = scan.entries.as_mut().and_then(Iterator::next)
+        {
+            scan.posting = Some(
+                if matches!(&resume.keys.0, Bound::Included(cursor) if cursor == key) {
+                    posting.after(primary)
+                } else {
+                    PostingScan::Full(posting.into_iter())
+                },
+            );
+        }
+        Ok(scan)
+    }
     /// Lazily select equal native index keys in primary-key order. The index
     /// marker determines the record/key types; no table or ID argument is needed.
     pub fn matching<I: Index<C>>(
@@ -777,7 +809,7 @@ pub struct CatalogIndexScan<'a, C: Catalog, T: Table<C>> {
     rows: &'a BTreeMap<u64, Stored<C>>,
     primary: &'a BTreeMap<(u64, u64), u64>,
     entries: Option<std::collections::btree_map::Range<'a, Vec<u8>, Posting>>,
-    posting: Option<PostingIter<'a>>,
+    posting: Option<PostingScan<'a>>,
     table_id: u64,
     marker: PhantomData<fn() -> T>,
 }
@@ -796,7 +828,9 @@ impl<'a, C: Catalog, T: Table<C>> Iterator for CatalogIndexScan<'a, C, T> {
                     return Some((*key, row));
                 }
             } else {
-                self.posting = Some(self.entries.as_mut()?.next()?.1.into_iter());
+                self.posting = Some(PostingScan::Full(
+                    self.entries.as_mut()?.next()?.1.into_iter(),
+                ));
             }
         }
     }

@@ -356,6 +356,10 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
             ));
             assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
             assert!(matches!(
+                old.query_after(ByBalance, .., (&u64::MAX, u64::MAX)),
+                Err(Error::Poisoned)
+            ));
+            assert!(matches!(
                 old.matching(ByBalance, &100),
                 Err(Error::Poisoned)
             ));
@@ -390,6 +394,10 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
             Err(Error::Poisoned)
         ));
         assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+        assert!(matches!(
+            old.query_after(ByBalance, .., (&u64::MAX, u64::MAX)),
+            Err(Error::Poisoned)
+        ));
         assert!(matches!(
             old.matching(ByBalance, &100),
             Err(Error::Poisoned)
@@ -528,6 +536,10 @@ fn every_grouped_catalog_append_prefix_keeps_recovered_rows_and_indexes_coherent
         ));
         assert!(matches!(db.snapshot(), Err(Error::Poisoned)));
         assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+        assert!(matches!(
+            old.query_after(ByBalance, .., (&u64::MAX, u64::MAX)),
+            Err(Error::Poisoned)
+        ));
         assert!(matches!(
             old.matching(ByBalance, &100),
             Err(Error::Poisoned)
@@ -1011,6 +1023,10 @@ mod managed {
                     uncertain += 1;
                     assert!(matches!(old.get::<Accounts>(1), Err(Error::Poisoned)));
                     assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+                    assert!(matches!(
+                        old.query_after(ByBalance, .., (&u64::MAX, u64::MAX)),
+                        Err(Error::Poisoned)
+                    ));
                     assert!(matches!(
                         old.matching(ByBalance, &100),
                         Err(Error::Poisoned)

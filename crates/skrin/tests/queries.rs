@@ -66,6 +66,65 @@ fn seeded() -> Result<CatalogDatabase<Banking>> {
 }
 
 #[test]
+fn cursor_seeks_skip_large_posting_prefixes_and_keep_retained_versions_coherent() -> Result<()> {
+    let db = seeded()?;
+    db.write(|tx| {
+        for key in 53..=5000 {
+            tx.insert::<Accounts>(
+                key,
+                Account {
+                    email: format!("query-{key}"),
+                    balance: 0,
+                },
+            )?;
+        }
+        tx.update::<Accounts>(u64::MAX, |old| {
+            Ok(Account {
+                email: old.email.clone(),
+                balance: 0,
+            })
+        })
+    })?;
+    macro_rules! verify {
+        ($view:expr, $expected:expr) => {{
+            let view = $view;
+            BORROWS.with(|calls| calls.set(0));
+            let query = view.query_after(ByCountedBalance, 0..=0, (&0, 4999))?;
+            assert_eq!(BORROWS.with(Cell::get), 0);
+            assert_eq!(query.take(0).count(), 0);
+            assert_eq!(BORROWS.with(Cell::get), 0);
+            let ids: Vec<_> = view
+                .query_after(ByCountedBalance, 0..=0, (&0, 4999))?
+                .take(2)
+                .map(|(id, _)| id)
+                .collect();
+            assert_eq!(ids, $expected);
+            assert_eq!(BORROWS.with(Cell::get), ids.len());
+            assert_eq!(
+                view.query_after(ByCountedBalance, 0..=0, (&0, u64::MAX))?
+                    .count(),
+                0
+            );
+        }};
+    }
+    verify!(db.read()?, [5000, u64::MAX]);
+    let db = db.into_snapshots(options(), footprint)?;
+    let old = db.snapshot()?;
+    db.write(|tx| {
+        assert!(tx.remove::<Accounts>(4999)?);
+        tx.update::<Accounts>(5000, |old| {
+            Ok(Account {
+                email: old.email.clone(),
+                balance: 1,
+            })
+        })
+    })?;
+    verify!(&old, [5000, u64::MAX]);
+    verify!(db.snapshot()?, [u64::MAX]);
+    Ok(())
+}
+
+#[test]
 fn indexed_queries_are_lazy_before_filter_projection_and_limit() -> Result<()> {
     let db = seeded()?;
     {

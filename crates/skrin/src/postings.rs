@@ -11,6 +11,20 @@ pub(crate) enum Posting {
     Many(BTreeSet<u64>),
 }
 impl Posting {
+    pub(crate) fn after(&self, key: u64) -> PostingScan<'_> {
+        use std::ops::Bound::{Excluded, Unbounded};
+        match self {
+            Self::Empty => PostingScan::Full(PostingIter::Inline([].iter())),
+            Self::One(old) => {
+                let keys = std::slice::from_ref(old);
+                PostingScan::Full(PostingIter::Inline(keys[usize::from(*old <= key)..].iter()))
+            }
+            Self::Two(keys) => PostingScan::Full(PostingIter::Inline(
+                keys[keys.partition_point(|old| *old <= key)..].iter(),
+            )),
+            Self::Many(keys) => PostingScan::After(keys.range((Excluded(key), Unbounded))),
+        }
+    }
     pub(crate) fn len(&self) -> usize {
         match self {
             Self::Empty => 0,
@@ -72,6 +86,21 @@ impl Posting {
         true
     }
 }
+// Keep full traversal's exact-size iterator while allowing a logarithmic
+// suffix seek into a large posting; BTreeSet::Range is not ExactSizeIterator.
+pub(crate) enum PostingScan<'a> {
+    Full(PostingIter<'a>),
+    After(std::collections::btree_set::Range<'a, u64>),
+}
+impl<'a> Iterator for PostingScan<'a> {
+    type Item = &'a u64;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Full(iter) => iter.next(),
+            Self::After(iter) => iter.next(),
+        }
+    }
+}
 pub(crate) enum PostingIter<'a> {
     Inline(std::slice::Iter<'a, u64>),
     Tree(std::collections::btree_set::Iter<'a, u64>),
@@ -128,6 +157,16 @@ mod tests {
             expected.iter().rev().copied().collect::<Vec<_>>()
         );
         assert_eq!(posting.into_iter().len(), expected.len());
+        for cursor in [0, 1, 2, 42, 66, 99, u64::MAX] {
+            assert_eq!(
+                posting.after(cursor).copied().collect::<Vec<_>>(),
+                expected
+                    .iter()
+                    .copied()
+                    .filter(|key| *key > cursor)
+                    .collect::<Vec<_>>()
+            );
+        }
         assert!(match posting {
             Posting::Empty => expected.is_empty(),
             Posting::One(_) => expected.len() == 1,

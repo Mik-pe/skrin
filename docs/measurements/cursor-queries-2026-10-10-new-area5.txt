@@ -1,0 +1,5 @@
+    Finished `bench` profile [optimized] target(s) in 0.01s
+     Running benches/game_queries.rs (/tmp/skrin-cursor-isolated.pQZ6b8/new/release/deps/game_queries-75eac590491726d0)
+workload,resident_in_memory=true,durability=none,seed_and_verification_outside_query_timing=true
+query,mode=native,rows=100000,samples=2000,indexed_areas=2,predicate=even_x,limit=16,p50_us=3.459,p99_us=4.500,max_us=46.000,exact_rows=verified
+query,mode=snapshot,rows=100000,samples=2000,indexed_areas=2,predicate=even_x,limit=16,p50_us=2.750,p99_us=4.833,max_us=65.708,exact_rows=verified

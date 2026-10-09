@@ -164,6 +164,9 @@ jobs:
       - name: Smoke lazy bounded indexed game queries
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench game_queries --locked -- 1000
+      - name: Smoke cursor seeking against an indexed prepared SQLite control
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench cursor_queries --locked -- 1000 16
       - name: Smoke resident snapshot conversion and exact retained-state checks
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench snapshot_build --locked -- 1000

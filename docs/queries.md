@@ -16,6 +16,7 @@ SQL syntax, parsers and compatibility APIs remain permanently excluded.
 | Entity by ID | `get::<Entities>(id)` |
 | Entities in one/more areas | `query(Area, start..=end)` |
 | Items owned by one entity | `matching(Owner, &owner)` |
+| Continue an indexed page | `query_after(Area, start..=end, (&last_area, last_id))` |
 | Additional predicates/projection/limit | Rust `filter`, `map`, `take`, then optionally `collect` |
 | Item plus its owner | Item scan and `get::<Entities>(item.owner)` on the same read view |
 | Explicit table scan | `scan::<T>()`, ordered by primary key |
@@ -86,11 +87,20 @@ paths and backup destinations are never overwritten.
 ## Stable pagination and coherence
 
 An area's application cursor contains **both `(area, primary_key)`**, matching
-the full index ordering. Resume at the cursor's area and exclude rows whose
-ordering tuple is less than or equal to the cursor. Primary IDs alone are
-insufficient when entity area assignments do not follow primary order. Inventory
-pagination within one owner can use the item primary key. Comparison rather than
-`cursor + 1` supports full-u64 values without overflow.
+the full index ordering. `query_after(Area, original_bounds, (&area, primary_key))`
+seeks strictly after that position; the cursor need not be an existing row.
+Original bounds still apply: a cursor before them starts normally and a cursor
+after them returns no rows. Invalid original bounds and bad cursor codecs remain
+errors, including empty indexes. Input cursor keys can be dropped immediately
+after constructing the iterator, including borrowed str/blob keys.
+
+The borrowed baseline seeks into a large equal-key `BTreeSet` posting; the
+immutable snapshot seeks its `(index, byte key, primary key)` tree. Neither
+repeatedly traverses a preceding equal-key prefix. Apply the same Rust predicates
+and `take` to the suffix as to the initial `query` page. Primary IDs alone are
+insufficient when area assignments do not follow primary order. Inventory within
+one owner uses `query_after(Owner, owner..=owner, (&owner, last_item_id))`.
+Exclusive comparison supports full-u64 values without `cursor + 1` overflow.
 
 Keep the same snapshot and predicates for every page and both sides of a join.
 Concurrent saves may move rows between index keys; a new snapshot starts a new
@@ -124,10 +134,13 @@ application responsibilities.
 
 [Typed-index regressions](../crates/skrin/tests/typed_indexes.rs) cover numeric
 bounds, borrowed UTF-8/blob keys, mismatched definitions, codec errors and size
-limits. [Query regressions](../crates/skrin/tests/queries.rs) compare indexed
+limits, cursor/bounds intersections and absent cursor positions in both views.
+[Query regressions](../crates/skrin/tests/queries.rs) compare indexed
 bounds/order
 with independently sorted rows, cover empty and full-u64 ranges, wrong table/index
-refusal, and instrument actual typed borrowing to prove early `take` is lazy.
+refusal, and instrument actual typed borrowing to prove early `take` is lazy,
+including zero limits and late pages in a large equal-key posting. Retained
+cursor views remain coherent after removal/movement of current rows.
 [Game regressions](../crates/skrin/tests/game_queries.rs) verify filtered pages,
 inventory kinds/joins, retained/current frames and a cursor across area ordering
 that differs from primary order. Production short-write/ENOSPC and uncertain-sync
@@ -138,3 +151,11 @@ queries in native/snapshot modes: two indexed areas, an even-position predicate,
 projection and a 16-row limit. Every result is checked against the workload model
 outside timing. This is a functional in-memory smoke benchmark with per-query
 timings, not durable-storage evidence or a comparative performance claim.
+
+`cargo bench -p skrin --bench cursor_queries --locked -- 100000 128` compares
+direct seeks and the former prefix-filter continuation with a reused prepared
+SQLite covering-index seek. All filtered pages have identical independently
+checked rows. The [five-process report](measurements/cursor-queries-2026-10-10.md)
+records hot resident pages and an existing-area regression control; it does not
+claim durable, cold-cache or whole-application performance. See
+[methodology](benchmarks.md#resident-cursor-pages) for scope and execution order.

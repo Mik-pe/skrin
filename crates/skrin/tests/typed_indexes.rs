@@ -83,6 +83,63 @@ fn seeded() -> Result<CatalogDatabase<Values>> {
 }
 
 #[test]
+fn cursor_seek_matches_independent_order_for_all_bounds_and_missing_positions() -> Result<()> {
+    let db = seeded()?;
+    let expected = [(0, 2), (1, 9), (1, u64::MAX), (256, 5), (u64::MAX, 0)];
+    let ends = [
+        Unbounded,
+        Included(0),
+        Excluded(0),
+        Included(1),
+        Excluded(1),
+        Included(256),
+        Excluded(256),
+        Included(u64::MAX),
+        Excluded(u64::MAX),
+    ];
+    macro_rules! verify {
+        ($view:expr) => {{
+            let view = $view;
+            for lower in ends {
+                for upper in ends {
+                    let bounds = (lower, upper);
+                    let invalid = match (lower, upper) {
+                        (Included(a) | Excluded(a), Included(b) | Excluded(b)) => {
+                            a > b
+                                || (a == b && matches!((lower, upper), (Excluded(_), Excluded(_))))
+                        }
+                        _ => false,
+                    };
+                    for score in [0, 1, 2, 255, 256, 257, u64::MAX] {
+                        for id in [0, 2, 5, 9, 10, u64::MAX] {
+                            let found = view.query_after(Score, bounds, (&score, id));
+                            if invalid {
+                                assert!(matches!(found, Err(Error::InvalidOperation(_))));
+                            } else {
+                                assert_eq!(
+                                    found?.map(|(id, r)| (r.score, id)).collect::<Vec<_>>(),
+                                    expected
+                                        .into_iter()
+                                        .filter(|position| {
+                                            bounds.contains(&position.0) && *position > (score, id)
+                                        })
+                                        .collect::<Vec<_>>(),
+                                    "{bounds:?}, cursor=({score}, {id})"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }};
+    }
+    verify!(db.read()?);
+    let db = db.into_snapshots(options(), footprint)?;
+    verify!(db.snapshot()?);
+    Ok(())
+}
+
+#[test]
 fn native_numeric_bounds_match_independent_order_in_both_read_views() -> Result<()> {
     let db = seeded()?;
     let expected = [(0, 2), (1, 9), (1, u64::MAX), (256, 5), (u64::MAX, 0)];
@@ -250,6 +307,16 @@ fn queries_borrow_the_view_without_retaining_input_keys_or_bound_types() -> Resu
     let read = db.read()?;
     let found = read.matching(Name, &String::from("Ada"))?;
     assert_eq!(found.count(), 2);
+    let resumed = read.query_after(Name, .., (String::from("Ada").as_str(), 9))?;
+    assert_eq!(
+        resumed.map(|(id, _)| id).collect::<Vec<_>>(),
+        [u64::MAX, 5, 0]
+    );
+    let resumed = read.query_after(Bytes, .., (vec![0].as_slice(), 9))?;
+    assert_eq!(
+        resumed.map(|(id, _)| id).collect::<Vec<_>>(),
+        [u64::MAX, 5, 0]
+    );
     let bounded = read.query(
         Name,
         (Included(String::from("Ada").as_str()), Excluded("å")),
@@ -265,6 +332,16 @@ fn queries_borrow_the_view_without_retaining_input_keys_or_bound_types() -> Resu
     let frame = db.snapshot()?;
     let found = frame.matching(Name, &String::from("Ada"))?;
     assert_eq!(found.count(), 2);
+    let resumed = frame.query_after(Name, .., (String::from("Ada").as_str(), 9))?;
+    assert_eq!(
+        resumed.map(|(id, _)| id).collect::<Vec<_>>(),
+        [u64::MAX, 5, 0]
+    );
+    let resumed = frame.query_after(Bytes, .., (vec![0].as_slice(), 9))?;
+    assert_eq!(
+        resumed.map(|(id, _)| id).collect::<Vec<_>>(),
+        [u64::MAX, 5, 0]
+    );
     let bounded = frame.query(
         Name,
         (Included(String::from("Ada").as_str()), Excluded("å")),
@@ -319,6 +396,14 @@ fn invalid_bounds_and_definitions_are_refused_on_empty_indexes() -> Result<()> {
                 $view.matching(Mismatched::<3>, &0),
                 Err(Error::InvalidOperation(_))
             ));
+            assert!(matches!(
+                $view.query_after(Mismatched::<2>, .., (&0, u64::MAX)),
+                Err(Error::InvalidOperation(_))
+            ));
+            assert_eq!(
+                $view.query_after(Score, .., (&u64::MAX, u64::MAX))?.count(),
+                0
+            );
         };
     }
     reject!(read);
@@ -383,6 +468,14 @@ fn custom_codec_errors_and_size_limits_propagate_without_changes() -> Result<()>
         read.query(CustomScore, ..=Fallible(3)),
         Err(Error::LimitExceeded { .. })
     ));
+    assert!(matches!(
+        read.query_after(CustomScore, .., (&Fallible(2), 0)),
+        Err(Error::Codec(_))
+    ));
+    assert!(matches!(
+        read.query_after(CustomScore, .., (&Fallible(3), 0)),
+        Err(Error::LimitExceeded { .. })
+    ));
     drop(read);
     let db = db.into_snapshots(options(), footprint_custom)?;
     let frame = db.snapshot()?;
@@ -392,6 +485,14 @@ fn custom_codec_errors_and_size_limits_propagate_without_changes() -> Result<()>
     ));
     assert!(matches!(
         frame.query(CustomScore, ..=Fallible(3)),
+        Err(Error::LimitExceeded { .. })
+    ));
+    assert!(matches!(
+        frame.query_after(CustomScore, .., (&Fallible(2), 0)),
+        Err(Error::Codec(_))
+    ));
+    assert!(matches!(
+        frame.query_after(CustomScore, .., (&Fallible(3), 0)),
         Err(Error::LimitExceeded { .. })
     ));
     assert!(matches!(

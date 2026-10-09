@@ -60,6 +60,11 @@ name = "game_queries"
 harness = false
 required-features = ["derive"]
 
+[[bench]]
+name = "cursor_queries"
+harness = false
+required-features = ["derive"]
+
 [dev-dependencies]
 # Comparator only; Skrin's engine and public API do not depend on SQLite.
 rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled", "cache", "fallible_uint"] }

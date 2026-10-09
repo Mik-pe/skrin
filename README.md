@@ -159,6 +159,8 @@ let visible = frame
 
 `query` and `matching` infer the table and key type from a schema-owned index
 marker. Both are lazy on borrowed catalog reads and immutable catalog snapshots.
+`query_after(Area, original_bounds, (&last_area, last_id))` seeks directly after
+a page's last position, including inside large equal-key groups.
 It visits byte-key then primary-key order without first materializing all matches.
 Use one retained frame for stable pagination and coherent item/owner joins.
 The [complete query example and contract](docs/queries.md) demonstrate filtering,
