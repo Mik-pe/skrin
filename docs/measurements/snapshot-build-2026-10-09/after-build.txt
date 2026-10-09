@@ -1,0 +1,19 @@
+       Fresh shlex v2.0.1
+       Fresh find-msvc-tools v0.1.14
+       Fresh vcpkg v0.2.15
+       Fresh pkg-config v0.3.34
+       Fresh foldhash v0.2.0
+       Fresh smallvec v1.16.2
+       Fresh bitflags v2.13.2
+       Fresh fallible-streaming-iterator v0.1.9
+       Fresh fallible-iterator v0.3.0
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-performance-audit/skrin/crates/skrin)
+       Fresh cc v1.6.0
+       Fresh hashbrown v0.17.1
+     Running `/Users/mikpe/.rustup/toolchains/1.89.0-aarch64-apple-darwin/bin/rustc --crate-name skrin --edition=2024 crates/skrin/src/lib.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --crate-type lib --emit=dep-info,metadata,link -C opt-level=3 -C linker-plugin-lto -C codegen-units=1 --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=a002f2a070a49872 -C extra-filename=-6caece31249cde7d --out-dir /tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps -C strip=debuginfo -L dependency=/tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps`
+       Fresh hashlink v0.12.2
+       Fresh libsqlite3-sys v0.38.2
+       Fresh rusqlite v0.40.2
+     Running `/Users/mikpe/.rustup/toolchains/1.89.0-aarch64-apple-darwin/bin/rustc --crate-name snapshot_build --edition=2024 crates/skrin/benches/snapshot_build.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C opt-level=3 -C lto=thin -C codegen-units=1 --cfg test --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=db5568c0270c41c1 -C extra-filename=-bc0958c926a365c1 --out-dir /tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps -C strip=debuginfo -L dependency=/tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps --extern rusqlite=/tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps/librusqlite-9ee465595256d0e0.rlib --extern skrin=/tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps/libskrin-6caece31249cde7d.rlib -L native=/tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/build/libsqlite3-sys-3a47b50d5f81497a/out`
+    Finished `bench` profile [optimized] target(s) in 6.86s
+  Executable `/tmp/skrin-snapshot-build.uG90ZP/benchmark-target/release/deps/snapshot_build-bc0958c926a365c1`

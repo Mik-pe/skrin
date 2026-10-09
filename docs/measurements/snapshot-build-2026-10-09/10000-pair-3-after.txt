@@ -1,0 +1,3 @@
+workload,resident_in_memory=true,seed_and_verification_outside_timing=true,conversion_includes_native_arc_mapping=true
+conversion,mode=single,rows=10000,elapsed_ms=0.325541,accounted_bytes=1040000,exact_state=verified
+conversion,mode=catalog,entities=10000,items=10000,postings=20000,elapsed_ms=2.203709,accounted_bytes=5440000,exact_rows_indexes_and_retry=verified

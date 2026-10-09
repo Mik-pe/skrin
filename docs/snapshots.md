@@ -161,3 +161,8 @@ record reader availability, writer contention tails, unequal completed read coun
 process HWM and conservative pins. Snapshot reader p99 acquisition was roughly
 33–35 µs in these workloads, with additional memory/sampling cost and variable
 writer tails; this is not a general fairness or writer-performance guarantee.
+
+[Repeated resident-conversion measurements](measurements/snapshot-build-2026-10-09.md)
+record faster direct root construction at 1k/10k/100k rows, unchanged cooperative
+root accounting and exact retained-state checks. They measure conversion of
+resident data, excluding storage recovery and durable writes.

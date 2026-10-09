@@ -34,6 +34,7 @@ Build the identical harness/compiler/profile against each engine, run separate
 processes in alternating order across multiple sizes, and retain every result.
 Tree shape can affect subsequent reads/writes; use the durable `game_world`
 harness and production-path tests alongside conversion measurements.
+See [the repeated local conversion results](measurements/snapshot-build-2026-10-09.md).
 
 ## Managed maintenance
 

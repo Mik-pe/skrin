@@ -1,0 +1,816 @@
+{
+  "samples": [
+    {
+      "rows": 1000,
+      "pair": 1,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:17Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "1000"
+      ],
+      "output": "1000-pair-1-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.224459,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 1.009125,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 1,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:17Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "1000"
+      ],
+      "output": "1000-pair-1-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.060917,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 0.233,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 2,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:17Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "1000"
+      ],
+      "output": "1000-pair-2-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.040917,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 0.278708,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 2,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:17Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "1000"
+      ],
+      "output": "1000-pair-2-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.226167,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 1.095917,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 3,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:17Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "1000"
+      ],
+      "output": "1000-pair-3-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.199166,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 1.038042,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 3,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "1000"
+      ],
+      "output": "1000-pair-3-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.0465,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 0.223333,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 4,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "1000"
+      ],
+      "output": "1000-pair-4-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.037625,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 0.207459,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 4,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "1000"
+      ],
+      "output": "1000-pair-4-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.202666,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 1.03,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 5,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "1000"
+      ],
+      "output": "1000-pair-5-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.203291,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 1.026042,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 1000,
+      "pair": 5,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "1000"
+      ],
+      "output": "1000-pair-5-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.037958,
+          "accounted_bytes": 104000
+        },
+        "catalog": {
+          "elapsed_ms": 0.228417,
+          "accounted_bytes": 544000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 1,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "10000"
+      ],
+      "output": "10000-pair-1-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 2.673625,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 12.912709,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 1,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "10000"
+      ],
+      "output": "10000-pair-1-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.313708,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 1.964709,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 2,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "10000"
+      ],
+      "output": "10000-pair-2-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.320083,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 2.063459,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 2,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "10000"
+      ],
+      "output": "10000-pair-2-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 2.775875,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 13.866041,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 3,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "10000"
+      ],
+      "output": "10000-pair-3-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 2.665667,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 13.204875,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 3,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "10000"
+      ],
+      "output": "10000-pair-3-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.325541,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 2.203709,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 4,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "10000"
+      ],
+      "output": "10000-pair-4-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.3225,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 2.030541,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 4,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "10000"
+      ],
+      "output": "10000-pair-4-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 2.680167,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 13.156625,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 5,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "10000"
+      ],
+      "output": "10000-pair-5-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 3.036917,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 13.150958,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 10000,
+      "pair": 5,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "10000"
+      ],
+      "output": "10000-pair-5-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 0.325,
+          "accounted_bytes": 1040000
+        },
+        "catalog": {
+          "elapsed_ms": 2.103375,
+          "accounted_bytes": 5440000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 1,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "100000"
+      ],
+      "output": "100000-pair-1-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 34.56375,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 165.027,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 1,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "100000"
+      ],
+      "output": "100000-pair-1-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 2.945583,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 21.66525,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 2,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:18Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "100000"
+      ],
+      "output": "100000-pair-2-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 3.167333,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 21.590334,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 2,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:19Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "100000"
+      ],
+      "output": "100000-pair-2-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 34.463667,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 166.193792,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 3,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:19Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "100000"
+      ],
+      "output": "100000-pair-3-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 35.775084,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 168.747458,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 3,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:19Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "100000"
+      ],
+      "output": "100000-pair-3-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 3.01525,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 21.053125,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 4,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:20Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "100000"
+      ],
+      "output": "100000-pair-4-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 3.020042,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 22.072125,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 4,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:20Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "100000"
+      ],
+      "output": "100000-pair-4-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 33.799916,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 165.902125,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 5,
+      "revision": "before",
+      "started_utc": "2026-10-09T21:25:20Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/before",
+        "100000"
+      ],
+      "output": "100000-pair-5-before.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 34.286875,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 167.592833,
+          "accounted_bytes": 54400000
+        }
+      }
+    },
+    {
+      "rows": 100000,
+      "pair": 5,
+      "revision": "after",
+      "started_utc": "2026-10-09T21:25:21Z",
+      "command": [
+        "/tmp/skrin-snapshot-build.uG90ZP/after",
+        "100000"
+      ],
+      "output": "100000-pair-5-after.txt",
+      "values": {
+        "single": {
+          "elapsed_ms": 2.976125,
+          "accounted_bytes": 10400000
+        },
+        "catalog": {
+          "elapsed_ms": 21.454167,
+          "accounted_bytes": 54400000
+        }
+      }
+    }
+  ],
+  "summary": [
+    {
+      "rows": 1000,
+      "mode": "single",
+      "accounted_bytes": 104000,
+      "before": {
+        "times_ms": [
+          0.224459,
+          0.226167,
+          0.199166,
+          0.202666,
+          0.203291
+        ],
+        "median_ms": 0.203291,
+        "min_ms": 0.199166,
+        "max_ms": 0.226167
+      },
+      "after": {
+        "times_ms": [
+          0.060917,
+          0.040917,
+          0.0465,
+          0.037625,
+          0.037958
+        ],
+        "median_ms": 0.040917,
+        "min_ms": 0.037625,
+        "max_ms": 0.060917
+      },
+      "median_speed_ratio": 4.968375003054964
+    },
+    {
+      "rows": 1000,
+      "mode": "catalog",
+      "accounted_bytes": 544000,
+      "before": {
+        "times_ms": [
+          1.009125,
+          1.095917,
+          1.038042,
+          1.03,
+          1.026042
+        ],
+        "median_ms": 1.03,
+        "min_ms": 1.009125,
+        "max_ms": 1.095917
+      },
+      "after": {
+        "times_ms": [
+          0.233,
+          0.278708,
+          0.223333,
+          0.207459,
+          0.228417
+        ],
+        "median_ms": 0.228417,
+        "min_ms": 0.207459,
+        "max_ms": 0.278708
+      },
+      "median_speed_ratio": 4.5092965935109905
+    },
+    {
+      "rows": 10000,
+      "mode": "single",
+      "accounted_bytes": 1040000,
+      "before": {
+        "times_ms": [
+          2.673625,
+          2.775875,
+          2.665667,
+          2.680167,
+          3.036917
+        ],
+        "median_ms": 2.680167,
+        "min_ms": 2.665667,
+        "max_ms": 3.036917
+      },
+      "after": {
+        "times_ms": [
+          0.313708,
+          0.320083,
+          0.325541,
+          0.3225,
+          0.325
+        ],
+        "median_ms": 0.3225,
+        "min_ms": 0.313708,
+        "max_ms": 0.325541
+      },
+      "median_speed_ratio": 8.310595348837209
+    },
+    {
+      "rows": 10000,
+      "mode": "catalog",
+      "accounted_bytes": 5440000,
+      "before": {
+        "times_ms": [
+          12.912709,
+          13.866041,
+          13.204875,
+          13.156625,
+          13.150958
+        ],
+        "median_ms": 13.156625,
+        "min_ms": 12.912709,
+        "max_ms": 13.866041
+      },
+      "after": {
+        "times_ms": [
+          1.964709,
+          2.063459,
+          2.203709,
+          2.030541,
+          2.103375
+        ],
+        "median_ms": 2.063459,
+        "min_ms": 1.964709,
+        "max_ms": 2.203709
+      },
+      "median_speed_ratio": 6.376005047834728
+    },
+    {
+      "rows": 100000,
+      "mode": "single",
+      "accounted_bytes": 10400000,
+      "before": {
+        "times_ms": [
+          34.56375,
+          34.463667,
+          35.775084,
+          33.799916,
+          34.286875
+        ],
+        "median_ms": 34.463667,
+        "min_ms": 33.799916,
+        "max_ms": 35.775084
+      },
+      "after": {
+        "times_ms": [
+          2.945583,
+          3.167333,
+          3.01525,
+          3.020042,
+          2.976125
+        ],
+        "median_ms": 3.01525,
+        "min_ms": 2.945583,
+        "max_ms": 3.167333
+      },
+      "median_speed_ratio": 11.429787579802671
+    },
+    {
+      "rows": 100000,
+      "mode": "catalog",
+      "accounted_bytes": 54400000,
+      "before": {
+        "times_ms": [
+          165.027,
+          166.193792,
+          168.747458,
+          165.902125,
+          167.592833
+        ],
+        "median_ms": 166.193792,
+        "min_ms": 165.027,
+        "max_ms": 168.747458
+      },
+      "after": {
+        "times_ms": [
+          21.66525,
+          21.590334,
+          21.053125,
+          22.072125,
+          21.454167
+        ],
+        "median_ms": 21.590334,
+        "min_ms": 21.053125,
+        "max_ms": 22.072125
+      },
+      "median_speed_ratio": 7.697601713803965
+    }
+  ]
+}
