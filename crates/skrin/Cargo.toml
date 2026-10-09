@@ -75,3 +75,7 @@ required-features = ["derive"]
 [[example]]
 name = "game_queries"
 required-features = ["derive"]
+
+[[example]]
+name = "game_models"
+required-features = ["derive"]

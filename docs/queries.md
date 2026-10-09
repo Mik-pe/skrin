@@ -35,7 +35,9 @@ changing a projection requires the catalog's existing migration protocol.
 Declare `Area: Entities { id: 1, version: 1, unique: false,
 key: u64 => |row| row.area }` in `catalog!`. It generates `Area: Index<World>`;
 the same big-endian key codec serves both persisted projections and query bounds.
-Built-in keys are u8/u32/u64, str and [u8]. Match strings with
+Built-in keys are all fixed-width signed/unsigned integers, bool, str and [u8].
+Signed keys preserve numeric order across negative/positive values; float keys
+require an explicitly chosen application codec/collation. Match strings with
 `read.matching(ByName, "Ada")`; strings use case-sensitive UTF-8 byte order.
 For unsized keys Rust's standard borrowed bound pairs work:
 `read.query(ByName, (Included("Ada"), Excluded("Zoe")))` (import

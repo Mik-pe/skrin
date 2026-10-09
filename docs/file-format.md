@@ -41,7 +41,7 @@ The first four bytes hold an operation count. It must be nonzero and possible wi
 
 Keys appear at most once in a frame. Writers emit key-sorted, coalesced changes. A frame may not contain unknown tags, duplicate keys, trailing payload bytes, oversized records, or a record codec that leaves bytes unconsumed. The complete set of operations is decoded before publication during recovery.
 
-An individual encoded record is capped at 8 MiB. The built-in encoder writes `u8`, `u32`, `u64`, and length-prefixed byte/UTF-8 strings; the application decides the stable field order. Length fields are bounds-checked before slicing or application allocation. Decoder code remains trusted application code and must obey the `Record` contract.
+An individual encoded record is capped at 8 MiB. The built-in encoder writes fixed-width signed/unsigned little-endian integers, exact little-endian float bits, strict bool/Option tags and length-prefixed byte/UTF-8 strings; the application decides the stable field order. Length fields are bounds-checked before slicing or application allocation. Decoder code remains trusted application code and must obey the `Record` contract.
 
 ## Checksum
 

@@ -87,36 +87,14 @@ fn expand(input: DeriveInput) -> syn::Result<Tokens> {
             ));
         }
         let name = field.ident.expect("named field");
-        let (encode, decode) = match kind(&field.ty) {
-            Some("u8") => (
-                quote!(__skrin_encoder.u8(self.#name)?;),
-                quote!(__skrin_decoder.u8()?),
-            ),
-            Some("u32") => (
-                quote!(__skrin_encoder.u32(self.#name)?;),
-                quote!(__skrin_decoder.u32()?),
-            ),
-            Some("u64") => (
-                quote!(__skrin_encoder.u64(self.#name)?;),
-                quote!(__skrin_decoder.u64()?),
-            ),
-            Some("String") => (
-                quote!(__skrin_encoder.string(&self.#name)?;),
-                quote!(__skrin_decoder.string()?.to_owned()),
-            ),
-            Some("bytes") => (
-                quote!(__skrin_encoder.bytes(&self.#name)?;),
-                quote!(__skrin_decoder.bytes()?.to_vec()),
-            ),
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    field.ty,
-                    "Record derive supports u8, u32, u64, String and Vec<u8>; implement Record manually for other codecs",
-                ));
-            }
-        };
-        encodings.push(encode);
-        decodings.push(quote!(#name: #decode));
+        let field_kind = kind(&field.ty).ok_or_else(|| syn::Error::new_spanned(
+            field.ty,
+            "Record derive supports fixed-width integers, bool, f32/f64, String, Vec<u8> and Option of supported types; implement Record manually for other codecs",
+        ))?;
+        let encode = field_kind.encode(quote!(&self.#name));
+        let decode = field_kind.decode();
+        encodings.push(quote!((#encode)?;));
+        decodings.push(quote!(#name: (#decode)?));
     }
     let name = input.ident;
     Ok(quote! {
@@ -133,37 +111,114 @@ fn expand(input: DeriveInput) -> syn::Result<Tokens> {
     })
 }
 
-fn kind(ty: &Type) -> Option<&'static str> {
+#[derive(Debug, PartialEq, Eq)]
+enum FieldKind {
+    Primitive(&'static str),
+    String,
+    Bytes,
+    Option(Box<FieldKind>),
+}
+impl FieldKind {
+    fn encode(&self, value: Tokens) -> Tokens {
+        match self {
+            Self::Primitive(name) => {
+                let method = syn::Ident::new(name, proc_macro2::Span::call_site());
+                quote!(__skrin_encoder.#method(*(#value)))
+            }
+            Self::String => quote!(__skrin_encoder.string(#value)),
+            Self::Bytes => quote!(__skrin_encoder.bytes(#value)),
+            Self::Option(inner) => {
+                let encoded = inner.encode(quote!(__skrin_value));
+                quote!(__skrin_encoder.option((#value).as_ref(), |__skrin_encoder, __skrin_value| {
+                    #encoded
+                }))
+            }
+        }
+    }
+    fn decode(&self) -> Tokens {
+        match self {
+            Self::Primitive(name) => {
+                let method = syn::Ident::new(name, proc_macro2::Span::call_site());
+                quote!(__skrin_decoder.#method())
+            }
+            Self::String => quote!(__skrin_decoder.string().map(|value| value.to_owned())),
+            Self::Bytes => quote!(__skrin_decoder.bytes().map(|value| value.to_vec())),
+            Self::Option(inner) => {
+                let decoded = inner.decode();
+                quote!(__skrin_decoder.option(|__skrin_decoder| #decoded))
+            }
+        }
+    }
+}
+fn kind(ty: &Type) -> Option<FieldKind> {
     let Type::Path(p) = ty else { return None };
     if p.qself.is_some() {
         return None;
     }
     let segments = &p.path.segments;
     let last = segments.last()?;
+    if segments
+        .iter()
+        .take(segments.len() - 1)
+        .any(|s| !matches!(s.arguments, PathArguments::None))
+    {
+        return None;
+    }
     let prefix: Vec<_> = segments
         .iter()
         .take(segments.len() - 1)
         .map(|s| s.ident.to_string())
         .collect();
-    let standard =
-        prefix.is_empty() || prefix == ["std", "string"] || prefix == ["alloc", "string"];
     if matches!(last.arguments, PathArguments::None) {
-        return match last.ident.to_string().as_str() {
-            "u8" if prefix.is_empty() => Some("u8"),
-            "u32" if prefix.is_empty() => Some("u32"),
-            "u64" if prefix.is_empty() => Some("u64"),
-            "String" if standard => Some("String"),
+        let primitive = match last.ident.to_string().as_str() {
+            "u8" => Some("u8"),
+            "u16" => Some("u16"),
+            "u32" => Some("u32"),
+            "u64" => Some("u64"),
+            "u128" => Some("u128"),
+            "i8" => Some("i8"),
+            "i16" => Some("i16"),
+            "i32" => Some("i32"),
+            "i64" => Some("i64"),
+            "i128" => Some("i128"),
+            "bool" => Some("bool"),
+            "f32" => Some("f32"),
+            "f64" => Some("f64"),
             _ => None,
         };
+        if let Some(name) = primitive
+            && (prefix.is_empty()
+                || prefix == ["std", "primitive"]
+                || prefix == ["core", "primitive"])
+        {
+            return Some(FieldKind::Primitive(name));
+        }
+        if last.ident == "String"
+            && (prefix.is_empty() || prefix == ["std", "string"] || prefix == ["alloc", "string"])
+        {
+            return Some(FieldKind::String);
+        }
+        return None;
     }
+    let PathArguments::AngleBracketed(args) = &last.arguments else {
+        return None;
+    };
+    if args.args.len() != 1 {
+        return None;
+    }
+    let Some(GenericArgument::Type(inner)) = args.args.first() else {
+        return None;
+    };
     if last.ident == "Vec"
         && (prefix.is_empty() || prefix == ["std", "vec"] || prefix == ["alloc", "vec"])
-        && let PathArguments::AngleBracketed(args) = &last.arguments
-        && args.args.len() == 1
-        && let Some(GenericArgument::Type(inner)) = args.args.first()
-        && kind(inner) == Some("u8")
+        && kind(inner) == Some(FieldKind::Primitive("u8"))
     {
-        return Some("bytes");
+        return Some(FieldKind::Bytes);
+    }
+    if last.ident == "Option"
+        && (prefix.is_empty() || prefix == ["std", "option"] || prefix == ["core", "option"])
+    {
+        return kind(inner).map(|kind| FieldKind::Option(Box::new(kind)));
     }
     None
 }
@@ -198,11 +253,11 @@ mod tests {
             ),
             (
                 "#[skrin(table_id=1, version=1)] struct A { n: usize }",
-                "supports u8",
+                "supports fixed-width",
             ),
             (
                 "#[skrin(table_id=1, version=1)] struct A { n: Vec<u64> }",
-                "supports u8",
+                "supports fixed-width",
             ),
             (
                 "#[skrin(table_id=1, version=1)] struct A<T> { n: T }",
@@ -231,8 +286,23 @@ mod tests {
     fn recognizes_only_documented_field_spellings() {
         for source in [
             "u8",
+            "u16",
             "u32",
             "u64",
+            "u128",
+            "i8",
+            "i16",
+            "i32",
+            "i64",
+            "i128",
+            "bool",
+            "f32",
+            "f64",
+            "Option<u64>",
+            "std::option::Option<String>",
+            "core::option::Option<Option<Vec<u8>>>",
+            "std::primitive::i32",
+            "core::primitive::f64",
             "String",
             "std::string::String",
             "::std::vec::Vec<u8>",
@@ -240,7 +310,10 @@ mod tests {
             assert!(kind(&syn::parse_str(source).unwrap()).is_some(), "{source}");
         }
         for source in [
-            "Option<u64>",
+            "Option<usize>",
+            "other::Option<u64>",
+            "Option<Option<Vec<String>>>",
+            "Option<u64, u32>",
             "usize",
             "&'static str",
             "other::String",

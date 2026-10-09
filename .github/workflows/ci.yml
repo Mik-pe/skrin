@@ -149,6 +149,12 @@ jobs:
         run: cargo +${{ matrix.rust }} run -p skrin --example snapshots --locked
       - name: Run typed game-world frames and atomic saves
         run: cargo +${{ matrix.rust }} run -p skrin --example game_world --locked
+      - name: Run signed game fields and typed character edits
+        run: cargo +${{ matrix.rust }} run -p skrin --example game_models --locked
+      - name: Run character models through WAL, checkpoint and backup recovery
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: cargo +${{ matrix.rust }} run -p skrin --example game_models --locked -- "$RUNNER_TEMP/models-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Run typed game queries, filtered pages and coherent joins
         run: cargo +${{ matrix.rust }} run -p skrin --example game_queries --locked
       - name: Run game queries through WAL, checkpoint and backup recovery

@@ -1,5 +1,11 @@
 # Changelog
 
+## Ordinary game field codecs
+
+- Extend Record derive with fixed-width signed/unsigned integers, bool, exact float bits and recursive Option of supported fields, without defaults or field skipping.
+- Add matching bounded manual codecs and signed/bool native index keys; require explicit application collation for floating-point index keys.
+- Verify independent application bytes, strict optional/bool tags, all truncations, float bit preservation and production corruption refusal before tail repair; add the character model/query/edit/reopen example without changing existing storage fixtures or versions.
+
 ## Native typed index access
 
 - Add schema-owned `Index` markers and explicit ordered `IndexKey` codecs, sharing projection and query encoding for native integers, borrowed strings/bytes and custom keys.

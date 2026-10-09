@@ -43,9 +43,10 @@ pub use maintenance_options::{CheckpointPolicy, MaintenanceEstimate, Maintenance
 
 /// Generate a fixed codec for a named struct with an explicit schema.
 ///
-/// Fields are persisted in declaration order. `u8`, `u32`, `u64`, `String` and
-/// `Vec<u8>` use the existing explicit encoder methods; integers are little
-/// endian and strings/bytes have a u32 length. Reordering, adding, removing or
+/// Fields are persisted in declaration order. Fixed-width signed/unsigned
+/// integers, `bool`, `f32`/`f64`, `String`, `Vec<u8>` and `Option` of supported types use
+/// explicit encoder methods. Integers/float bits are little endian; strings and
+/// bytes have a u32 length; bool/Option use strict 0/1 tags. Reordering, adding, removing or
 /// changing the meaning of fields requires a schema version and migration.
 /// Other field types, enums and generic records need a manual `Record` impl.
 /// No field may be skipped or silently defaulted. `Clone` is not required.

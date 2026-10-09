@@ -10,9 +10,9 @@ compare equivalent work, failure contracts and costs.
 
 | Requirement | Current evidence | Remaining work |
 | --- | --- | --- |
-| Declare ordinary application models once | `Record` derive and `catalog!` power the accounts and three-table game examples; generated/manual persistent bytes are identical | More common game field types still need manual codecs; evaluate them without ambiguous platform encodings |
+| Declare ordinary application models once | `Record` derive and `catalog!` power accounts, game-world and signed/float/bool/optional character models; generated/manual persistent bytes are identical | Covered current model fields; custom codecs and explicit migrations remain deliberate boundaries |
 | Query with native types and ordinary Rust composition | Typed index markers and native bounds/equality infer records and keys; lazy rows support predicates, projections, limits and same-frame joins | Avoid repeated application cursor code; measure cursor seeking rather than repeatedly filtering duplicate prefixes |
-| Make writes and failure recovery understandable | Atomic table/index closures, duplicate/unique rollback, operation-ID retry, retained frames and explicit migrations are executable | Review the complete model → query → edit/save → reopen journey together after query ergonomics improves |
+| Make writes and failure recovery understandable | Complete character model → typed query → atomic edit → WAL/checkpoint/backup reopen, plus duplicate/unique rollback, retries, retained frames and explicit migrations | Compare complete application declaration/query/save/recovery work with the external SQL/SwiftData controls |
 | Beat SQLite at several useful operations | [Repeated game-world comparison](measurements/game-world-performance-2026-10-08.md): resident point/area reads and queued independent durable saves | Extend the comparison to filtered, bounded, paginated and joined game queries using a strong SQLite control and repeated process runs |
 | Keep a high-quality public API | Manual traits remain available; no SQL, unsafe code, implicit migration or persistence downgrade; compile-fail and storage compatibility tests | Assess type errors, empty/full-u64 cases, poison, documentation and cross-platform/MSRV behavior on every new API |
 

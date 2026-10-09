@@ -118,8 +118,9 @@ impl Record for Account {
 
 Skrin validates schema identity before decoding and rejects trailing record bytes. Changes in field meaning or representation require a schema version and an explicit migration, not a cast of old bytes into a new struct.
 
-Derive supports `u8`, `u32`, `u64`, `String` and `Vec<u8>` on concrete named
-structs. Other types use manual codecs. It never skips or implicitly defaults
+Derive supports fixed-width signed/unsigned integers, `bool`, `f32`/`f64`,
+`String`, `Vec<u8>` and `Option` of those types on concrete named structs. Other
+types use manual codecs. It never skips or implicitly defaults
 state. The default `derive` feature can be disabled for engine-only builds.
 See [models and catalogs](docs/models.md) for the complete contract.
 
