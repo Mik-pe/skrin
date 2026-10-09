@@ -1,7 +1,7 @@
 #[path = "../examples/support/banking.rs"]
 mod banking;
 use banking::*;
-use skrin::catalog::{CatalogDatabase, Table};
+use skrin::catalog::{CatalogDatabase, Index, IndexDefinition, IndexKey, Table};
 use skrin::versioned::SnapshotOptions;
 use skrin::{Error, Result};
 use std::cell::Cell;
@@ -17,6 +17,20 @@ impl Table<Banking> for Counted {
     fn borrow(r: &Row) -> Option<&Account> {
         BORROWS.with(|calls| calls.set(calls.get() + 1));
         <Accounts as Table<Banking>>::borrow(r)
+    }
+}
+struct ByCountedBalance;
+impl Index<Banking> for ByCountedBalance {
+    type Table = Counted;
+    type Key = u64;
+    const DEFINITION: IndexDefinition = IndexDefinition {
+        id: 2,
+        table_id: 1,
+        version: 1,
+        unique: false,
+    };
+    fn project(row: &Account) -> Result<Vec<u8>> {
+        row.balance.encode_key()
     }
 }
 fn options() -> SnapshotOptions {
@@ -57,12 +71,12 @@ fn indexed_queries_are_lazy_before_filter_projection_and_limit() -> Result<()> {
     {
         let read = db.read()?;
         BORROWS.with(|calls| calls.set(0));
-        let query = read.index_scan::<Counted>(2, ..)?;
+        let query = read.query(ByCountedBalance, ..)?;
         assert_eq!(BORROWS.with(Cell::get), 0);
         assert_eq!(query.take(0).count(), 0);
         assert_eq!(BORROWS.with(Cell::get), 0);
         let ids: Vec<_> = read
-            .index_scan::<Counted>(2, ..)?
+            .query(ByCountedBalance, ..)?
             .take(3)
             .map(|(key, _)| key)
             .collect();
@@ -72,11 +86,16 @@ fn indexed_queries_are_lazy_before_filter_projection_and_limit() -> Result<()> {
     let db = db.into_snapshots(options(), footprint)?;
     let view = db.snapshot()?;
     BORROWS.with(|calls| calls.set(0));
-    let query = view.index_scan::<Counted>(2, ..)?;
+    let query = view.query(ByCountedBalance, ..)?;
     assert_eq!(BORROWS.with(Cell::get), 0);
     let ids: Vec<_> = query.take(3).map(|(key, _)| key).collect();
     assert_eq!(ids, [5, 10, 15]);
     assert_eq!(BORROWS.with(Cell::get), 3);
+    BORROWS.with(|calls| calls.set(0));
+    assert_eq!(view.matching(ByCountedBalance, &0)?.take(0).count(), 0);
+    assert_eq!(BORROWS.with(Cell::get), 0);
+    assert_eq!(view.matching(ByCountedBalance, &0)?.take(2).count(), 2);
+    assert_eq!(BORROWS.with(Cell::get), 2);
     let filtered: Vec<_> = view
         .index_scan::<Accounts>(2, 2u64.to_be_bytes().to_vec()..=4u64.to_be_bytes().to_vec())?
         .filter(|(key, row)| key % 2 == 0 && row.balance > 2)

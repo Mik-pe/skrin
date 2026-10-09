@@ -1,6 +1,6 @@
 #![cfg(feature = "derive")]
 
-use skrin::catalog::{Catalog, CatalogDatabase, Table};
+use skrin::catalog::{Catalog, CatalogDatabase, Index, Table};
 use skrin::{Decoder, Encoder, Error, Record, Result};
 #[cfg(unix)]
 #[path = "../examples/support/banking.rs"]
@@ -27,13 +27,13 @@ skrin::catalog! {
         schema: (8000, 1),
         tables: { Accounts: Account, Transfers: Transfer },
         indexes: {
-            EMAIL: Accounts {
+            ByEmail: Accounts {
                 id: 1, version: 1, unique: true,
-                key: |row: &Account| Ok(row.email.as_bytes().to_vec())
+                key: str => |row| &row.email
             },
-            BALANCE: Accounts {
+            ByBalance: Accounts {
                 id: 2, version: 1, unique: false,
-                key: |row: &Account| Ok(row.balance.to_be_bytes().to_vec())
+                key: u64 => |row| row.balance
             }
         }
     }
@@ -128,7 +128,7 @@ fn generated_dispatch_preserves_atomic_unique_constraints_and_snapshot_indexes()
                 },
             )
         }),
-        Err(Error::UniqueViolation { index_id: EMAIL })
+        Err(Error::UniqueViolation { index_id }) if index_id == ByEmail::DEFINITION.id
     ));
     assert_eq!(db.read()?.sequence(), 1);
     assert!(db.read()?.get::<Transfers>(u64::MAX)?.is_none());
@@ -172,16 +172,23 @@ fn generated_dispatch_preserves_atomic_unique_constraints_and_snapshot_indexes()
     })?;
     let current = versioned.snapshot()?;
     assert_eq!(
-        old.lookup::<Accounts>(EMAIL, b"alice@example.test")?[0].0,
+        old.matching(ByEmail, "alice@example.test")?
+            .next()
+            .unwrap()
+            .0,
         1
     );
     assert_eq!(
-        current.lookup::<Accounts>(EMAIL, b"alice@example.test")?[0].0,
+        current
+            .matching(ByEmail, "alice@example.test")?
+            .next()
+            .unwrap()
+            .0,
         2
     );
     assert_eq!(
         current
-            .index_scan::<Accounts>(BALANCE, ..)?
+            .query(ByBalance, ..)?
             .map(|(id, a)| (id, a.balance))
             .collect::<Vec<_>>(),
         [(1, 70), (2, 130)]
@@ -192,7 +199,7 @@ fn generated_dispatch_preserves_atomic_unique_constraints_and_snapshot_indexes()
         to: 2,
         amount: 1,
     });
-    assert!(Bank::index_key(EMAIL, &transfer).is_err());
+    assert!(Bank::index_key(ByEmail::DEFINITION.id, &transfer).is_err());
     assert!(Accounts::borrow(&transfer).is_none());
     assert!(Bank::decode(99, &mut Decoder::new(&[])).is_err());
     Ok(())
@@ -335,7 +342,9 @@ mod persisted {
         assert_eq!(
             generated
                 .read()?
-                .lookup::<Accounts>(BALANCE, &70_u64.to_be_bytes())?[0]
+                .matching(ByBalance, &70)?
+                .next()
+                .unwrap()
                 .0,
             1
         );

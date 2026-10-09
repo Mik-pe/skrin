@@ -6,6 +6,20 @@ use crate::test_support::banking;
 use crate::test_support::banking_v2;
 use banking::*;
 use std::time::Duration;
+struct ByBalance;
+impl catalog::Index<Banking> for ByBalance {
+    type Table = Accounts;
+    type Key = u64;
+    const DEFINITION: catalog::IndexDefinition = catalog::IndexDefinition {
+        id: 2,
+        table_id: 1,
+        version: 1,
+        unique: false,
+    };
+    fn project(row: &Account) -> Result<Vec<u8>> {
+        catalog::IndexKey::encode_key(&row.balance)
+    }
+}
 fn options() -> SnapshotOptions {
     SnapshotOptions {
         max_snapshots: 64,
@@ -340,6 +354,11 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
                 old.index_scan::<Accounts>(2, ..),
                 Err(Error::Poisoned)
             ));
+            assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+            assert!(matches!(
+                old.matching(ByBalance, &100),
+                Err(Error::Poisoned)
+            ));
             assert!(matches!(db.snapshot(), Err(Error::Poisoned)));
             drop(old);
             drop(db);
@@ -368,6 +387,11 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
         assert!(matches!(old.scan::<Transfers>(), Err(Error::Poisoned)));
         assert!(matches!(
             old.index_scan::<Accounts>(2, ..),
+            Err(Error::Poisoned)
+        ));
+        assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+        assert!(matches!(
+            old.matching(ByBalance, &100),
             Err(Error::Poisoned)
         ));
         drop(old);
@@ -503,6 +527,11 @@ fn every_grouped_catalog_append_prefix_keeps_recovered_rows_and_indexes_coherent
             Err(Error::Poisoned)
         ));
         assert!(matches!(db.snapshot(), Err(Error::Poisoned)));
+        assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+        assert!(matches!(
+            old.matching(ByBalance, &100),
+            Err(Error::Poisoned)
+        ));
         drop(old);
         drop(db);
         disk.clear_faults();
@@ -981,6 +1010,11 @@ mod managed {
                 Err(Error::MaintenanceUncertain(_)) => {
                     uncertain += 1;
                     assert!(matches!(old.get::<Accounts>(1), Err(Error::Poisoned)));
+                    assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+                    assert!(matches!(
+                        old.matching(ByBalance, &100),
+                        Err(Error::Poisoned)
+                    ));
                     assert!(matches!(db.snapshot(), Err(Error::Poisoned)));
                 }
                 Err(_) => {

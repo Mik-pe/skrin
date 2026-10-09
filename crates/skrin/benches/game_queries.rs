@@ -69,10 +69,7 @@ fn main() -> Result<()> {
         let read = db.read()?;
         measure("native", rows, |area| {
             Ok(read
-                .index_scan::<Entities>(
-                    AREA_INDEX,
-                    area.to_be_bytes().to_vec()..=(area + 1).to_be_bytes().to_vec(),
-                )?
+                .query(Area, area..=area + 1)?
                 .filter(|(_, row)| row.x % 2 == 0)
                 .take(16)
                 .map(|(key, row)| (key, *row))
@@ -87,10 +84,7 @@ fn main() -> Result<()> {
     let frame = db.snapshot()?;
     measure("snapshot", rows, |area| {
         Ok(frame
-            .index_scan::<Entities>(
-                AREA_INDEX,
-                area.to_be_bytes().to_vec()..=(area + 1).to_be_bytes().to_vec(),
-            )?
+            .query(Area, area..=area + 1)?
             .filter(|(_, row)| row.x % 2 == 0)
             .take(16)
             .map(|(key, row)| (key, *row))

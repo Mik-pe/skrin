@@ -86,12 +86,12 @@ fn catalog(rows: u64) -> Result<()> {
     for key in 0..rows {
         assert_eq!(*old.get::<Entities>(key)?.unwrap(), entity(key));
         assert_eq!(*old.get::<Items>(key)?.unwrap(), item(key));
-        let found = old.lookup::<Items>(OWNER_INDEX, &key.to_be_bytes())?;
+        let found = old.matching(Owner, &key)?.collect::<Vec<_>>();
         assert_eq!(found.len(), 1);
         assert_eq!(found[0], (key, &item(key)));
     }
     for area in 0..rows.div_ceil(AREA_SIZE) {
-        let found = old.lookup::<Entities>(AREA_INDEX, &area.to_be_bytes())?;
+        let found = old.matching(Area, &area)?.collect::<Vec<_>>();
         assert_eq!(
             found.len() as u64,
             rows.min((area + 1) * AREA_SIZE) - area * AREA_SIZE
@@ -109,20 +109,13 @@ fn catalog(rows: u64) -> Result<()> {
     assert!(db.write(|tx| save(tx, request))?);
     assert!(!db.write(|tx| save(tx, request))?);
     assert_eq!(*old.get::<Entities>(0)?.unwrap(), entity(0));
-    assert_eq!(
-        old.lookup::<Items>(OWNER_INDEX, &0u64.to_be_bytes())?[0].0,
-        0
-    );
+    assert_eq!(old.matching(Owner, &0u64)?.next().unwrap().0, 0);
     drop(old);
     let view = db.snapshot()?;
-    assert!(
-        view.lookup::<Items>(OWNER_INDEX, &0u64.to_be_bytes())?
-            .is_empty()
-    );
+    assert!(view.matching(Owner, &0u64)?.next().is_none());
     assert_eq!(
-        view.lookup::<Items>(OWNER_INDEX, &1u64.to_be_bytes())?
-            .iter()
-            .map(|(k, _)| *k)
+        view.matching(Owner, &1u64)?
+            .map(|(k, _)| k)
             .collect::<Vec<_>>(),
         vec![0, 1]
     );

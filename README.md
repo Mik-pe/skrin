@@ -149,14 +149,15 @@ Rust predicates, projections and result limits:
 
 ```rust
 let visible = frame
-    .index_scan::<Entities>(AREA_INDEX, start..=end)?
+    .query(Area, start..=end)?
     .filter(|(_, entity)| entity.x >= 30 && entity.x <= 100)
     .take(32)
     .map(|(id, entity)| (id, entity.x, entity.y))
     .collect::<Vec<_>>();
 ```
 
-`index_scan` is lazy on borrowed catalog reads and immutable catalog snapshots.
+`query` and `matching` infer the table and key type from a schema-owned index
+marker. Both are lazy on borrowed catalog reads and immutable catalog snapshots.
 It visits byte-key then primary-key order without first materializing all matches.
 Use one retained frame for stable pagination and coherent item/owner joins.
 The [complete query example and contract](docs/queries.md) demonstrate filtering,

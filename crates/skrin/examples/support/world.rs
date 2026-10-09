@@ -36,13 +36,13 @@ skrin::catalog! {
         schema: (9000, 1),
         tables: { Entities: Entity, Items: Item, Saves: Saved },
         indexes: {
-            AREA_INDEX: Entities {
+            Area: Entities {
                 id: 1, version: 1, unique: false,
-                key: |row: &Entity| Ok(row.area.to_be_bytes().to_vec())
+                key: u64 => |row| row.area
             },
-            OWNER_INDEX: Items {
+            Owner: Items {
                 id: 2, version: 1, unique: false,
-                key: |row: &Item| Ok(row.owner.to_be_bytes().to_vec())
+                key: u64 => |row| row.owner
             }
         }
     }
@@ -219,7 +219,7 @@ pub fn verify(db: &CatalogDatabase<World>, rows: u64, saves: u64, batch: u64) ->
         );
     }
     for area in 0..rows.div_ceil(AREA_SIZE) {
-        let found = read.lookup::<Entities>(AREA_INDEX, &area.to_be_bytes())?;
+        let found = read.matching(Area, &area)?.collect::<Vec<_>>();
         let expected = (area * AREA_SIZE..rows.min((area + 1) * AREA_SIZE)).collect::<Vec<_>>();
         assert_eq!(
             found.iter().map(|(key, _)| *key).collect::<Vec<_>>(),
@@ -230,7 +230,7 @@ pub fn verify(db: &CatalogDatabase<World>, rows: u64, saves: u64, batch: u64) ->
     // a partially completed round can leave zero/two items with an owner.
     let mut indexed_items = 0;
     for owner in 0..rows {
-        for (key, row) in read.lookup::<Items>(OWNER_INDEX, &owner.to_be_bytes())? {
+        for (key, row) in read.matching(Owner, &owner)? {
             assert_eq!(*row, expected_item(key, rows, saves));
             assert_eq!(row.owner, owner);
             indexed_items += 1;

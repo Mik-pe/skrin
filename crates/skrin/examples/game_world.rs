@@ -24,31 +24,14 @@ fn main() -> Result<()> {
     // acknowledges durable completion; spawning a worker is not a saved game.
     let saved = std::thread::spawn(move || worker.write(|tx| save(tx, request)));
     assert_eq!(frame.get::<Entities>(0)?.unwrap().revision, 0);
-    assert_eq!(
-        frame.lookup::<Items>(OWNER_INDEX, &0u64.to_be_bytes())?[0].0,
-        0
-    );
+    assert_eq!(frame.matching(Owner, &0u64)?.next().unwrap().0, 0);
     assert!(saved.join().expect("save worker panicked")?);
     let current = db.snapshot()?;
     assert_eq!(current.get::<Entities>(0)?.unwrap().revision, 1);
     assert_eq!(current.get::<Items>(0)?.unwrap().owner, 1);
-    assert!(
-        current
-            .lookup::<Items>(OWNER_INDEX, &0u64.to_be_bytes())?
-            .is_empty()
-    );
-    assert_eq!(
-        current
-            .lookup::<Items>(OWNER_INDEX, &1u64.to_be_bytes())?
-            .len(),
-        2
-    );
-    assert_eq!(
-        current
-            .lookup::<Entities>(AREA_INDEX, &0u64.to_be_bytes())?
-            .len(),
-        64
-    );
+    assert!(current.matching(Owner, &0u64)?.next().is_none());
+    assert_eq!(current.matching(Owner, &1u64)?.count(), 2);
+    assert_eq!(current.matching(Area, &0u64)?.count(), 64);
     // Retry after a lost acknowledgment: the complete request has already saved.
     assert!(!db.write(|tx| save(tx, request))?);
     assert!(matches!(

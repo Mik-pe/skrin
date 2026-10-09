@@ -244,31 +244,15 @@ impl View<'_> {
     }
     fn area(&self, key: u64) -> BenchResult<Vec<(u64, Entity)>> {
         Ok(match self {
-            Self::Native(r) => r
-                .lookup::<Entities>(AREA_INDEX, &key.to_be_bytes())?
-                .into_iter()
-                .map(|(k, r)| (k, *r))
-                .collect(),
-            Self::Snapshot(r) => r
-                .lookup::<Entities>(AREA_INDEX, &key.to_be_bytes())?
-                .into_iter()
-                .map(|(k, r)| (k, *r))
-                .collect(),
+            Self::Native(r) => r.matching(Area, &key)?.map(|(k, r)| (k, *r)).collect(),
+            Self::Snapshot(r) => r.matching(Area, &key)?.map(|(k, r)| (k, *r)).collect(),
             Self::Sqlite(r) => sqlite::area(r, key)?,
         })
     }
     fn inventory(&self, key: u64) -> BenchResult<Vec<(u64, Item)>> {
         Ok(match self {
-            Self::Native(r) => r
-                .lookup::<Items>(OWNER_INDEX, &key.to_be_bytes())?
-                .into_iter()
-                .map(|(k, r)| (k, *r))
-                .collect(),
-            Self::Snapshot(r) => r
-                .lookup::<Items>(OWNER_INDEX, &key.to_be_bytes())?
-                .into_iter()
-                .map(|(k, r)| (k, *r))
-                .collect(),
+            Self::Native(r) => r.matching(Owner, &key)?.map(|(k, r)| (k, *r)).collect(),
+            Self::Snapshot(r) => r.matching(Owner, &key)?.map(|(k, r)| (k, *r)).collect(),
             Self::Sqlite(r) => sqlite::inventory(r, key)?,
         })
     }

@@ -5,7 +5,8 @@
 //! Readers block writers. Indexes are rebuilt and checked before recovery repairs
 //! a tail; ordinary commits touch only changed rows and their index postings.
 use crate::directory::Directory;
-use crate::postings::Posting;
+use crate::postings::{Posting, PostingIter};
+pub use crate::typed_index::{Index, IndexKey};
 use crate::{Database, Decoder, Encoder, Error, MaintenanceOptions, Record, Result, Schema};
 use std::collections::{BTreeMap, BTreeSet};
 use std::marker::PhantomData;
@@ -666,6 +667,30 @@ pub struct CatalogRead<'a, C: Catalog> {
     transaction: crate::ReadTransaction<'a, Stored<C>>,
 }
 impl<C: Catalog> CatalogRead<'_, C> {
+    /// Lazily query a schema-owned index using native key bounds. Returns an
+    /// error for reversed/equal-excluded bounds or a mismatched definition.
+    /// Compose Rust predicates, projections and limits on the returned rows.
+    pub fn query<I: Index<C>>(
+        &self,
+        _index: I,
+        range: impl RangeBounds<I::Key>,
+    ) -> Result<CatalogIndexScan<'_, C, I::Table>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.index_scan::<I::Table>(
+            I::DEFINITION.id,
+            crate::typed_index::bounds::<I::Key>(range)?,
+        )
+    }
+    /// Lazily select equal native index keys in primary-key order. The index
+    /// marker determines the record/key types; no table or ID argument is needed.
+    pub fn matching<I: Index<C>>(
+        &self,
+        _index: I,
+        key: &I::Key,
+    ) -> Result<CatalogIndexScan<'_, C, I::Table>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.index_scan::<I::Table>(I::DEFINITION.id, crate::typed_index::EqualKey::new(key)?)
+    }
     /// Borrow a typed primary-key row without cloning or decoding.
     pub fn get<T: Table<C>>(&self, key: u64) -> Result<Option<&T::Record>> {
         let id = table::<C, T>()?;
@@ -714,27 +739,21 @@ impl<C: Catalog> CatalogRead<'_, C> {
         &self,
         id: u64,
         range: impl RangeBounds<Vec<u8>>,
-    ) -> Result<impl Iterator<Item = (u64, &T::Record)>> {
+    ) -> Result<CatalogIndexScan<'_, C, T>> {
         let definition = index::<C, T>(id)?;
         validate_index_bounds(&range);
-        let entries = self
-            .indexes
-            .secondary
-            .get(&id)
-            .map(|entries| entries.range(range));
-        Ok(entries
-            .into_iter()
-            .flatten()
-            .flat_map(|(_, posting)| posting.into_iter())
-            .filter_map(move |&key| {
-                self.indexes
-                    .primary
-                    .get(&(definition.table_id, key))
-                    .and_then(|slot| self.transaction.get(*slot))
-                    .and_then(|r| r.data.as_ref())
-                    .and_then(|(_, r)| T::borrow(r))
-                    .map(|r| (key, r))
-            }))
+        Ok(CatalogIndexScan {
+            rows: &self.transaction.state.rows,
+            primary: &self.indexes.primary,
+            entries: self
+                .indexes
+                .secondary
+                .get(&id)
+                .map(|entries| entries.range(range)),
+            posting: None,
+            table_id: definition.table_id,
+            marker: PhantomData,
+        })
     }
     /// Collect an indexed scan into a vector. Use `index_scan` to stop early
     /// or filter/project before collecting. Ordering and bounds are identical.
@@ -748,6 +767,38 @@ impl<C: Catalog> CatalogRead<'_, C> {
     /// Sequence shared by every table and index in this view.
     pub fn sequence(&self) -> u64 {
         self.transaction.sequence()
+    }
+}
+
+/// Lazy index traversal borrowing only its catalog read guard, independent of
+/// the query key/bounds' lifetime. Rows are ordered by index then primary key.
+/// The guard blocks writers until both it and all borrowed iterators are dropped.
+pub struct CatalogIndexScan<'a, C: Catalog, T: Table<C>> {
+    rows: &'a BTreeMap<u64, Stored<C>>,
+    primary: &'a BTreeMap<(u64, u64), u64>,
+    entries: Option<std::collections::btree_map::Range<'a, Vec<u8>, Posting>>,
+    posting: Option<PostingIter<'a>>,
+    table_id: u64,
+    marker: PhantomData<fn() -> T>,
+}
+impl<'a, C: Catalog, T: Table<C>> Iterator for CatalogIndexScan<'a, C, T> {
+    type Item = (u64, &'a T::Record);
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some(key) = self.posting.as_mut().and_then(Iterator::next) {
+                if let Some(row) = self
+                    .primary
+                    .get(&(self.table_id, *key))
+                    .and_then(|slot| self.rows.get(slot))
+                    .and_then(|r| r.data.as_ref())
+                    .and_then(|(_, r)| T::borrow(r))
+                {
+                    return Some((*key, row));
+                }
+            } else {
+                self.posting = Some(self.entries.as_mut()?.next()?.1.into_iter());
+            }
+        }
     }
 }
 

@@ -1,14 +1,18 @@
 /// Declare a typed catalog using existing record codecs and index projections.
 ///
-/// Generates the catalog marker, native row enum, typed table markers and index
-/// ID constants with the specified visibility. Optional attributes before the
-/// row enum name apply only to that enum. Record types can use `Record` derive
+/// Generates the catalog marker, native row enum, typed table markers and typed
+/// index markers (or raw ID constants) with the specified visibility. Optional
+/// attributes before the row enum name apply only to that enum. Record types can use `Record` derive
 /// or manual codecs. Table and index declarations must be strictly ID-sorted;
 /// the engine validates the complete descriptor before storage is created.
-/// Every index projection is ordinary Rust returning `Result<Vec<u8>>` and
-/// receives the declared table's typed record. Projections must be pure and
-/// deterministic. Index IDs, versions, uniqueness and key bytes remain explicit
-/// persistent contracts. Changing them requires a catalog migration.
+/// Typed `key: Key => |row| expression` declarations generate an index marker
+/// implementing `catalog::Index`, sharing `Key::encode_key` between projections
+/// and queries. The row parameter is inferred and the expression may borrow
+/// strings/bytes or use `?` for a fallible projection. Declare all indexes in
+/// this typed form, or use the original `key: |row: &Record| -> Result<Vec<u8>>`
+/// form to generate raw ID constants. Projections must be pure and deterministic.
+/// Index IDs, versions, uniqueness and key bytes remain persistent contracts;
+/// changing them requires a catalog migration.
 ///
 /// ```
 /// #[derive(Debug)]
@@ -28,9 +32,9 @@
 ///         schema: (100, 1),
 ///         tables: { Players: Player },
 ///         indexes: {
-///             BY_AREA: Players {
+///             ByArea: Players {
 ///                 id: 1, version: 1, unique: false,
-///                 key: |player: &Player| Ok(player.area.to_be_bytes().to_vec())
+///                 key: u64 => |player| player.area
 ///             }
 ///         }
 ///     }
@@ -38,7 +42,8 @@
 /// let db = skrin::catalog::CatalogDatabase::<Game>::in_memory()?;
 /// db.write(|tx| tx.insert::<Players>(42, Player { area: 3, name: "Ada".into() }))?;
 /// let read = db.read()?;
-/// assert_eq!(read.lookup::<Players>(BY_AREA, &3_u64.to_be_bytes())?[0].1.name, "Ada");
+/// assert_eq!(read.matching(ByArea, &3)?.next().unwrap().1.name, "Ada");
+/// assert_eq!(read.query(ByArea, 0..=3)?.take(1).count(), 1);
 /// # Ok::<(), skrin::Error>(())
 /// ```
 ///
@@ -72,6 +77,69 @@ macro_rules! catalog {
             indexes: {
                 $($index:ident: $index_table:ident {
                     id: $index_id:expr, version: $index_version:expr,
+                    unique: $unique:expr, key: $key:ty => |$value:ident| $projection:expr $(,)?
+                }),+ $(,)?
+            } $(,)?
+        }
+    ) => {
+        $(
+            $vis struct $index;
+            impl $crate::catalog::Index<$catalog> for $index {
+                type Table = $index_table;
+                type Key = $key;
+                const DEFINITION: $crate::catalog::IndexDefinition = $crate::catalog::IndexDefinition {
+                    id: $index_id,
+                    table_id: <<$index_table as $crate::catalog::Table<$catalog>>::Record as $crate::Record>::SCHEMA.table_id,
+                    version: $index_version,
+                    unique: $unique,
+                };
+                fn project($value: &<$index_table as $crate::catalog::Table<$catalog>>::Record) -> $crate::Result<::std::vec::Vec<u8>> {
+                    <$key as $crate::catalog::IndexKey>::encode_key(&($projection))
+                }
+            }
+        )+
+        $crate::catalog! { @catalog
+            $vis $catalog, $(#[$row_attr])* $row {
+                schema: ($catalog_id, $catalog_version),
+                tables: { $($table: $record),+ },
+                indexes: { $($index: $index_table {
+                    id: $index_id, version: $index_version, unique: $unique,
+                    key: <$index as $crate::catalog::Index<$catalog>>::project
+                }),+ }
+            }
+        }
+    };
+    (
+        $vis:vis $catalog:ident, $(#[$row_attr:meta])* $row:ident {
+            schema: ($catalog_id:expr, $catalog_version:expr),
+            tables: { $($table:ident: $record:ty),+ $(,)? },
+            indexes: {
+                $($index:ident: $index_table:ident {
+                    id: $index_id:expr, version: $index_version:expr,
+                    unique: $unique:expr, key: $projection:expr $(,)?
+                }),* $(,)?
+            } $(,)?
+        }
+    ) => {
+        $($vis const $index: u64 = $index_id;)*
+        $crate::catalog! { @catalog
+            $vis $catalog, $(#[$row_attr])* $row {
+                schema: ($catalog_id, $catalog_version),
+                tables: { $($table: $record),+ },
+                indexes: { $($index: $index_table {
+                    id: $index_id, version: $index_version,
+                    unique: $unique, key: $projection
+                }),* }
+            }
+        }
+    };
+    (@catalog
+        $vis:vis $catalog:ident, $(#[$row_attr:meta])* $row:ident {
+            schema: ($catalog_id:expr, $catalog_version:expr),
+            tables: { $($table:ident: $record:ty),+ $(,)? },
+            indexes: {
+                $($index:ident: $index_table:ident {
+                    id: $index_id:expr, version: $index_version:expr,
                     unique: $unique:expr, key: $projection:expr $(,)?
                 }),* $(,)?
             } $(,)?
@@ -99,7 +167,6 @@ macro_rules! catalog {
                 }
             }
         )+
-        $($vis const $index: u64 = $index_id;)*
         impl $crate::catalog::Catalog for $catalog {
             const SCHEMA: $crate::Schema = $crate::Schema {
                 table_id: $catalog_id, version: $catalog_version
@@ -109,7 +176,7 @@ macro_rules! catalog {
             ];
             const INDEXES: &'static [$crate::catalog::IndexDefinition] = &[
                 $($crate::catalog::IndexDefinition {
-                    id: $index,
+                    id: $index_id,
                     table_id: <<$index_table as $crate::catalog::Table<$catalog>>::Record as $crate::Record>::SCHEMA.table_id,
                     version: $index_version,
                     unique: $unique,
@@ -133,7 +200,7 @@ macro_rules! catalog {
                 // accidental projection of a different row variant.
                 let _ = (index_id, row);
                 match (index_id, row) {
-                    $((id, $row::$index_table(record)) if id == $index => ($projection)(record),)*
+                    $((id, $row::$index_table(record)) if id == $index_id => ($projection)(record),)*
                     _ => ::core::result::Result::Err($crate::Error::Codec("catalog index/table mismatch".into())),
                 }
             }

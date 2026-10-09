@@ -57,9 +57,9 @@ skrin::catalog! {
         schema: (9000, 1),
         tables: { Entities: Entity },
         indexes: {
-            AREA_INDEX: Entities {
+            Area: Entities {
                 id: 1, version: 1, unique: false,
-                key: |row: &Entity| Ok(row.area.to_be_bytes().to_vec())
+                key: u64 => |row| row.area
             }
         }
     }
@@ -67,20 +67,25 @@ skrin::catalog! {
 ```
 
 This generates `World: Catalog`, enum `Row` with `Entities(Entity)`, marker
-`Entities: Table<World>`, and constant `AREA_INDEX`. All generated items use the
+`Entities: Table<World>`, and marker `Area: Index<World>`. All generated items use the
 declaration's visibility. Optional attributes before `Row` apply to that enum;
 `Debug` is opt-in and requires the record types to implement it. Record types can
 be named with paths. Empty `indexes: {}` and one-table catalogs are supported.
 
 Declare tables and indexes in strictly increasing ID order. The engine refuses
 duplicates, unsorted definitions or undeclared index ownership before creating
-storage. Table schemas come from their actual record types. Each projection
-receives its table's typed record and returns `Result<Vec<u8>>`. Wrong table
-names or projection parameter types fail compilation; codec failures and
-uniqueness violations use the existing transaction error contract.
+storage. Table schemas come from their actual record types. Each typed projection
+receives its table's inferred record. Its expression
+produces the declared key, which uses the same `IndexKey` codec during projection
+and query. Borrow a string/blob with `key: str => |row| &row.name` or
+`key: [u8] => |row| &row.payload`; the expression can also propagate an error
+with `?`. Wrong table names, projection values and query key types fail
+compilation. Codec failures and uniqueness violations use the existing
+transaction error contract.
 
-The key above uses big-endian bytes to preserve numeric index order. Its index
-ID, version, uniqueness and projection remain persistent schema decisions;
+The built-in u64 key codec uses fixed-width big-endian bytes to preserve numeric
+index order. u8/u32 keys work likewise; str/[u8] keys preserve raw byte order.
+Index ID, version, uniqueness and projection remain persistent schema decisions;
 change them through a catalog migration. Projections must be pure, deterministic
 and immutable. This is the same contract as implementing `Catalog` manually.
 
@@ -92,13 +97,21 @@ db.write(|tx| tx.insert::<Entities>(42, Entity {
     area: 3, x: 100, y: 50, revision: 0,
 }))?;
 let read = db.read()?;
-let area = 3_u64.to_be_bytes().to_vec();
-let visible: Vec<_> = read.index_scan::<Entities>(AREA_INDEX, area.clone()..=area)?
+let visible: Vec<_> = read.matching(Area, &3)?
     .filter(|(_, entity)| entity.x >= 30)
     .take(32)
     .map(|(id, entity)| (id, entity.x, entity.y))
     .collect();
 ```
+
+The original raw form remains available for existing catalogs:
+`key: |row: &Entity| Ok(row.area.to_be_bytes().to_vec())` generates a u64 ID
+constant, used with `index_scan`/`lookup`. A declaration uses either all typed
+or all raw indexes. Manual catalogs can implement `Index<C>` with the matching
+full `IndexDefinition`, delegating their projection to `Index::project` and
+sharing the same key codec. Custom/composite key types implement `IndexKey` with
+an explicit canonical, order-preserving encoding. Changing that encoding or
+projection meaning requires an index version and catalog migration.
 
 ## Executable compatibility evidence
 

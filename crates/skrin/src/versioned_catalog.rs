@@ -2,6 +2,7 @@ use super::*;
 use crate::catalog::{
     self, Catalog, CatalogDatabase, CatalogWrite, IndexDefinition, Indexes, Stored, Table,
 };
+use crate::version_tree::VersionIter;
 use std::marker::PhantomData;
 use std::ops::Bound;
 
@@ -260,6 +261,32 @@ impl<C: Catalog> Clone for CatalogSnapshot<C> {
     }
 }
 impl<C: Catalog> CatalogSnapshot<C> {
+    /// Lazily query a schema-owned index using native key bounds. Returns an
+    /// error for reversed/equal-excluded bounds or a mismatched definition.
+    /// Compose Rust predicates, projections and limits on the returned rows.
+    pub fn query<I: catalog::Index<C>>(
+        &self,
+        _index: I,
+        range: impl RangeBounds<I::Key>,
+    ) -> Result<CatalogSnapshotIndexScan<'_, C, I::Table>> {
+        self.lease.check()?;
+        crate::typed_index::validate::<C, I>()?;
+        self.index_scan::<I::Table>(
+            I::DEFINITION.id,
+            crate::typed_index::bounds::<I::Key>(range)?,
+        )
+    }
+    /// Lazily select equal native index keys in primary-key order. The index
+    /// marker determines the record/key types; no table or ID argument is needed.
+    pub fn matching<I: catalog::Index<C>>(
+        &self,
+        _index: I,
+        key: &I::Key,
+    ) -> Result<CatalogSnapshotIndexScan<'_, C, I::Table>> {
+        self.lease.check()?;
+        crate::typed_index::validate::<C, I>()?;
+        self.index_scan::<I::Table>(I::DEFINITION.id, crate::typed_index::EqualKey::new(key)?)
+    }
     /// The synchronized sequence shared by rows and every index.
     pub fn sequence(&self) -> Result<u64> {
         self.lease.check()?;
@@ -302,7 +329,7 @@ impl<C: Catalog> CatalogSnapshot<C> {
         &self,
         id: u64,
         range: impl RangeBounds<Vec<u8>>,
-    ) -> Result<impl Iterator<Item = (u64, &T::Record)>> {
+    ) -> Result<CatalogSnapshotIndexScan<'_, C, T>> {
         self.lease.check()?;
         let definition = catalog::index::<C, T>(id)?;
         catalog::validate_index_bounds(&range);
@@ -311,29 +338,19 @@ impl<C: Catalog> CatalogSnapshot<C> {
             Bound::Included(key) => Bound::Included((id, Arc::from(key.as_slice()), 0)),
             Bound::Excluded(key) => Bound::Excluded((id, Arc::from(key.as_slice()), u64::MAX)),
         };
-        Ok(self
-            .lease
-            .version
-            .view
-            .postings
-            .range((lower, Bound::Unbounded))
-            .take_while(move |((found, key, _), ())| {
-                *found == id
-                    && match range.end_bound() {
-                        Bound::Unbounded => true,
-                        Bound::Included(k) => key.as_ref() <= k.as_slice(),
-                        Bound::Excluded(k) => key.as_ref() < k.as_slice(),
-                    }
-            })
-            .filter_map(move |((_, _, primary), ())| {
-                self.lease
-                    .version
-                    .view
-                    .rows
-                    .get(&(definition.table_id, *primary))
-                    .and_then(|row| T::borrow(row))
-                    .map(|row| (*primary, row))
-            }))
+        let upper = match range.end_bound() {
+            Bound::Unbounded => Bound::Unbounded,
+            Bound::Included(key) => Bound::Included((id, Arc::from(key.as_slice()), u64::MAX)),
+            Bound::Excluded(key) => Bound::Excluded((id, Arc::from(key.as_slice()), 0)),
+        };
+        Ok(CatalogSnapshotIndexScan {
+            entries: self.lease.version.view.postings.range((lower, upper)),
+            rows: &self.lease.version.view.rows,
+            id,
+            table_id: definition.table_id,
+            finished: false,
+            marker: PhantomData,
+        })
     }
     /// Collect an indexed scan into a vector. Use `index_scan` to stop early
     /// or filter/project before collecting. Ordering and bounds are identical.
@@ -345,6 +362,42 @@ impl<C: Catalog> CatalogSnapshot<C> {
         let rows = self.index_scan::<T>(id, range)?.collect();
         self.lease.check()?;
         Ok(rows)
+    }
+}
+type PostingBounds = (Bound<Posting>, Bound<Posting>);
+/// Lazy row/index traversal borrowing one immutable catalog snapshot. Encoded
+/// bounds are owned; the original query keys can be dropped after construction.
+/// Poison is checked at construction. An already returned iterator cannot be
+/// revoked by a later uncertain write, just like an already borrowed record.
+pub struct CatalogSnapshotIndexScan<'a, C: Catalog, T: Table<C>> {
+    entries: VersionIter<'a, Posting, (), PostingBounds>,
+    rows: &'a VersionTree<(u64, u64), Arc<C::Row>>,
+    id: u64,
+    table_id: u64,
+    finished: bool,
+    marker: PhantomData<fn() -> T>,
+}
+impl<'a, C: Catalog, T: Table<C>> Iterator for CatalogSnapshotIndexScan<'a, C, T> {
+    type Item = (u64, &'a T::Record);
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.finished {
+            return None;
+        }
+        for ((id, _, primary), ()) in self.entries.by_ref() {
+            if *id != self.id {
+                self.finished = true;
+                return None;
+            }
+            if let Some(row) = self
+                .rows
+                .get(&(self.table_id, *primary))
+                .and_then(|row| T::borrow(row))
+            {
+                return Some((*primary, row));
+            }
+        }
+        self.finished = true;
+        None
     }
 }
 /// Multi-table staging with the original final-view uniqueness algorithm.

@@ -1,9 +1,11 @@
 # Native typed queries for a game world
 
 Skrin queries use Rust table markers, declared indexes and ordinary iterators.
-`CatalogRead` and immutable `CatalogSnapshot` both provide `index_scan::<T>`.
-It borrows typed native rows, visits an index interval in byte-key then primary-
-key order, and yields lazily. No row decoding, row cloning or full result vector
+`CatalogRead` and immutable `CatalogSnapshot` both provide `query(index, bounds)`
+and `matching(index, &key)`. The schema-owned marker infers the table, record and
+key types; queries cannot mix indexes from different catalogs or pass a string
+to a numeric index. Both borrow native rows, visit key then primary-key order,
+and yield lazily. No row decoding, row cloning or full result vector
 is required by the engine. The application chooses its index and key encoding.
 SQL syntax, parsers and compatibility APIs remain permanently excluded.
 
@@ -12,8 +14,8 @@ SQL syntax, parsers and compatibility APIs remain permanently excluded.
 | Operation | Native access path |
 | --- | --- |
 | Entity by ID | `get::<Entities>(id)` |
-| Entities in one/more areas | `index_scan::<Entities>(AREA_INDEX, start..=end)` |
-| Items owned by one entity | `index_scan::<Items>(OWNER_INDEX, key.clone()..=key)` |
+| Entities in one/more areas | `query(Area, start..=end)` |
+| Items owned by one entity | `matching(Owner, &owner)` |
 | Additional predicates/projection/limit | Rust `filter`, `map`, `take`, then optionally `collect` |
 | Item plus its owner | Item scan and `get::<Entities>(item.owner)` on the same read view |
 | Explicit table scan | `scan::<T>()`, ordered by primary key |
@@ -27,6 +29,28 @@ The game schema encodes area/owner index keys as big-endian u64 bytes, so numeri
 order matches lexicographic order. Record codecs remain explicit little-endian
 fields. Custom sorting/collation comes from a versioned application projection;
 changing a projection requires the catalog's existing migration protocol.
+
+## Native keys and bounds
+
+Declare `Area: Entities { id: 1, version: 1, unique: false,
+key: u64 => |row| row.area }` in `catalog!`. It generates `Area: Index<World>`;
+the same big-endian key codec serves both persisted projections and query bounds.
+Built-in keys are u8/u32/u64, str and [u8]. Match strings with
+`read.matching(ByName, "Ada")`; strings use case-sensitive UTF-8 byte order.
+For unsized keys Rust's standard borrowed bound pairs work:
+`read.query(ByName, (Included("Ada"), Excluded("Zoe")))` (import
+`std::ops::Bound::{Included, Excluded}`). Numeric keys use ordinary ranges,
+including `..`, `..=end`, `start..` and `start..=end`. Full-u64 keys need no casts
+or sentinel value. Empty valid ranges yield no rows. Iterators borrow only their
+read view; input keys and bounds can be dropped immediately after construction.
+
+Typed calls validate the full declared index definition and encoded key size.
+Reversed bounds and equal excluded endpoints return `InvalidOperation`, including
+empty indexes. Key codec errors propagate before traversal. Custom key codecs
+must preserve intended ordering and canonical equality. Their semantics and
+versions are application contracts; the engine cannot infer an unversioned
+change. Existing raw `index_scan::<T>` remains available and retains its
+BTreeMap-style panic for invalid byte bounds. No disk format changes.
 
 ## Executable queries
 
@@ -43,7 +67,7 @@ result limit compose directly:
 
 ```rust
 let visible = frame
-    .index_scan::<Entities>(AREA_INDEX, start..=end)?
+    .query(Area, start..=end)?
     .filter(|(_, row)| query.x.contains(&row.x) && query.y.contains(&row.y))
     .take(limit)
     .map(|(key, row)| (key, *row))
@@ -85,7 +109,9 @@ position filtering is an ordinary Rust predicate. An orphan inventory owner is
 an application consistency error, not a built-in foreign-key constraint.
 
 Iterator creation validates table/index ownership and range bounds, including
-empty indexes, and checks snapshot poison. Already returned immutable iterators
+empty indexes, and checks snapshot poison. Typed calls also check definition
+version/uniqueness and key type/codec; their malformed ranges return errors.
+Already returned immutable iterators
 and references cannot be revoked by a later storage failure. New query calls
 refuse after uncertainty; close/reopen and reconcile as for other reads/writes.
 All rows and indexes remain resident in RAM. Persistence is Unix-only and
@@ -94,7 +120,10 @@ application responsibilities.
 
 ## Verification
 
-[Query regressions](../crates/skrin/tests/queries.rs) compare indexed bounds/order
+[Typed-index regressions](../crates/skrin/tests/typed_indexes.rs) cover numeric
+bounds, borrowed UTF-8/blob keys, mismatched definitions, codec errors and size
+limits. [Query regressions](../crates/skrin/tests/queries.rs) compare indexed
+bounds/order
 with independently sorted rows, cover empty and full-u64 ranges, wrong table/index
 refusal, and instrument actual typed borrowing to prove early `take` is lazy.
 [Game regressions](../crates/skrin/tests/game_queries.rs) verify filtered pages,

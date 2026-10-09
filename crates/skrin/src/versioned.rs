@@ -625,7 +625,10 @@ impl<R: Record> GroupSnapshotDatabase<R> {
 
 #[path = "versioned_catalog.rs"]
 mod catalogs;
-pub use catalogs::{CatalogSnapshot, CatalogSnapshotWrite, GroupSnapshotCatalog, SnapshotCatalog};
+pub use catalogs::{
+    CatalogSnapshot, CatalogSnapshotIndexScan, CatalogSnapshotWrite, GroupSnapshotCatalog,
+    SnapshotCatalog,
+};
 
 #[cfg(test)]
 #[path = "versioned_tests.rs"]

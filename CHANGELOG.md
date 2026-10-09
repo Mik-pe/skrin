@@ -1,5 +1,11 @@
 # Changelog
 
+## Native typed index access
+
+- Add schema-owned `Index` markers and explicit ordered `IndexKey` codecs, sharing projection and query encoding for native integers, borrowed strings/bytes and custom keys.
+- Add lazy `query(index, bounds)` and `matching(index, &key)` to borrowed catalogs and snapshots; infer record/key types and validate full definitions, encoded limits and malformed ranges without panics.
+- Use typed declarations and queries throughout the game-world examples/benchmarks; retain raw/manual APIs, disk formats and atomic constraints, with generated/manual byte equivalence and production fault poison checks.
+
 ## Persistence projection identity lifetimes
 
 - Retain open file/directory identities during bounded persistence observations, preventing recycled inode numbers from conflating removed objects with new files or directories.

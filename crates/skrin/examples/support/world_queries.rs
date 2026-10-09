@@ -29,10 +29,7 @@ pub fn visible_entities(
         return Ok(Vec::new());
     }
     Ok(frame
-        .index_scan::<Entities>(
-            AREA_INDEX,
-            lower.to_be_bytes().to_vec()..=query.areas.end().to_be_bytes().to_vec(),
-        )?
+        .query(Area, lower..=*query.areas.end())?
         .filter(|(key, row)| {
             after.is_none_or(|cursor| (row.area, *key) > cursor)
                 && query.x.contains(&row.x)
@@ -59,9 +56,8 @@ pub fn inventory(
     after: Option<u64>,
     limit: usize,
 ) -> Result<Vec<InventoryEntry>> {
-    let key = owner.to_be_bytes().to_vec();
     frame
-        .index_scan::<Items>(OWNER_INDEX, key.clone()..=key)?
+        .matching(Owner, &owner)?
         .filter(|(key, row)| {
             after.is_none_or(|cursor| *key > cursor) && kind.is_none_or(|kind| row.kind == kind)
         })
