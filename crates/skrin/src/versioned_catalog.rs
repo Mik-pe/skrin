@@ -293,52 +293,58 @@ impl<C: Catalog> CatalogSnapshot<C> {
     pub fn lookup<T: Table<C>>(&self, id: u64, key: &[u8]) -> Result<Vec<(u64, &T::Record)>> {
         self.index_range::<T>(id, key.to_vec()..=key.to_vec())
     }
-    /// Indexed range ordered by byte key then primary key. Invalid bounds panic
-    /// as for BTreeMap. Rows and postings always come from this same version.
-    pub fn index_range<T: Table<C>>(
+    /// Lazy indexed scan ordered by byte key then primary key, borrowing rows
+    /// and postings from this coherent version. Rust `filter`/`map`/`take` can
+    /// stop without materializing all matches. Invalid bounds panic as for
+    /// BTreeMap, including an empty index. Admission/poison is checked when
+    /// creating the iterator; already returned iterators cannot be revoked.
+    pub fn index_scan<T: Table<C>>(
         &self,
         id: u64,
         range: impl RangeBounds<Vec<u8>>,
-    ) -> Result<Vec<(u64, &T::Record)>> {
+    ) -> Result<impl Iterator<Item = (u64, &T::Record)>> {
         self.lease.check()?;
-        catalog::index::<C, T>(id)?;
-        let (start, end) = (range.start_bound(), range.end_bound());
-        if let (Bound::Included(a) | Bound::Excluded(a), Bound::Included(b) | Bound::Excluded(b)) =
-            (start, end)
-        {
-            assert!(a <= b, "range start exceeds range end");
-            assert!(
-                a != b || !matches!((start, end), (Bound::Excluded(_), Bound::Excluded(_))),
-                "equal excluded range bounds"
-            );
-        }
-        let lower = match start {
+        let definition = catalog::index::<C, T>(id)?;
+        catalog::validate_index_bounds(&range);
+        let lower = match range.start_bound() {
             Bound::Unbounded => Bound::Included((id, Arc::from([]), 0)),
             Bound::Included(key) => Bound::Included((id, Arc::from(key.as_slice()), 0)),
             Bound::Excluded(key) => Bound::Excluded((id, Arc::from(key.as_slice()), u64::MAX)),
         };
-        let mut result = Vec::new();
-        for ((found, key, primary), ()) in self
+        Ok(self
             .lease
             .version
             .view
             .postings
             .range((lower, Bound::Unbounded))
-        {
-            if *found != id
-                || match end {
-                    Bound::Unbounded => false,
-                    Bound::Included(k) => key.as_ref() > k.as_slice(),
-                    Bound::Excluded(k) => key.as_ref() >= k.as_slice(),
-                }
-            {
-                break;
-            }
-            if let Some(row) = self.get::<T>(*primary)? {
-                result.push((*primary, row));
-            }
-        }
-        Ok(result)
+            .take_while(move |((found, key, _), ())| {
+                *found == id
+                    && match range.end_bound() {
+                        Bound::Unbounded => true,
+                        Bound::Included(k) => key.as_ref() <= k.as_slice(),
+                        Bound::Excluded(k) => key.as_ref() < k.as_slice(),
+                    }
+            })
+            .filter_map(move |((_, _, primary), ())| {
+                self.lease
+                    .version
+                    .view
+                    .rows
+                    .get(&(definition.table_id, *primary))
+                    .and_then(|row| T::borrow(row))
+                    .map(|row| (*primary, row))
+            }))
+    }
+    /// Collect an indexed scan into a vector. Use `index_scan` to stop early
+    /// or filter/project before collecting. Ordering and bounds are identical.
+    pub fn index_range<T: Table<C>>(
+        &self,
+        id: u64,
+        range: impl RangeBounds<Vec<u8>>,
+    ) -> Result<Vec<(u64, &T::Record)>> {
+        let rows = self.index_scan::<T>(id, range)?.collect();
+        self.lease.check()?;
+        Ok(rows)
     }
 }
 /// Multi-table staging with the original final-view uniqueness algorithm.

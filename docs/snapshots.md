@@ -44,6 +44,9 @@ lock-free and makes no real-time or scheduling guarantee.
 
 Single-table snapshots support get, ordered iteration and primary-key ranges.
 Catalog snapshots support typed get/scan and mandatory indexed equality/ranges.
+`index_scan` visits indexed ranges lazily and composes with Rust predicates,
+projections and result limits; [game queries](queries.md) demonstrate stable
+pagination and joins using the same retained frame.
 Rows and **every** unique/non-unique index belong to the same root and sequence.
 Updates, unique-key swaps and deletes publish together. An old view retains its
 old rows and old postings, including rows deleted from the current version.

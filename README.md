@@ -117,6 +117,30 @@ cargo run -p skrin --example banking --locked -- /path/to/NEW-banking-directory
 
 See [catalog definitions, transactions, format and explicit legacy import](docs/catalog.md). The original `Database<R>` API remains available as the single-table baseline.
 
+## Query a game world in Rust
+
+Read by typed ID, select an indexed area/owner interval, then compose ordinary
+Rust predicates, projections and result limits:
+
+```rust
+let visible = frame
+    .index_scan::<Entities>(AREA_INDEX, start..=end)?
+    .filter(|(_, entity)| entity.x >= 30 && entity.x <= 100)
+    .take(32)
+    .map(|(id, entity)| (id, entity.x, entity.y))
+    .collect::<Vec<_>>();
+```
+
+`index_scan` is lazy on borrowed catalog reads and immutable catalog snapshots.
+It visits byte-key then primary-key order without first materializing all matches.
+Use one retained frame for stable pagination and coherent item/owner joins.
+The [complete query example and contract](docs/queries.md) demonstrate filtering,
+seven-row pages, inventory kinds, atomic saves and verified persistent recovery:
+
+```sh
+cargo run -p skrin --example game_queries --locked
+```
+
 ## Keep it, compact it, evolve it
 
 | Operation | Contract |

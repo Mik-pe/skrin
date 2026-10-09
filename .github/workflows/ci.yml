@@ -145,6 +145,15 @@ jobs:
         run: cargo +${{ matrix.rust }} run -p skrin --example snapshots --locked
       - name: Run typed game-world frames and atomic saves
         run: cargo +${{ matrix.rust }} run -p skrin --example game_world --locked
+      - name: Run typed game queries, filtered pages and coherent joins
+        run: cargo +${{ matrix.rust }} run -p skrin --example game_queries --locked
+      - name: Run game queries through WAL, checkpoint and backup recovery
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: cargo +${{ matrix.rust }} run -p skrin --example game_queries --locked -- "$RUNNER_TEMP/queries-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+      - name: Smoke lazy bounded indexed game queries
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench game_queries --locked -- 1000
       - name: Smoke resident snapshot conversion and exact retained-state checks
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench snapshot_build --locked -- 1000

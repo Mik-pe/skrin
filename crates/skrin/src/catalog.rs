@@ -9,7 +9,7 @@ use crate::postings::Posting;
 use crate::{Database, Decoder, Encoder, Error, MaintenanceOptions, Record, Result, Schema};
 use std::collections::{BTreeMap, BTreeSet};
 use std::marker::PhantomData;
-use std::ops::RangeBounds;
+use std::ops::{Bound, RangeBounds};
 use std::path::Path;
 use std::sync::{RwLock, RwLockReadGuard};
 
@@ -108,6 +108,19 @@ pub(crate) fn index<C: Catalog, T: Table<C>>(id: u64) -> Result<&'static IndexDe
         .iter()
         .find(|i| i.id == id && i.table_id == table_id)
         .ok_or_else(|| invalid("index is not defined for this typed table"))
+}
+
+pub(crate) fn validate_index_bounds(range: &impl RangeBounds<Vec<u8>>) {
+    let (start, end) = (range.start_bound(), range.end_bound());
+    if let (Bound::Included(a) | Bound::Excluded(a), Bound::Included(b) | Bound::Excluded(b)) =
+        (start, end)
+    {
+        assert!(a <= b, "range start exceeds range end");
+        assert!(
+            a != b || !matches!((start, end), (Bound::Excluded(_), Bound::Excluded(_))),
+            "equal excluded range bounds"
+        );
+    }
 }
 
 // Physical row zero is the catalog descriptor. Other slots are internal only;
@@ -693,25 +706,44 @@ impl<C: Catalog> CatalogRead<'_, C> {
         }
         Ok(result)
     }
-    /// Indexed range scan in byte-key then primary-key order. Invalid bounds
-    /// panic as for `BTreeMap::range`. Use explicit order-preserving key codecs.
+    /// Lazy indexed scan in byte-key then primary-key order. Compose ordinary
+    /// Rust `filter`, `map` and `take` without materializing every match. Rows
+    /// borrow this guard, which blocks writers. Invalid bounds panic as for
+    /// `BTreeMap::range`, including an empty index. Key codecs define ordering.
+    pub fn index_scan<T: Table<C>>(
+        &self,
+        id: u64,
+        range: impl RangeBounds<Vec<u8>>,
+    ) -> Result<impl Iterator<Item = (u64, &T::Record)>> {
+        let definition = index::<C, T>(id)?;
+        validate_index_bounds(&range);
+        let entries = self
+            .indexes
+            .secondary
+            .get(&id)
+            .map(|entries| entries.range(range));
+        Ok(entries
+            .into_iter()
+            .flatten()
+            .flat_map(|(_, posting)| posting.into_iter())
+            .filter_map(move |&key| {
+                self.indexes
+                    .primary
+                    .get(&(definition.table_id, key))
+                    .and_then(|slot| self.transaction.get(*slot))
+                    .and_then(|r| r.data.as_ref())
+                    .and_then(|(_, r)| T::borrow(r))
+                    .map(|r| (key, r))
+            }))
+    }
+    /// Collect an indexed scan into a vector. Use `index_scan` to stop early
+    /// or filter/project before collecting. Ordering and bounds are identical.
     pub fn index_range<T: Table<C>>(
         &self,
         id: u64,
         range: impl RangeBounds<Vec<u8>>,
     ) -> Result<Vec<(u64, &T::Record)>> {
-        index::<C, T>(id)?;
-        let mut result = Vec::new();
-        if let Some(entries) = self.indexes.secondary.get(&id) {
-            for (_, posting) in entries.range(range) {
-                for &key in posting {
-                    if let Some(row) = self.get::<T>(key)? {
-                        result.push((key, row));
-                    }
-                }
-            }
-        }
-        Ok(result)
+        Ok(self.index_scan::<T>(id, range)?.collect())
     }
     /// Sequence shared by every table and index in this view.
     pub fn sequence(&self) -> u64 {
@@ -799,6 +831,7 @@ impl<C: Catalog> CatalogWrite<'_, C> {
         range: impl RangeBounds<Vec<u8>>,
     ) -> Result<Vec<(u64, &T::Record)>> {
         let definition = index::<C, T>(id)?;
+        validate_index_bounds(&range);
         let mut matches = BTreeSet::new();
         if let Some(entries) = self.indexes.secondary.get(&id) {
             for (key, posting) in

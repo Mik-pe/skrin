@@ -34,6 +34,10 @@ contents is refused. Persistent runs additionally checkpoint, reclaim, make
 a verified independent backup and reopen both copies. Existing destinations
 are never overwritten. In-memory runs are explicitly volatile.
 
+The [native query example](queries.md) adds lazy indexed area/owner ranges,
+position/kind predicates, projections, coherent item/owner joins and stable
+pagination over one frame. Run it with `cargo run -p skrin --example game_queries --locked`.
+
 The deterministic save generator is a reproducible example workload, not an
 ECS, arbitrary gameplay API, world-streaming system or geometric spatial index.
 The simulation can retain its active data in its ECS and submit dirty values to

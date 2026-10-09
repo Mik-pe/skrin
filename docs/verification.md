@@ -14,6 +14,7 @@ cargo +1.89.0 check --workspace --all-targets --locked
 cargo +1.89.0 run -p skrin --example accounts --locked
 cargo +1.89.0 run -p skrin --example snapshots --locked
 cargo +1.89.0 run -p skrin --example game_world --locked
+cargo +1.89.0 run -p skrin --example game_queries --locked
 ```
 
 If local tooling/platform support is missing, record that fact and use the corresponding CI job as evidence. An unexecuted command is not a passing check. Windows tests do not establish persistent-storage support.
@@ -31,6 +32,7 @@ cargo +1.89.0 run -p skrin --example banking --locked -- "$scratch/banking"
 cargo +1.89.0 run -p skrin --example group_commit --locked -- "$scratch/groups"
 cargo +1.89.0 run -p skrin --example snapshots --locked -- "$scratch/snapshots"
 cargo +1.89.0 run -p skrin --example game_world --locked -- "$scratch/world"
+cargo +1.89.0 run -p skrin --example game_queries --locked -- "$scratch/queries"
 ```
 
 These examples verify reopen, independent backup, migration, operation-ID retry and reader admission where applicable. Inspect or remove the test-owned scratch parent after the commands finish. A temporary/container filesystem run is correctness evidence, not identified physical-device performance.
@@ -67,6 +69,7 @@ Compile and run the affected benchmark when changing an API or hot path. The har
 | `snapshots` | Four durable write/read modes, held readers, retention and maintenance/recovery |
 | `snapshot_build` | Resident single-table/catalog snapshot conversion, exact reads/indexes, retained roots and subsequent updates; excludes seed/verification time and persistent recovery |
 | `game_world` | Typed area/inventory reads, atomic dirty-state saves, coherent synthetic frames and exact fresh-process recovery, with optimized SQLite independent/batch controls and windows 1/8 |
+| `game_queries` | Lazy native/snapshot indexed areas, Rust predicate/projection and an early result limit, checked against exact reference rows; explicitly resident/volatile |
 
 Use [benchmark methodology](benchmarks.md) and the checked-in raw measurements. Keep source/compiler/device/filesystem, workload and synchronization comparable; report tails and adverse repeats, not just a best throughput number. Advisory file-cache eviction does not control device caches, and cooperative pinned-byte accounting is not RSS or an allocator cap.
 
