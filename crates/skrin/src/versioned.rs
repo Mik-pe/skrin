@@ -239,14 +239,16 @@ impl<R: Record> SingleEngine<R> {
         let database = database.map_records(|_, r| Ok(Shared(Arc::new(r))))?;
         let (rows, sequence) = {
             let state = database.read()?;
-            let mut rows = VersionTree::default();
-            for (&key, row) in &state.state.rows {
-                rows = rows.insert(
-                    key,
-                    row.0.clone(),
-                    row_bytes(&*row.0, footprint, VersionTree::<u64, Arc<R>>::node_bytes())?,
-                );
-            }
+            let rows = VersionTree::try_from_sorted(
+                state.state.rows.len(),
+                state.state.rows.iter().map(|(&key, row)| {
+                    Ok((
+                        key,
+                        row.0.clone(),
+                        row_bytes(&*row.0, footprint, VersionTree::<u64, Arc<R>>::node_bytes())?,
+                    ))
+                }),
+            )?;
             (Rows(rows), state.sequence())
         };
         Ok(Self {

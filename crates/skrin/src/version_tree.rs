@@ -58,6 +58,33 @@ fn node<K, V>(
         right,
     })
 }
+// Consume an ordered resident source in-order. Allocate each final node once,
+// with only logarithmic recursion space and no temporary full-size vector.
+fn build_sorted<K, V>(
+    len: usize,
+    entries: &mut impl Iterator<Item = crate::Result<(K, V, u64)>>,
+) -> crate::Result<Link<K, V>> {
+    if len == 0 {
+        return Ok(None);
+    }
+    let left_len = len / 2;
+    let left = build_sorted(left_len, entries)?;
+    let (key, value, own_weight) = entries.next().expect("declared sorted source length")?;
+    let right = build_sorted(len - left_len - 1, entries)?;
+    Ok(Some(node(key, value, own_weight, left, right)))
+}
+impl<K, V> VersionTree<K, V> {
+    /// Build once from exactly `len` entries with strictly increasing keys.
+    /// Callers supply validated ordered maps/postings; values need not be cloned.
+    pub(crate) fn try_from_sorted(
+        len: usize,
+        mut entries: impl Iterator<Item = crate::Result<(K, V, u64)>>,
+    ) -> crate::Result<Self> {
+        let root = build_sorted(len, &mut entries)?;
+        assert!(entries.next().is_none(), "declared sorted source length");
+        Ok(Self { root })
+    }
+}
 fn balanced<K: Clone, V: Clone>(
     key: K,
     value: V,
@@ -337,6 +364,86 @@ mod tests {
         assert_eq!(n.count, 1 + lc + rc);
         assert_eq!(n.weight, n.own_weight + lw + rw);
         (n.height, n.count, n.weight)
+    }
+    #[test]
+    fn sorted_build_and_subsequent_versions_match_independent_maps() {
+        for len in [0, 1, 2, 3, 4, 7, 8, 9, 63, 64, 65, 1024] {
+            let mut map: BTreeMap<_, _> = (0..len).map(|key| (key * 2, key + 1)).collect();
+            map.insert(u64::MAX, 42);
+            let mut tree = VersionTree::try_from_sorted(
+                map.len(),
+                map.iter().map(|(&k, &v)| Ok((k, Arc::new(v), v))),
+            )
+            .unwrap();
+            let old = tree.clone();
+            let old_map = map.clone();
+            invariant(&tree.root);
+            // Mutate median-built trees, including both insertion rotations
+            // and deletions, while the initial root remains pinned.
+            for key in 0..len * 2 {
+                if key % 3 == 0 {
+                    tree = tree.remove(&key);
+                    map.remove(&key);
+                } else {
+                    tree = tree.insert(key, Arc::new(key + 7), key + 7);
+                    map.insert(key, key + 7);
+                }
+                let (_, count, weight) = invariant(&tree.root);
+                assert_eq!(count, map.len());
+                assert_eq!(weight, map.values().sum());
+            }
+            for (view, expected) in [(&tree, &map), (&old, &old_map)] {
+                for bounds in [
+                    (std::ops::Bound::Unbounded, std::ops::Bound::Unbounded),
+                    (std::ops::Bound::Included(2), std::ops::Bound::Excluded(9)),
+                    (
+                        std::ops::Bound::Included(u64::MAX),
+                        std::ops::Bound::Included(u64::MAX),
+                    ),
+                ] {
+                    assert_eq!(
+                        view.range(bounds)
+                            .map(|(&k, v)| (k, **v))
+                            .collect::<BTreeMap<_, _>>(),
+                        expected.range(bounds).map(|(&k, &v)| (k, v)).collect()
+                    );
+                }
+            }
+        }
+        let empty = VersionTree::<u64, Arc<u64>>::try_from_sorted(0, std::iter::empty()).unwrap();
+        assert!(empty.is_empty());
+        assert_eq!(empty.accounted_bytes(), 0);
+    }
+    #[test]
+    fn sorted_build_moves_values_and_drops_partial_trees_on_assessment_error() {
+        use std::cell::Cell;
+        struct Value<'a>(&'a Cell<usize>); // Deliberately has no Clone impl.
+        impl Drop for Value<'_> {
+            fn drop(&mut self) {
+                self.0.set(self.0.get() + 1);
+            }
+        }
+        let drops = Cell::new(0);
+        let tree = VersionTree::try_from_sorted(15, (0..15).map(|key| Ok((key, Value(&drops), 1))))
+            .unwrap();
+        assert_eq!(drops.get(), 0);
+        drop(tree);
+        assert_eq!(drops.get(), 15);
+        for fail_at in 0..15 {
+            drops.set(0);
+            let result = VersionTree::try_from_sorted(
+                15,
+                (0..15).map(|key| {
+                    if key == fail_at {
+                        Err(crate::Error::InvalidOperation("assessment failed".into()))
+                    } else {
+                        Ok((key, Value(&drops), 1))
+                    }
+                }),
+            );
+            assert!(matches!(result, Err(crate::Error::InvalidOperation(_))));
+            assert_eq!(drops.get(), fail_at);
+        }
     }
     #[test]
     fn randomized_versions_and_ranges_match_independent_maps() {

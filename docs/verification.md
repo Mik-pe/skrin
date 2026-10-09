@@ -65,6 +65,7 @@ Compile and run the affected benchmark when changing an API or hot path. The har
 | `resources` | Sustained update/delete/insert, process memory, disk overlap and cache observations |
 | `group_commit` | Equivalent durable immediate/group writes, queue/latency/group size |
 | `snapshots` | Four durable write/read modes, held readers, retention and maintenance/recovery |
+| `snapshot_build` | Resident single-table/catalog snapshot conversion, exact reads/indexes, retained roots and subsequent updates; excludes seed/verification time and persistent recovery |
 | `game_world` | Typed area/inventory reads, atomic dirty-state saves, coherent synthetic frames and exact fresh-process recovery, with optimized SQLite independent/batch controls and windows 1/8 |
 
 Use [benchmark methodology](benchmarks.md) and the checked-in raw measurements. Keep source/compiler/device/filesystem, workload and synchronization comparable; report tails and adverse repeats, not just a best throughput number. Advisory file-cache eviction does not control device caches, and cooperative pinned-byte accounting is not RSS or an allocator cap.

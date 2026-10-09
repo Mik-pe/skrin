@@ -93,39 +93,43 @@ impl<C: Catalog> CatalogView<C> {
     ) -> Result<(Self, u64)> {
         let indexes = database.indexes.read().map_err(|_| Error::Poisoned)?;
         let read = database.database.read()?;
-        let mut view = Self {
-            rows: VersionTree::default(),
-            postings: VersionTree::default(),
-        };
-        for (&address, slot) in &indexes.primary {
-            let row = &read.state.rows[slot]
-                .data
-                .as_ref()
-                .expect("validated native row")
-                .1;
-            view.rows = view.rows.insert(
-                address,
-                row.clone(),
-                row_bytes(
-                    row.as_ref(),
-                    footprint,
-                    VersionTree::<(u64, u64), Arc<C::Row>>::node_bytes(),
-                )?,
-            );
-        }
-        for (&id, entries) in &indexes.secondary {
-            for (key, posting) in entries {
-                let shared: Arc<[u8]> = key.as_slice().into();
-                for &primary in posting {
-                    view.postings = view.postings.insert(
-                        (id, shared.clone(), primary),
-                        (),
-                        posting_bytes(key)?,
-                    );
-                }
-            }
-        }
-        Ok((view, read.sequence()))
+        let rows = VersionTree::try_from_sorted(
+            indexes.primary.len(),
+            indexes.primary.iter().map(|(&address, slot)| {
+                let row = &read.state.rows[slot]
+                    .data
+                    .as_ref()
+                    .expect("validated native row")
+                    .1;
+                Ok((
+                    address,
+                    row.clone(),
+                    row_bytes(
+                        row.as_ref(),
+                        footprint,
+                        VersionTree::<(u64, u64), Arc<C::Row>>::node_bytes(),
+                    )?,
+                ))
+            }),
+        )?;
+        let posting_count = indexes
+            .secondary
+            .values()
+            .flat_map(|entries| entries.values())
+            .map(|posting| posting.len())
+            .sum();
+        let postings = VersionTree::try_from_sorted(
+            posting_count,
+            indexes.secondary.iter().flat_map(|(&id, entries)| {
+                entries.iter().flat_map(move |(key, posting)| {
+                    let shared: Arc<[u8]> = key.as_slice().into();
+                    posting.into_iter().map(move |&primary| {
+                        Ok(((id, shared.clone(), primary), (), posting_bytes(key)?))
+                    })
+                })
+            }),
+        )?;
+        Ok((Self { rows, postings }, read.sequence()))
     }
     fn changed(
         &self,

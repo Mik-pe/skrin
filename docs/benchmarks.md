@@ -18,6 +18,23 @@ Before comparing with redb, SQLite, SpacetimeDB or another engine, match durabil
 
 Skrin implements checkpoints and WAL rotation. The managed and scale harnesses below exercise maintenance, but short warm-cache runs do not establish sustained real-device throughput. The [catalog workload](catalog.md#resources-and-evidence) measures typed multi-table transactions and secondary-index overhead separately. The resource harness adds repeated churn and advisory file-cache eviction. Concurrent readers/writers and device-cold recovery remain follow-on benchmarks.
 
+## Resident snapshot construction
+
+Run `cargo bench -p skrin --bench snapshot_build -- 100000` (2..1M rows).
+It times `into_snapshots` for an eight-byte single table and the native game
+world (equal entity/item counts, area/owner indexes), including native Arc
+mapping and memory assessment. Seed and exact verification are outside timing.
+Every run checks all rows and index entries, ordered scans, retained old roots,
+subsequent replacement/insertion/deletion and operation-ID retry as applicable.
+The reported current-root bytes are cooperative accounting, not process RSS.
+
+This explicitly volatile benchmark measures conversion of already resident
+data, not durable writes, storage recovery or end-to-end application startup.
+Build the identical harness/compiler/profile against each engine, run separate
+processes in alternating order across multiple sizes, and retain every result.
+Tree shape can affect subsequent reads/writes; use the durable `game_world`
+harness and production-path tests alongside conversion measurements.
+
 ## Managed maintenance
 
 Run `cargo bench -p skrin --bench maintenance -- /tmp` with an existing scratch parent. The benchmark creates its own fresh directory, arms cleanup only after successful creation, and removes only that owned directory after closing the database. A failed create can leave an unowned partial directory for inspection.
