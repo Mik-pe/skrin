@@ -10,7 +10,6 @@
 
 #![forbid(unsafe_code)]
 
-#[cfg(test)]
 extern crate self as skrin;
 
 pub mod catalog;
@@ -25,6 +24,7 @@ mod maintenance_options;
 mod persistence_model;
 mod postings;
 mod reservation;
+mod schema_macros;
 mod snapshot;
 #[cfg(test)]
 mod test_support;
@@ -39,6 +39,45 @@ pub use directory::{
 };
 pub use error::{Error, Result};
 pub use maintenance_options::{CheckpointPolicy, MaintenanceEstimate, MaintenanceOptions};
+
+/// Generate a fixed codec for a named struct with an explicit schema.
+///
+/// Fields are persisted in declaration order. `u8`, `u32`, `u64`, `String` and
+/// `Vec<u8>` use the existing explicit encoder methods; integers are little
+/// endian and strings/bytes have a u32 length. Reordering, adding, removing or
+/// changing the meaning of fields requires a schema version and migration.
+/// Other field types, enums and generic records need a manual `Record` impl.
+/// No field may be skipped or silently defaulted. `Clone` is not required.
+///
+/// ```
+/// #[derive(Debug, PartialEq, Eq, skrin::Record)]
+/// #[skrin(table_id = 7, version = 1)]
+/// struct Player { name: String, score: u64 }
+/// let db = skrin::Database::<Player>::in_memory();
+/// db.write(|tx| tx.insert(1, Player { name: "Ada".into(), score: 10 }))?;
+/// assert_eq!(db.read()?.get(1).unwrap().score, 10);
+/// # Ok::<(), skrin::Error>(())
+/// ```
+///
+/// Dependency aliases use `#[skrin(crate = alias)]`. Disable the default
+/// `derive` feature to keep the procedural macro dependencies out of builds.
+///
+/// ```compile_fail
+/// #[derive(skrin::Record)]
+/// struct MissingIdentity { score: u64 }
+/// ```
+/// ```compile_fail
+/// #[derive(skrin::Record)]
+/// #[skrin(table_id = 7, version = 1)]
+/// struct NativeWidth { score: usize }
+/// ```
+/// ```compile_fail
+/// #[derive(skrin::Record)]
+/// #[skrin(table_id = 7, version = 1)]
+/// struct LostState { #[skrin(skip)] score: u64 }
+/// ```
+#[cfg(feature = "derive")]
+pub use skrin_derive::Record;
 
 /// Stable application identity, independent of the storage format version.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

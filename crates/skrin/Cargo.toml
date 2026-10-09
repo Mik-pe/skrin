@@ -7,6 +7,13 @@ repository.workspace = true
 description = "A typed, Rust-native embedded storage engine"
 publish = false
 
+[features]
+default = ["derive"]
+derive = ["dep:skrin-derive"]
+
+[dependencies]
+skrin-derive = { path = "../skrin-derive", optional = true }
+
 [[bench]]
 name = "baseline"
 harness = false
@@ -41,15 +48,30 @@ harness = false
 [[bench]]
 name = "game_world"
 harness = false
+required-features = ["derive"]
 
 [[bench]]
 name = "snapshot_build"
 harness = false
+required-features = ["derive"]
 
 [[bench]]
 name = "game_queries"
 harness = false
+required-features = ["derive"]
 
 [dev-dependencies]
 # Comparator only; Skrin's engine and public API do not depend on SQLite.
 rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled", "cache", "fallible_uint"] }
+
+[[example]]
+name = "accounts"
+required-features = ["derive"]
+
+[[example]]
+name = "game_world"
+required-features = ["derive"]
+
+[[example]]
+name = "game_queries"
+required-features = ["derive"]

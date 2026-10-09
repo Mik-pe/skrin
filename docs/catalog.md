@@ -4,7 +4,12 @@
 
 ## Define everything before open
 
-Implement `Catalog` with a native `Row` enum, a distinct stable catalog `SCHEMA`, strictly ID-sorted `TABLES` and `INDEXES`, explicit row codecs and deterministic index projections. Implement one `Table<C>` marker per real `Record` type to wrap/borrow its enum variant. The catalog validates marker record identity against the declared table schema whenever that table is accessed.
+Use [`catalog!`](models.md#declare-a-catalog-once) to declare the native row enum,
+typed table markers and codec/index dispatch together. Derived or manual record
+codecs are supported. The handwritten `Catalog`/`Table<C>` traits remain available:
+a distinct stable catalog `SCHEMA`, strictly ID-sorted `TABLES` and `INDEXES`,
+explicit row codecs and deterministic index projections. The catalog validates
+marker record identity against the declared table schema whenever that table is accessed.
 
 Table IDs, index IDs, versions, index ownership and uniqueness are persisted exactly in a mandatory descriptor. Missing or changed definitions are refused even when the catalog version has accidentally not been increased. Versions identify codec/projection semantics; Skrin cannot inspect the meaning of application code. Increase the table/index version when its encoding or meaning changes, increase the catalog version for the transition, and perform an explicit migration. Rows, projections and codecs must obey immutable value semantics and deterministic round trips.
 

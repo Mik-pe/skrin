@@ -1,27 +1,28 @@
 //! Application schema shared by the executable example and comparison harness.
-use skrin::catalog::{Catalog, CatalogDatabase, CatalogWrite, IndexDefinition, Table};
+use skrin::catalog::{CatalogDatabase, CatalogWrite, Table};
 use skrin::versioned::{CatalogSnapshotWrite, SnapshotOptions};
-use skrin::{Decoder, Encoder, Error, Record, Result, Schema};
+use skrin::{Error, Result};
 
 pub const AREA_SIZE: u64 = 64;
-pub const AREA_INDEX: u64 = 1;
-pub const OWNER_INDEX: u64 = 2;
 
 // Integer positions are in millimetres. Disk bytes are explicit little-endian
 // u64 fields; index keys use big endian for lexicographic numeric ordering.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, skrin::Record)]
+#[skrin(table_id = 1, version = 1)]
 pub struct Entity {
     pub area: u64,
     pub x: u64,
     pub y: u64,
     pub revision: u64,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, skrin::Record)]
+#[skrin(table_id = 2, version = 1)]
 pub struct Item {
     pub owner: u64,
     pub kind: u64,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, skrin::Record)]
+#[skrin(table_id = 3, version = 1)]
 pub struct Saved {
     pub item: u64,
     pub from: u64,
@@ -30,102 +31,22 @@ pub struct Saved {
     pub count: u64,
 }
 
-macro_rules! record {
-    ($ty:ident, $id:literal, $($field:ident),+) => {
-        impl Record for $ty {
-            const SCHEMA: Schema = Schema { table_id: $id, version: 1 };
-            fn encode(&self, e: &mut Encoder) -> Result<()> {
-                $(e.u64(self.$field)?;)+
-                Ok(())
+skrin::catalog! {
+    pub World, #[derive(Debug)] Row {
+        schema: (9000, 1),
+        tables: { Entities: Entity, Items: Item, Saves: Saved },
+        indexes: {
+            AREA_INDEX: Entities {
+                id: 1, version: 1, unique: false,
+                key: |row: &Entity| Ok(row.area.to_be_bytes().to_vec())
+            },
+            OWNER_INDEX: Items {
+                id: 2, version: 1, unique: false,
+                key: |row: &Item| Ok(row.owner.to_be_bytes().to_vec())
             }
-            fn decode(d: &mut Decoder<'_>) -> Result<Self> {
-                Ok(Self { $($field: d.u64()?),+ })
-            }
-        }
-    };
-}
-record!(Entity, 1, area, x, y, revision);
-record!(Item, 2, owner, kind);
-record!(Saved, 3, item, from, to, first, count);
-
-#[derive(Debug)]
-pub enum Row {
-    Entity(Entity),
-    Item(Item),
-    Saved(Saved),
-}
-pub struct World;
-impl Catalog for World {
-    const SCHEMA: Schema = Schema {
-        table_id: 9000,
-        version: 1,
-    };
-    const TABLES: &'static [Schema] = &[Entity::SCHEMA, Item::SCHEMA, Saved::SCHEMA];
-    const INDEXES: &'static [IndexDefinition] = &[
-        IndexDefinition {
-            id: AREA_INDEX,
-            table_id: 1,
-            version: 1,
-            unique: false,
-        },
-        IndexDefinition {
-            id: OWNER_INDEX,
-            table_id: 2,
-            version: 1,
-            unique: false,
-        },
-    ];
-    type Row = Row;
-    fn table_id(row: &Row) -> u64 {
-        match row {
-            Row::Entity(_) => 1,
-            Row::Item(_) => 2,
-            Row::Saved(_) => 3,
-        }
-    }
-    fn encode(row: &Row, e: &mut Encoder) -> Result<()> {
-        match row {
-            Row::Entity(r) => r.encode(e),
-            Row::Item(r) => r.encode(e),
-            Row::Saved(r) => r.encode(e),
-        }
-    }
-    fn decode(id: u64, d: &mut Decoder<'_>) -> Result<Row> {
-        match id {
-            1 => Ok(Row::Entity(Entity::decode(d)?)),
-            2 => Ok(Row::Item(Item::decode(d)?)),
-            3 => Ok(Row::Saved(Saved::decode(d)?)),
-            _ => Err(Error::Codec("unknown world table".into())),
-        }
-    }
-    fn index_key(id: u64, row: &Row) -> Result<Vec<u8>> {
-        match (id, row) {
-            (AREA_INDEX, Row::Entity(r)) => Ok(r.area.to_be_bytes().to_vec()),
-            (OWNER_INDEX, Row::Item(r)) => Ok(r.owner.to_be_bytes().to_vec()),
-            _ => Err(Error::Codec("world index/table mismatch".into())),
         }
     }
 }
-macro_rules! table {
-    ($name:ident, $ty:ident) => {
-        pub struct $name;
-        impl Table<World> for $name {
-            type Record = $ty;
-            fn into_row(r: $ty) -> Row {
-                Row::$ty(r)
-            }
-            fn borrow(r: &Row) -> Option<&$ty> {
-                match r {
-                    Row::$ty(r) => Some(r),
-                    _ => None,
-                }
-            }
-        }
-    };
-}
-table!(Entities, Entity);
-table!(Items, Item);
-table!(Saves, Saved);
 
 pub fn entity(key: u64) -> Entity {
     Entity {

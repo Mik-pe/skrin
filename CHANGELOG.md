@@ -1,5 +1,11 @@
 # Changelog
 
+## Explicit-schema model declarations
+
+- Add optional `Record` derive for concrete named structs using the existing u8/u32/u64/string/bytes codecs; require explicit schema IDs and versions, reject implicit field skips/defaults and unsupported state.
+- Add `catalog!` to generate native row enum/table/codec/index dispatch from one declaration, retaining deterministic application projections and final-view constraints.
+- Convert the executable accounts and game-world models without changing their schemas or storage bytes; retain manual codec/catalog traits and engine-only builds without procedural macro dependencies.
+
 ## Native game queries
 
 - Add lazy typed `index_scan` to borrowed catalog reads and coherent immutable snapshots, composing with Rust filter/projection/limit operations.

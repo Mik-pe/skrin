@@ -1,0 +1,16 @@
+[package]
+name = "skrin-derive"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+description = "Explicit-schema Record derive for Skrin"
+publish = false
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["derive", "parsing", "printing", "proc-macro"], default-features = false }

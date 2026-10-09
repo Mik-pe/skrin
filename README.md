@@ -53,7 +53,20 @@ For reproducible experiments, pin a reviewed commit with `rev` instead of follow
 
 ## The API
 
-Define a `Record` with an explicit, stable schema and codec. Then use typed transactions. This excerpt uses `Account` from the [accounts example](crates/skrin/examples/accounts.rs):
+Define an ordinary Rust value with an explicit, stable schema. `Record` derive
+generates the fixed codec for common field types; manual codecs remain available.
+This is the complete model from the [accounts example](crates/skrin/examples/accounts.rs):
+
+```rust
+#[derive(Debug, skrin::Record)]
+#[skrin(table_id = 1, version = 1)]
+struct Account {
+    name: String,
+    balance: u64,
+}
+```
+
+Then use typed transactions:
 
 ```rust
 let db = Database::<Account>::create_dir("accounts.skrin")?;
@@ -80,7 +93,10 @@ let backup = db.backup_to("accounts-backup.skrin")?;
 <details>
 <summary><strong>Why an explicit codec?</strong></summary>
 
-Rust's native memory layout is not the disk format. Table identity, schema version and field encoding remain stable across refactors:
+Rust's native memory layout is not the disk format. Derive encodes fields in
+declaration order using explicit little-endian integers and length-prefixed
+strings/bytes. Reordering or changing persisted fields requires a schema version
+and migration. The equivalent manual codec for the model above is:
 
 ```rust
 impl Record for Account {
@@ -102,11 +118,20 @@ impl Record for Account {
 
 Skrin validates schema identity before decoding and rejects trailing record bytes. Changes in field meaning or representation require a schema version and an explicit migration, not a cast of old bytes into a new struct.
 
+Derive supports `u8`, `u32`, `u64`, `String` and `Vec<u8>` on concrete named
+structs. Other types use manual codecs. It never skips or implicitly defaults
+state. The default `derive` feature can be disabled for engine-only builds.
+See [models and catalogs](docs/models.md) for the complete contract.
+
 </details>
 
 ## Tables and indexes in one transaction
 
 `catalog::CatalogDatabase<C>` adds schema-owned typed tables and mandatory unique/non-unique indexes. A transaction validates all final constraints, syncs one WAL frame and publishes rows/indexes together. Indexes rebuild and validate before recovery can repair a tail. Baseline borrowed reads block writers; opt-in immutable snapshots preserve one coherent row/index version.
+
+`catalog!` generates the native row enum, typed table markers and codec/index
+dispatch from one declaration. The [game schema](crates/skrin/examples/support/world.rs)
+uses derived models and this declaration instead of handwritten dispatch.
 
 The executable banking example debits/credits Accounts, records an operation ID in Transfers, checks duplicate rollback, then checkpoints and migrates to a real V2 Account codec:
 
@@ -217,7 +242,7 @@ Read [durability](docs/durability.md) and the [managed storage protocol](docs/ma
 | Limits | 8 MiB per encoded record; 16 MiB per transaction payload; snapshots can exceed the transaction limit |
 | Platforms | Memory mode tested on Linux/macOS/Windows; persistent backends currently Unix-only |
 | Group commit | Opt-in bounded independent requests; shared sync before row/index visibility and successful responses |
-| Not implemented | Derive macros, encryption, replication |
+| Not implemented | Automatic field migrations, encryption, replication |
 
 Never nest transactions, hold guards across `await`, or perform external side effects in transaction/migration closures. Records must have immutable value semantics. A Rust-only API and advisory locks are not access control against another process with filesystem permissions.
 

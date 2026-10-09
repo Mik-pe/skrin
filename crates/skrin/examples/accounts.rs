@@ -1,29 +1,11 @@
-use skrin::{Database, Decoder, Encoder, Record, Result, Schema};
+use skrin::{Database, Result};
 use std::path::PathBuf;
 
-#[derive(Debug)]
+#[derive(Debug, skrin::Record)]
+#[skrin(table_id = 1, version = 1)]
 struct Account {
     name: String,
     balance: u64,
-}
-
-impl Record for Account {
-    const SCHEMA: Schema = Schema {
-        table_id: 1,
-        version: 1,
-    };
-
-    fn encode(&self, encoder: &mut Encoder) -> Result<()> {
-        encoder.string(&self.name)?;
-        encoder.u64(self.balance)
-    }
-
-    fn decode(decoder: &mut Decoder<'_>) -> Result<Self> {
-        Ok(Self {
-            name: decoder.string()?.to_owned(),
-            balance: decoder.u64()?,
-        })
-    }
 }
 
 fn main() -> Result<()> {

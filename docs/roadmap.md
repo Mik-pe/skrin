@@ -15,6 +15,11 @@ a required future step for broad desktop-game use.
 
 ## Delivered foundations
 
+The [ergonomics and measured-advantage audit](api-ergonomics.md) tracks the full
+model/query/save/recovery target against SQL, SwiftData and SQLite. Explicit-schema
+model declarations are implemented; typed index/key ergonomics and additional
+comparable game queries still need evidence before the target is complete.
+
 Typed native records, stable schema codecs, atomic staged writes, borrowed reads, ranges, checksummed WAL/recovery and process ownership are implemented. Managed directories add sealed checkpoints, explicit active/previous retention, independently decoded backup/restore and named offline migrations. The executable lifecycle and fault tests are part of the deliverable, not future API sketches.
 
 ## Next: strengthen the operational boundary

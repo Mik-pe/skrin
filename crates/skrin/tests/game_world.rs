@@ -1,3 +1,5 @@
+#![cfg(feature = "derive")]
+
 #[path = "../examples/support/world.rs"]
 mod world;
 use skrin::catalog::CatalogDatabase;

@@ -1,3 +1,5 @@
+#![cfg(feature = "derive")]
+
 #[path = "../examples/support/world_queries.rs"]
 mod queries;
 #[path = "../examples/support/world.rs"]
