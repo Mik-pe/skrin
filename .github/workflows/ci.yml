@@ -64,7 +64,9 @@ jobs:
       - name: Check all targets
         run: cargo +${{ matrix.rust }} check --workspace --all-targets --locked
       - name: Check engine without optional model derive
-        run: cargo +${{ matrix.rust }} check -p skrin --all-targets --no-default-features --locked
+        run: |
+          cargo +${{ matrix.rust }} check -p skrin --all-targets --no-default-features --locked
+          cargo +${{ matrix.rust }} test -p skrin --doc --no-default-features --locked
       - name: Run in-memory example
         run: cargo +${{ matrix.rust }} run -p skrin --example accounts --locked
       - name: Run persistent example and verify reopen

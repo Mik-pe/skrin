@@ -11,9 +11,18 @@
 /// persistent contracts. Changing them requires a catalog migration.
 ///
 /// ```
-/// #[derive(Debug, skrin::Record)]
-/// #[skrin(table_id = 1, version = 1)]
+/// #[derive(Debug)]
 /// struct Player { area: u64, name: String }
+/// impl skrin::Record for Player {
+///     const SCHEMA: skrin::Schema = skrin::Schema { table_id: 1, version: 1 };
+///     fn encode(&self, e: &mut skrin::Encoder) -> skrin::Result<()> {
+///         e.u64(self.area)?;
+///         e.string(&self.name)
+///     }
+///     fn decode(d: &mut skrin::Decoder<'_>) -> skrin::Result<Self> {
+///         Ok(Self { area: d.u64()?, name: d.string()?.into() })
+///     }
+/// }
 /// skrin::catalog! {
 ///     Game, #[derive(Debug)] Row {
 ///         schema: (100, 1),
@@ -35,9 +44,12 @@
 ///
 /// An index projection must accept its declared record type:
 /// ```compile_fail
-/// #[derive(skrin::Record)]
-/// #[skrin(table_id = 1, version = 1)]
 /// struct Player { area: u64 }
+/// impl skrin::Record for Player {
+///     const SCHEMA: skrin::Schema = skrin::Schema { table_id: 1, version: 1 };
+///     fn encode(&self, e: &mut skrin::Encoder) -> skrin::Result<()> { e.u64(self.area) }
+///     fn decode(d: &mut skrin::Decoder<'_>) -> skrin::Result<Self> { Ok(Self { area: d.u64()? }) }
+/// }
 /// skrin::catalog! {
 ///     Game, Row {
 ///         schema: (100, 1),
