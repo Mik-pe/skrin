@@ -10,10 +10,10 @@ pub(crate) fn reserve(file: &File, offset: u64, len: u64) -> io::Result<()> {
     #[cfg(not(target_os = "linux"))]
     {
         let _ = (file, offset, len);
-        return Err(io::Error::new(
+        Err(io::Error::new(
             io::ErrorKind::Unsupported,
             "file-data reservation requires Linux",
-        ));
+        ))
     }
     #[cfg(target_os = "linux")]
     crate::directory::boundary()
