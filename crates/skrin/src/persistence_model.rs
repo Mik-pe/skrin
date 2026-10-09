@@ -36,16 +36,30 @@ struct Tree {
 fn identity(metadata: &fs::Metadata) -> Identity {
     (metadata.dev(), metadata.ino())
 }
-fn names(path: &Path) -> BTreeMap<OsString, Entry> {
+// Images retain removed objects as possible durable survivors. Keep an open
+// handle to each observed object until finish(), so the real filesystem cannot
+// recycle its inode number for another file/directory while that identity still
+// participates in the projection. Pins are per model, not per cloned image.
+type IdentityPins = BTreeMap<Identity, File>;
+fn pinned_metadata(path: &Path, pins: &mut IdentityPins) -> fs::Metadata {
+    let meta = fs::symlink_metadata(path).unwrap();
+    assert!(
+        meta.is_file() || meta.is_dir(),
+        "model workloads exclude links/special files"
+    );
+    pins.entry(identity(&meta)).or_insert_with(|| {
+        let file = File::open(path).unwrap();
+        assert_eq!(identity(&file.metadata().unwrap()), identity(&meta));
+        file
+    });
+    meta
+}
+fn names(path: &Path, pins: &mut IdentityPins) -> BTreeMap<OsString, Entry> {
     fs::read_dir(path)
         .unwrap()
         .map(|entry| {
             let entry = entry.unwrap();
-            let meta = fs::symlink_metadata(entry.path()).unwrap();
-            assert!(
-                meta.is_file() || meta.is_dir(),
-                "model workloads exclude links/special files"
-            );
+            let meta = pinned_metadata(&entry.path(), pins);
             (
                 entry.file_name(),
                 Entry {
@@ -57,13 +71,13 @@ fn names(path: &Path) -> BTreeMap<OsString, Entry> {
         .collect()
 }
 impl Tree {
-    fn capture(root: &Path) -> Self {
-        fn walk(path: &Path, nodes: &mut BTreeMap<Identity, Node>) {
-            let meta = fs::symlink_metadata(path).unwrap();
+    fn capture(root: &Path, pins: &mut IdentityPins) -> Self {
+        fn walk(path: &Path, nodes: &mut BTreeMap<Identity, Node>, pins: &mut IdentityPins) {
+            let meta = pinned_metadata(path, pins);
             let node = if meta.is_dir() {
-                let children = names(path);
+                let children = names(path, pins);
                 for name in children.keys() {
-                    walk(&path.join(name), nodes);
+                    walk(&path.join(name), nodes, pins);
                 }
                 Node::Directory(children)
             } else {
@@ -72,7 +86,7 @@ impl Tree {
             nodes.insert(identity(&meta), node);
         }
         let mut nodes = BTreeMap::new();
-        walk(root, &mut nodes);
+        walk(root, &mut nodes, pins);
         Self {
             root: identity(&fs::metadata(root).unwrap()),
             nodes,
@@ -143,6 +157,7 @@ struct Model {
     volatile: BTreeMap<Identity, Arc<[u8]>>,
     acknowledged_sequence: Option<u64>,
     published_generation: Option<u64>,
+    identity_pins: IdentityPins,
 }
 thread_local! { static MODEL: RefCell<Option<Model>> = const { RefCell::new(None) }; }
 
@@ -165,8 +180,10 @@ fn begin(root: &Path, omission: Omission, full: bool, sequence: Option<u64>) {
     let root = fs::canonicalize(root).unwrap();
     MODEL.with(|slot| {
         assert!(slot.borrow().is_none());
+        let mut identity_pins = IdentityPins::new();
+        let durable = Tree::capture(&root, &mut identity_pins);
         *slot.borrow_mut() = Some(Model {
-            durable: Tree::capture(&root),
+            durable,
             root,
             images: Vec::new(),
             pending_manifest: None,
@@ -176,6 +193,7 @@ fn begin(root: &Path, omission: Omission, full: bool, sequence: Option<u64>) {
             volatile: BTreeMap::new(),
             acknowledged_sequence: sequence,
             published_generation: None,
+            identity_pins,
         });
     });
     boundary();
@@ -237,7 +255,7 @@ pub(crate) fn file_synced(file: &File) {
     MODEL.with(|slot| {
         if let Some(model) = slot.borrow_mut().as_mut() {
             let (id, bytes) = contents(file);
-            let live = Tree::capture(&model.root);
+            let live = Tree::capture(&model.root, &mut model.identity_pins);
             let name = live.nodes.values().find_map(|node| match node {
                 Node::Directory(entries) => entries
                     .iter()
@@ -278,8 +296,8 @@ pub(crate) fn directory_synced(path: &Path) {
                 return;
             }
             model.durable.nodes.insert(
-                identity(&fs::metadata(path).unwrap()),
-                Node::Directory(names(path)),
+                identity(&pinned_metadata(path, &mut model.identity_pins)),
+                Node::Directory(names(path, &mut model.identity_pins)),
             );
         }
     });
@@ -287,9 +305,9 @@ pub(crate) fn directory_synced(path: &Path) {
 pub(crate) fn manifest_renamed(root: &Path, temporary: &Path) {
     MODEL.with(|slot| {
         if let Some(model) = slot.borrow_mut().as_mut() {
-            let meta = fs::metadata(root.join("CURRENT")).unwrap();
+            let meta = pinned_metadata(&root.join("CURRENT"), &mut model.identity_pins);
             model.pending_manifest = Some((
-                identity(&fs::metadata(root).unwrap()),
+                identity(&pinned_metadata(root, &mut model.identity_pins)),
                 Entry {
                     id: identity(&meta),
                     directory: false,
@@ -305,7 +323,7 @@ pub(crate) fn manifest_renamed(root: &Path, temporary: &Path) {
 // current bytes surviving, and every observed append prefix independently for
 // one file. This is not every possible sector/reordered-write combination.
 impl Model {
-    fn namespace_images(&self) -> Vec<Tree> {
+    fn namespace_images(&mut self) -> Vec<Tree> {
         if !self.full {
             let mut trees = vec![self.durable.clone()];
             if let Some((parent, entry, temporary)) = &self.pending_manifest {
@@ -319,7 +337,7 @@ impl Model {
             }
             return trees;
         }
-        let live = Tree::capture(&self.root);
+        let live = Tree::capture(&self.root, &mut self.identity_pins);
         let mut deltas = Vec::new();
         for (&parent, node) in &live.nodes {
             let Node::Directory(current) = node else {
@@ -428,4 +446,78 @@ pub(crate) fn boundary() {
 pub(crate) fn finish() -> Vec<Image> {
     boundary();
     MODEL.with(|slot| slot.borrow_mut().take().expect("started projection").images)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn removed_files_and_directories_keep_distinct_identities_until_projection_finishes() {
+        struct Temp(PathBuf);
+        impl Drop for Temp {
+            fn drop(&mut self) {
+                fs::remove_dir_all(&self.0).unwrap();
+            }
+        }
+        let temp = Temp(std::env::temp_dir().join(format!(
+            "skrin-identity-pins-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        )));
+        fs::create_dir(&temp.0).unwrap();
+        let file_path = temp.0.join("file-to-directory");
+        let directory_path = temp.0.join("directory-to-file");
+        fs::write(&file_path, b"old file").unwrap();
+        fs::create_dir(&directory_path).unwrap();
+        let old_file = identity(&fs::metadata(&file_path).unwrap());
+        let old_directory = identity(&fs::metadata(&directory_path).unwrap());
+        start_full(&temp.0, Omission::None, 0);
+
+        fs::remove_file(&file_path).unwrap();
+        fs::remove_dir(&directory_path).unwrap();
+        fs::create_dir(&file_path).unwrap();
+        fs::write(&directory_path, b"new file").unwrap();
+        assert_ne!(identity(&fs::metadata(&file_path).unwrap()), old_file);
+        assert_ne!(
+            identity(&fs::metadata(&directory_path).unwrap()),
+            old_directory
+        );
+        MODEL.with(|slot| {
+            let slot = slot.borrow();
+            let pins = &slot.as_ref().unwrap().identity_pins;
+            // The production observer itself retains both unlinked objects.
+            let file = pins[&old_file].metadata().unwrap();
+            assert_eq!(identity(&file), old_file);
+            assert!(file.is_file());
+            assert_eq!(file.nlink(), 0);
+            let directory = pins[&old_directory].metadata().unwrap();
+            assert_eq!(identity(&directory), old_directory);
+            assert!(directory.is_dir());
+        });
+
+        boundary(); // Exhaust unsynced replacement names, retaining old nodes.
+        let current_file = File::open(&directory_path).unwrap();
+        file_synced(&current_file);
+        directory_synced(&file_path);
+        directory_synced(&temp.0);
+        let images = finish();
+        assert!(images.len() > 1);
+        for image in images {
+            for node in image.tree.nodes.values() {
+                if let Node::Directory(names) = node {
+                    for entry in names.values() {
+                        if let Some(node) = image.tree.nodes.get(&entry.id) {
+                            assert_eq!(entry.directory, matches!(node, Node::Directory(_)));
+                        }
+                    }
+                }
+            }
+        }
+        // Restored images only own projected bytes/names; finish drops all pins.
+        MODEL.with(|slot| assert!(slot.borrow().is_none()));
+    }
 }

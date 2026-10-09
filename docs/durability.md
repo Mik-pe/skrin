@@ -58,6 +58,14 @@ Tests exercise every byte truncation boundary and single-bit corruption in a sam
 
 A test-only persistence projection observes production write/truncate, sync and rename sites and separates durable file contents from directory entries. Bounded workloads explore all subsets of current unsynced namespace differences, loss or survival of observed file writes, and every byte prefix of an append after synchronized WAL bytes. Actual recovery reads each image. Acknowledgment and publication markers distinguish an unacknowledged transaction that may survive from an acknowledged transaction that must survive, and verify multi-table rows and indexes across checkpoints and migrations. Eight negative controls catch omitted snapshot, new/append WAL, OWNER, manifest, generation-directory and both parent-directory sync guarantees.
 
+While observing a bounded workload, the projection keeps one open handle per
+observed file/directory, including removed objects, until `finish()`. This keeps
+device/inode identities from being recycled for different objects that still
+appear in possible durable images. Cloned images retain only projected bytes and
+names, not handles. Pins do not mark contents or names durable and do not alter
+the namespace/sync omission cases. They can temporarily retain file allocation
+and descriptors in these test workloads; production storage does not use them.
+
 Explicit `StorageFull` fault injection covers every sampled checkpoint/migration boundary and every append byte cutoff, including sync failures. It checks clean preparation refusal versus uncertain publication, poisoning and complete old/new recovery; this is ENOSPC-equivalent error handling, not an actual filled filesystem. The projection is bounded and does not exhaustively model new-file byte prefixes, combinations of partial writes across multiple files, torn sectors, write reordering, device caches, kernel/filesystem bugs, or real power cuts. A future durability certification requires those additional hardware tests. The implemented Linux/macOS flush requests have a [source/platform contract review](flush-contract-review.md); this does not certify every device.
 
 The separate Linux [bounded-tmpfs regression](maintenance.md#persistence-order-evidence) also triggers actual kernel ENOSPC beneath production checkpoint and WAL code, verifies clean refusal versus poisoned append/reopen, and preserves a partially owned stage while producing a verified independent backup. It complements injected failures without claiming device durability. The [operator workflow](maintenance.md#operator-workflow-for-unknown-or-partially-owned-stages) explains handling unknown contents and the retained headroom cost.

@@ -1,5 +1,10 @@
 # Changelog
 
+## Persistence projection identity lifetimes
+
+- Retain open file/directory identities during bounded persistence observations, preventing recycled inode numbers from conflating removed objects with new files or directories.
+- Add a real-filesystem replacement regression and retain all existing namespace, append-prefix and omitted-sync assertions; the production engine and formats are unchanged.
+
 ## Explicit-schema model declarations
 
 - Add optional `Record` derive for concrete named structs using the existing u8/u32/u64/string/bytes codecs; require explicit schema IDs and versions, reject implicit field skips/defaults and unsupported state.
