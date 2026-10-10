@@ -1,0 +1,8 @@
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `bench` profile [optimized] target(s) in 2.61s
+     Running benches/api_journey.rs (/tmp/skrin-cursor-isolated.pQZ6b8/new/release/deps/api_journey-7a6e7a9fdf873abf)
+native,phase=create,full_models_and_join=verified,atomic_edit=verified,error_rollback=verified
+native,phase=verify,full_models_and_join=verified,atomic_edit=verified,error_rollback=verified
+sqlite,phase=create,full_models_and_join=verified,atomic_edit=verified,error_with_transaction_drop_rollback=verified
+sqlite,phase=verify,full_models_and_join=verified,atomic_edit=verified,error_with_transaction_drop_rollback=verified
+journeys,independent_process_reopen=verified,durable_create_save_and_error_rollback=verified,no_performance_claim=true

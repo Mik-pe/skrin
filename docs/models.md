@@ -179,3 +179,48 @@ NaN/infinity/subnormal/zero bits and production WAL refusal before torn-tail
 repair for correctly checksummed invalid tags. The existing storage fixtures and
 format versions are unchanged; adding fields to an existing model still requires
 a schema version and migration.
+
+## Edit ordinary fields transactionally
+
+For records with an explicit `Clone` implementation, `edit` accepts a mutable
+clone of the current staged value:
+
+```rust
+db.write(|tx| {
+    tx.edit::<Characters>(7, |player| {
+        player.x = 128;
+        player.health = 0.0;
+        player.alive = false;
+        Ok(())
+    })?;
+    tx.edit::<Items>(101, |item| {
+        item.owner = 9;
+        Ok(())
+    })
+})?;
+```
+
+This is the real save in the [complete native/SQLite game control](../crates/skrin/benches/api_journey.rs).
+`WriteTransaction` and `SnapshotWrite` use `edit(id, callback)`; catalog writers
+infer the record from `edit::<Table>(id, callback)`. One selected record's Clone
+method is called once per edit, including a rejected callback. Other records
+are not cloned. The callback cannot retain its mutable reference. A missing key
+returns `MissingKey` before cloning or calling the callback.
+
+A callback error leaves that statement's staging unchanged. Propagate errors
+out of `write` to discard the complete transaction; catching a statement error
+allows earlier staging to commit, just like `update`. Successful edits stage a
+complete replacement even when no field changed: there is no dirty tracking.
+All index validation, WAL append/sync, uncertain-outcome poison and publication
+remain in the existing transaction path. Old immutable frames retain their
+original rows and indexes. The outer `write` returns success only after its
+configured persistence boundary.
+
+Clone is opt-in; derive never adds it implicitly. It must preserve the record's
+value semantics and cannot make shared mutable state transactional. Cloning large
+owned strings/blobs has an application cost. `update` remains the complete-value
+operation for records without Clone or for explicitly controlled replacement
+construction. The [edit regressions](../crates/skrin/src/edit_tests.rs) cover all
+four writers, clone counts, staged errors, uniqueness, retained frames, codec
+refusal and every short-write/ENOSPC prefix plus uncertain sync beneath the
+production WAL implementation. Storage formats and existing fixtures are unchanged.

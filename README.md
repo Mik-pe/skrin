@@ -88,7 +88,7 @@ let cleanup = db.prune()?; // Keep active + previous generation.
 let backup = db.backup_to("accounts-backup.skrin")?;
 ```
 
-`insert` rejects duplicates. `put` explicitly inserts or replaces. `update` requires an existing row and returns a complete replacement without requiring `Clone`. `remove` reports whether a row existed. Transaction reads see earlier staged changes. Propagating an error rolls back the closure; dropping a manual transaction discards its staging.
+`insert` rejects duplicates. `put` explicitly inserts or replaces. `update` requires an existing row and returns a complete replacement without requiring `Clone`. For records that opt into `Clone`, `edit(id, |row| { ...; Ok(()) })` stages field changes by cloning only that row once. `remove` reports whether a row existed. Transaction reads see earlier staged changes. Propagating an error rolls back the closure; dropping a manual transaction discards its staging.
 
 <details>
 <summary><strong>Why an explicit codec?</strong></summary>

@@ -454,6 +454,20 @@ impl<C: Catalog> CatalogSnapshotWrite<'_, C> {
     ) -> Result<()> {
         self.transaction.update::<SharedTable<T>>(key, update)
     }
+    /// Edit a clone of one current staged row; retained row/index frames stay
+    /// immutable. Clones only this row once. A callback error leaves this
+    /// statement unchanged; propagate it to roll back the entire transaction.
+    /// Use `update` to build a replacement without `Clone`.
+    pub fn edit<T: Table<C>>(
+        &mut self,
+        key: u64,
+        edit: impl FnOnce(&mut T::Record) -> Result<()>,
+    ) -> Result<()>
+    where
+        T::Record: Clone,
+    {
+        self.transaction.edit::<SharedTable<T>>(key, edit)
+    }
     /// Remove a logical key, reporting whether it existed in this staged view.
     pub fn remove<T: Table<C>>(&mut self, key: u64) -> Result<bool> {
         self.transaction.remove::<SharedTable<T>>(key)

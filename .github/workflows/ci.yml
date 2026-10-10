@@ -157,6 +157,18 @@ jobs:
         run: cargo +${{ matrix.rust }} run -p skrin --example game_models --locked -- "$RUNNER_TEMP/models-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
       - name: Run typed game queries, filtered pages and coherent joins
         run: cargo +${{ matrix.rust }} run -p skrin --example game_queries --locked
+      - name: Compare complete native and SQLite game journeys with fresh-process reopen
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        run: cargo +${{ matrix.rust }} bench -p skrin --bench api_journey --locked
+      - name: Verify the standalone SwiftData game journey
+        if: matrix.os == 'macos-latest' && matrix.rust == 'stable'
+        shell: bash
+        run: |
+          xcrun swiftc --version
+          sw_vers
+          xcrun swiftc -parse-as-library -module-cache-path "$RUNNER_TEMP/swiftdata-cache" comparisons/swiftdata_game.swift -o "$RUNNER_TEMP/swiftdata-game"
+          "$RUNNER_TEMP/swiftdata-game" create "$RUNNER_TEMP/swiftdata-game.store"
+          "$RUNNER_TEMP/swiftdata-game" verify "$RUNNER_TEMP/swiftdata-game.store"
       - name: Run game queries through WAL, checkpoint and backup recovery
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash

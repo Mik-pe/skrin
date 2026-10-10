@@ -1,52 +1,97 @@
 # Ergonomics and measured advantages
 
-The product target is an API that makes application database work easier than
-SQL and SwiftData, with multiple measured advantages over SQLite and a small,
-coherent public API. Neither subjective preference nor one fast microbenchmark
-establishes that target. Keep the complete application paths executable and
-compare equivalent work, failure contracts and costs.
+Skrin's target is a small native API that makes Rust game database work easier
+than direct SQL and the corresponding SwiftData workflow, with several measured
+advantages over SQLite. The complete application controls and current-source
+query repeats now provide direct evidence for the target paths below. A
+subjective preference or a faster microbenchmark alone is insufficient.
 
-## Current evidence and remaining work
+## Verified application requirements
 
-| Requirement | Current evidence | Remaining work |
+| Requirement | Executable evidence | Deliberate boundary/cost |
 | --- | --- | --- |
-| Declare ordinary application models once | `Record` derive and `catalog!` power accounts, game-world and signed/float/bool/optional character models; generated/manual persistent bytes are identical | Covered current model fields; custom codecs and explicit migrations remain deliberate boundaries |
-| Query with native types and ordinary Rust composition | Typed index markers infer records/keys; lazy predicates/projections/limits/joins and `query_after` seek directly within duplicate keys; repeated resident cursor controls verify exact pages | Compare the complete external application journeys; varied filtered/bounded/joined controls are now [measured](measurements/varied-queries-2026-10-10.md), with SQLite wins retained |
-| Make writes and failure recovery understandable | Complete character model → typed query → atomic edit → WAL/checkpoint/backup reopen, plus duplicate/unique rollback, retries, retained frames and explicit migrations | Compare complete application declaration/query/save/recovery work with the external SQL/SwiftData controls |
-| Beat SQLite at several useful operations | [Repeated game-world comparison](measurements/game-world-performance-2026-10-08.md): resident point/area reads and queued independent durable saves; [current cursor comparison](measurements/cursor-queries-2026-10-10.md) adds repeated hot filtered pages against a covering prepared SQLite seek | [Varied-query controls](measurements/varied-queries-2026-10-10.md) add a snapshot bounded-read advantage and show SQLite wins filtered/pages/joins; complete external ergonomic journeys remain open |
-| Keep a high-quality public API | Manual traits remain available; no SQL, unsafe code, implicit migration or persistence downgrade; compile-fail and storage compatibility tests | Assess type errors, empty/full-u64 cases, poison, documentation and cross-platform/MSRV behavior on every new API |
+| Declare ordinary application models once | Record derive and catalog! power accounts, signed/float/bool/optional character models and the complete two-table control; generated/manual persistent bytes are identical | Explicit schema IDs/versions and migrations; unsupported/custom fields use manual codecs |
+| Native typed indexed queries and composition | Markers infer table/key; query/matching/query_after compose Rust predicates/projections/limits; tuples select owner/kind without an application byte codec | Application selects indexes; all rows/indexes fit RAM; no query optimizer or implicit relationships |
+| Convenient field changes with clear rollback | edit-by-ID callbacks in all four writers; complete native/SQL/SwiftData save/error/reopen controls verify every field and join | One selected record Clone per edit; update remains non-Clone; caught statement errors preserve earlier staging |
+| Multiple useful SQLite advantages | Current-source five-process controls: snapshot full area selection and native hot cursor pages; earlier point/area and queued independent-save reports provide separate workload evidence | SQLite wins varied filtered/page/join medians, atomic batches, RAM and disk cost; no universal speed claim |
+| High-quality public API | Current staging, missing rows, unique final-view rollback, retained frames, clone-count tests, compile-fail type/lifetime checks, production WAL faults and golden compatibility fixtures | MSRV/stable/platform CI, warnings-as-errors and documented persistence/reader/maintenance limits remain required |
 
-The repeated comparison already records native point p50 2.59× faster and
-snapshot area p50 2.44× faster on the specified resident workload. It also
-records cases where SQLite wins: atomic-batch writes, much less RAM and smaller
-post-maintenance storage under different retention policies. Those costs remain
-part of the comparison. New declarations alone make no performance claim.
+[The complete application report](measurements/api-journeys-2026-10-10.md)
+contains exact sources, compiler/runtime versions, functional logs, all timing
+repeats and observed failure handling. The [comparison guide](../comparisons/README.md)
+makes native, prepared SQL and standalone SwiftData model → query → join → save →
+error/rollback → fresh-process reopen paths independently runnable. Setup,
+metadata, indexes, result mapping and failure handling stay visible.
 
-## Compare actual application work
+## The practical ergonomics improvement
 
-Use model declaration, visible-entity selection, inventory/owner lookup, atomic
-save and recovery as the common journeys. Compile/run the Skrin variants and
-check exact results against independent application data. Count application
-declarations and necessary query/transaction code only when the same work and
-contracts are represented. Keep setup, metadata, index declarations, model
-mapping and failure handling visible; hiding them in an adapter is not an
-ergonomic improvement.
+In the common journey, native queries reuse the declared index's row type and
+ordering, plus ordinary language ranges and iterators. The application needs no
+SQL column extraction or predicate descriptor/key-path sort construction.
+SwiftData also offers typed predicates and model declarations; those capabilities
+are represented in the control.
 
-SwiftData's [`@Model`](https://developer.apple.com/documentation/swiftdata/model())
-generates managed model conformance from a class. Its
-[`FetchDescriptor`](https://developer.apple.com/documentation/swiftdata/fetchdescriptor)
-describes typed predicate/sort/limit fetches and can prefetch relationships;
-SwiftUI also has query integration. These are useful existing capabilities,
-not evidence of shortcomings. Skrin currently offers ordinary Rust values and
-composable closures, explicit transactions and retained immutable frames; it
-does not offer SwiftUI observation or automatic relationship management.
+For field edits, a typed ID selects the value inside one write scope:
 
-SQLite's [prepared-statement interface](https://www.sqlite.org/cintro.html)
-compiles statements, binds values, steps results and extracts columns, and
-supports statement reuse. Benchmark/application comparisons must reuse prepared
-statements and appropriate indexes rather than charging SQLite preparation
-repeatedly when the application can avoid it. SQL remains confined to external
-comparison adapters and can never become a Skrin API or engine dependency.
+```rust
+db.write(|tx| {
+    tx.edit::<Characters>(7, |player| {
+        player.x = 128;
+        player.health = 0.0;
+        player.alive = false;
+        Ok(())
+    })?;
+    tx.edit::<Items>(101, |item| {
+        item.owner = 9;
+        Ok(())
+    })
+})?;
+```
 
-The complete ergonomics/performance target remains open until the missing paths
-above have direct current evidence. Passing model tests alone does not finish it.
+This actual save in [api_journey.rs](../crates/skrin/benches/api_journey.rs)
+replaces the previous full-record reconstruction for simple changes. It avoids
+separate model fetches before field assignment and gives every native write a
+fresh staging scope. Propagating an error rolls back all rows/indexes. A rejected
+edit callback discards its private cloned value, even when the caller catches
+the error. Successful outer writes still wait for the configured persistence
+boundary; storage uncertainty poisons the handle. These are concrete advantages
+for the target Rust game paths, not a universal ranking of languages/frameworks.
+
+Clone is explicit and can copy large owned fields. Records without Clone use
+update; it still accepts a complete replacement from a borrowed current value.
+A successful edit stages a replacement even with unchanged fields. There is no
+implicit dirty tracking. Mutable callback references cannot escape. Retained
+immutable row/index frames remain coherent across committed edits.
+
+SwiftData's direct managed setters, observation and automatic relationships can
+be preferable for Swift UI applications; Skrin has no SwiftUI integration. The
+comparison intentionally uses scalar owner IDs in every engine. Its explicit
+context rollback is verified on the named SDK/runtime, not asserted as a rule
+for all framework versions. SQLite through rusqlite also has default transaction
+rollback on drop; the control uses it. No artificial failure-handling boilerplate
+is charged to those alternatives.
+
+## Measured advantages and limits
+
+The [current-source report](measurements/api-journeys-2026-10-10.md) records
+snapshot full two-area p50 **1.32× faster** than a reused prepared covering
+SQLite query, and native hot cursor pages **1.50–1.63× faster** than a covering
+SQLite ID seek. Their complete result vectors match independent arithmetic in
+all five fresh process repeats. The same report preserves SQLite's wins in all
+varied filtered/page/compound-join controls and higher individual Skrin tails.
+Adding edit is an ergonomics change, not a claimed read-path optimization.
+
+[The earlier game-world comparison](measurements/game-world-performance-2026-10-08.md)
+records point/area reads and queued independent durable saves, plus SQLite wins
+at atomic batches, RAM and smaller post-maintenance storage under different
+retention policies. [The earlier cursor report](measurements/cursor-queries-2026-10-10.md)
+retains adverse snapshot repeats. Later controls do not erase those results.
+No SwiftData speed, cold-cache or whole-game performance advantage is established.
+
+The API/application target has executable evidence for these ordinary Rust game
+journeys; production certification and feature parity with every SQL/ORM/UI
+framework remain outside it. Persistence is Unix-only and experimental, all
+rows/indexes remain resident, baseline read guards block writers, and snapshot
+leases/maintenance/retention/headroom are explicit application responsibilities.
+Read [models](models.md), [queries](queries.md), [durability](durability.md) and
+[managed storage](managed-storage.md) for the complete contracts.

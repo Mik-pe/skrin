@@ -84,3 +84,8 @@ required-features = ["derive"]
 [[example]]
 name = "game_models"
 required-features = ["derive"]
+
+[[bench]]
+name = "api_journey"
+harness = false
+required-features = ["derive"]

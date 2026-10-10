@@ -378,6 +378,19 @@ impl<R: Record> SnapshotWrite<'_, R> {
         self.put(key, next);
         Ok(())
     }
+    /// Edit a clone of one current staged row; retained frames stay immutable.
+    /// Clones only this row once. `update` needs no `Clone`. A callback error
+    /// leaves this statement unchanged; propagate it to roll back all staging.
+    pub fn edit(&mut self, key: u64, edit: impl FnOnce(&mut R) -> Result<()>) -> Result<()>
+    where
+        R: Clone,
+    {
+        self.update(key, |row| {
+            let mut next = row.clone();
+            edit(&mut next)?;
+            Ok(next)
+        })
+    }
     /// Remove a key, reporting whether it existed in this staged view.
     pub fn remove(&mut self, key: u64) -> bool {
         self.transaction.remove(key)

@@ -16,6 +16,8 @@ pub mod catalog;
 pub mod codec;
 mod database;
 mod directory;
+#[cfg(test)]
+mod edit_tests;
 mod error;
 pub mod group_commit;
 mod log;

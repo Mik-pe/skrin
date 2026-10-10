@@ -896,6 +896,24 @@ impl<C: Catalog> CatalogWrite<'_, C> {
         let next = update(row)?;
         self.put::<T>(key, next)
     }
+    /// Edit a clone of one existing typed row from the current staged view.
+    /// Only this row is cloned once; `update` needs no `Clone`. A callback error
+    /// leaves this statement's staging unchanged; propagate it to roll back the
+    /// transaction. All derived indexes are validated and published at commit.
+    pub fn edit<T: Table<C>>(
+        &mut self,
+        key: u64,
+        edit: impl FnOnce(&mut T::Record) -> Result<()>,
+    ) -> Result<()>
+    where
+        T::Record: Clone,
+    {
+        self.update::<T>(key, |row| {
+            let mut next = row.clone();
+            edit(&mut next)?;
+            Ok(next)
+        })
+    }
     /// Remove a logical key. Delete/reinsert reuses its staging slot.
     pub fn remove<T: Table<C>>(&mut self, key: u64) -> Result<bool> {
         let id = table::<C, T>()?;

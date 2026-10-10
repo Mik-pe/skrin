@@ -1,0 +1,2 @@
+throwing_transaction_has_changes=true
+swiftdata,phase=create,full_model_and_join=verified,atomic_edit=verified,error_with_explicit_rollback=verified

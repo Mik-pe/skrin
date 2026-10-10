@@ -265,6 +265,68 @@ impl<R: Record> WriteTransaction<'_, R> {
         Ok(())
     }
 
+    /// Edit a clone of one existing row from the current staged view.
+    /// Only this row is cloned, once per call; use `update` to build a replacement
+    /// without `Clone`. Missing keys and callback errors leave this statement's
+    /// staging unchanged. Propagate an error to roll back the entire transaction.
+    /// A successful call stages a replacement even if the callback changes no
+    /// fields; there is no implicit dirty tracking. Cloning must preserve the
+    /// record's value semantics, including the prohibition on shared mutability.
+    ///
+    /// ```
+    /// # #[derive(Clone)]
+    /// # struct Counter(u64);
+    /// # impl skrin::Record for Counter {
+    /// # const SCHEMA: skrin::Schema = skrin::Schema { table_id: 1, version: 1 };
+    /// # fn encode(&self, e: &mut skrin::Encoder) -> skrin::Result<()> { e.u64(self.0) }
+    /// # fn decode(d: &mut skrin::Decoder<'_>) -> skrin::Result<Self> { Ok(Self(d.u64()?)) }
+    /// # }
+    /// let db = skrin::Database::<Counter>::in_memory();
+    /// db.write(|tx| tx.insert(7, Counter(10)))?;
+    /// db.write(|tx| tx.edit(7, |counter| {
+    ///     counter.0 += 1;
+    ///     Ok(())
+    /// }))?;
+    /// assert_eq!(db.read()?.get(7).unwrap().0, 11);
+    /// # Ok::<(), skrin::Error>(())
+    /// ```
+    ///
+    /// Non-Clone records retain `update`, while `edit` requires Clone:
+    /// ```compile_fail
+    /// struct Value(u64);
+    /// impl skrin::Record for Value {
+    /// const SCHEMA: skrin::Schema = skrin::Schema { table_id: 1, version: 1 };
+    /// fn encode(&self, e: &mut skrin::Encoder) -> skrin::Result<()> { e.u64(self.0) }
+    /// fn decode(d: &mut skrin::Decoder<'_>) -> skrin::Result<Self> { Ok(Self(d.u64()?)) }
+    /// }
+    /// let db = skrin::Database::<Value>::in_memory();
+    /// db.write(|tx| tx.edit(7, |_| Ok(())));
+    /// ```
+    ///
+    /// The mutable temporary cannot escape the callback:
+    /// ```compile_fail
+    /// #[derive(Clone)]
+    /// struct Value(u64);
+    /// impl skrin::Record for Value {
+    /// const SCHEMA: skrin::Schema = skrin::Schema { table_id: 1, version: 1 };
+    /// fn encode(&self, e: &mut skrin::Encoder) -> skrin::Result<()> { e.u64(self.0) }
+    /// fn decode(d: &mut skrin::Decoder<'_>) -> skrin::Result<Self> { Ok(Self(d.u64()?)) }
+    /// }
+    /// let db = skrin::Database::<Value>::in_memory();
+    /// let mut escaped = None;
+    /// db.write(|tx| tx.edit(7, |value| { escaped = Some(value); Ok(()) }));
+    /// ```
+    pub fn edit(&mut self, key: u64, edit: impl FnOnce(&mut R) -> Result<()>) -> Result<()>
+    where
+        R: Clone,
+    {
+        self.update(key, |row| {
+            let mut next = row.clone();
+            edit(&mut next)?;
+            Ok(next)
+        })
+    }
+
     /// Insert or replace a record explicitly.
     pub fn put(&mut self, key: u64, row: R) {
         self.changes.insert(key, Some(row));

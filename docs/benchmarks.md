@@ -349,3 +349,23 @@ include both SQLite controls, all per-run tails and the remaining memory cost.
 retain 30 before/after runs, longer SSD confirmation runs, byte-identical file
 images and cross-version reopen checks. They establish a local RAM reduction,
 with no new durable latency improvement claimed.
+
+## Complete application ergonomics controls
+
+`cargo bench -p skrin --bench api_journey --locked` runs the native and external
+SQLite game applications, followed by verification in new child processes. It
+checks full ordinary models, typed/indexed selection, inventory/owner joins,
+one atomic character/item save, a propagated application error and exact persisted
+state after reopen. It reports no performance comparison. Each engine gets its
+own new temporary path; all fixture rows are public deterministic application data.
+Failures retain evidence. The benchmark never accepts SQL into a Skrin API or
+engine dependency.
+
+The standalone macOS SwiftData control and compiler/run commands live in
+[the comparison guide](../comparisons/README.md). It checks the same application
+journey with native `@Model`, indexes, predicates, transactions and explicit
+context rollback, followed by a fresh executable process. Both controls are
+required by CI on supported platforms. Framework observation/relationships,
+physical power-loss certification and platform-wide speed comparisons are
+outside this functional journey. See the
+[recorded source/machine/results](measurements/api-journeys-2026-10-10.md).
