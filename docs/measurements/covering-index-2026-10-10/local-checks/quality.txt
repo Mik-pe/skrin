@@ -1,0 +1,59 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.14
+   Compiling vcpkg v0.2.15
+   Compiling pkg-config v0.3.34
+    Checking foldhash v0.2.0
+    Checking fallible-iterator v0.3.0
+    Checking bitflags v2.13.2
+    Checking hashbrown v0.17.1
+   Compiling cc v1.6.0
+    Checking smallvec v1.16.2
+    Checking fallible-streaming-iterator v0.1.9
+    Checking hashlink v0.12.2
+    Checking syn v2.0.119
+   Compiling libsqlite3-sys v0.38.2
+    Checking skrin-derive v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin-derive)
+    Checking skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Checking rusqlite v0.40.2
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 18.46s
+   Compiling skrin-derive v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin-derive)
+ Documenting skrin-derive v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin-derive)
+ Documenting skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.18s
+   Generated /tmp/skrin-query-10x-quality/doc/skrin/index.html and 1 other file
+    Checking skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Checking skrin-derive v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin-derive)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.71s
+    Checking skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.69s
+   Compiling foldhash v0.2.0
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling fallible-iterator v0.3.0
+   Compiling smallvec v1.16.2
+   Compiling bitflags v2.13.2
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+   Compiling libsqlite3-sys v0.38.2
+   Compiling hashbrown v0.17.1
+   Compiling hashlink v0.12.2
+   Compiling rusqlite v0.40.2
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.58s
+   Doc-tests skrin
+
+running 2 tests
+test crates/skrin/src/database.rs - database::WriteTransaction<'_,R>::edit (line 276) ... ok
+test crates/skrin/src/schema_macros.rs - schema_macros::catalog (line 17) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 5 tests
+test crates/skrin/src/database.rs - database::WriteTransaction<'_,R>::edit (line 295) - compile fail ... ok
+test crates/skrin/src/typed_index.rs - typed_index::Index (line 117) - compile fail ... ok
+test crates/skrin/src/database.rs - database::WriteTransaction<'_,R>::edit (line 307) - compile fail ... ok
+test crates/skrin/src/schema_macros.rs - schema_macros::catalog (line 51) - compile fail ... ok
+test crates/skrin/src/typed_index.rs - typed_index::Index (line 96) - compile fail ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s

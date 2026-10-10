@@ -73,13 +73,22 @@ is charged to those alternatives.
 
 ## Measured advantages and limits
 
-The [current-source report](measurements/api-journeys-2026-10-10.md) records
+The [API-journey baseline report](measurements/api-journeys-2026-10-10.md) records
 snapshot full two-area p50 **1.32× faster** than a reused prepared covering
 SQLite query, and native hot cursor pages **1.50–1.63× faster** than a covering
 SQLite ID seek. Their complete result vectors match independent arithmetic in
 all five fresh process repeats. The same report preserves SQLite's wins in all
 varied filtered/page/compound-join controls and higher individual Skrin tails.
 Adding edit is an ergonomics change, not a claimed read-path optimization.
+
+The later [covering-index report](measurements/covering-index-2026-10-10.md)
+compares identical harnesses against the baseline and optimized engines in five
+paired fresh-process repetitions. Resident immutable full-row queries over
+8/32/128 areas reach approximately 13×/19×/24× the prepared covering SQLite
+control; the original two-area query is about 8×. Narrow compound joins do not
+establish that advantage. Covering references make snapshot saves 27–33% slower
+than the prior engine on the recorded volatile workload. The report preserves
+all repeat ranges, tails, conversion/accounting costs and process resources.
 
 [The earlier game-world comparison](measurements/game-world-performance-2026-10-08.md)
 records point/area reads and queued independent durable saves, plus SQLite wins

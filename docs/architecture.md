@@ -40,8 +40,9 @@ Managed checkpoints, explicit retention, backups and offline migrations are impl
 ## Opt-in immutable read versions
 
 `versioned` consumes a native baseline once, moving rows into Arcs and building
-immutable AVL roots directly from ordered sources, allocating each final node
-once with logarithmic construction stack space. Ordinary updates copy changed
+immutable primary AVL roots and bounded covering index leaves from ordered
+sources. Each final routing node is allocated once with logarithmic construction
+stack space. Ordinary updates copy changed
 paths. The original baseline representation remains
 available. Versioned writers still use the production mutable rows, codec, WAL
 and index final-view validator under one exclusive writer boundary. Changed
@@ -53,6 +54,20 @@ subtrees; inserts/deletes still use balanced tree operations. No full database
 copy occurs. A short separate publication lock
 swaps one coherent immutable root only after immediate/shared sync. Captured
 read versions never hold the production row/index locks across I/O.
+
+Mutable catalog postings retain `(primary ID, physical slot)`, so an index scan
+does one row-map lookup per hit without repeating the primary-address lookup.
+Immutable catalog indexes keep up to 64 ordered `(index, byte key, primary ID,
+Arc row)` entries in each contiguous leaf behind a path-copy AVL routing tree.
+Scans seek once and then borrow directly from these covering row references.
+Every row replacement refreshes all its covering references even when the
+index keys are unchanged. A transaction coalesces changes by original leaf,
+copies at most 64 existing references from each touched leaf once, and shares
+untouched leaves. Large equal-key groups are split across leaves. Removed empty
+leaves disappear; sparse final leaf buffers shrink, without copying the whole
+index. This trades some write work for faster resident reads; it does not change
+stored codecs, schema identities or the persistence boundary. Traversal stacks
+hold 32 pointers inline and safely spill deeper paths to a vector.
 
 Lease admission bounds live reader count and conservative full-root-per-lease
 bytes, including shared nodes/rows counted again. A trusted pure application

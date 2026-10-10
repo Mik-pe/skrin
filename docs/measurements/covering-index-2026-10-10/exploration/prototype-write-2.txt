@@ -1,0 +1,12 @@
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `bench` profile [optimized] target(s) in 5.65s
+     Running benches/index_updates.rs (/tmp/skrin-query-10x-after/release/deps/index_updates-0eac4e022b9f9b6c)
+index_update,mode=native,rows=100000,batch=1,samples=128,p50_us=1.042,p99_us=2.042,max_us=4.125,full_rows_indexes_and_retry=verified,durability=none
+index_roots,rows=100000,batch=1,conversion_ms=25.175,initial_accounted_bytes=45325000,after_accounted_bytes=45344456,old_full_frame=verified
+index_update,mode=snapshot,rows=100000,batch=1,samples=128,p50_us=4.709,p99_us=9.458,max_us=20.792,full_rows_indexes_and_retry=verified,durability=none
+index_update,mode=native,rows=100000,batch=16,samples=128,p50_us=5.666,p99_us=6.834,max_us=9.541,full_rows_indexes_and_retry=verified,durability=none
+index_roots,rows=100000,batch=16,conversion_ms=24.272,initial_accounted_bytes=45325000,after_accounted_bytes=45344456,old_full_frame=verified
+index_update,mode=snapshot,rows=100000,batch=16,samples=128,p50_us=11.791,p99_us=18.125,max_us=67.541,full_rows_indexes_and_retry=verified,durability=none
+index_update,mode=native,rows=100000,batch=64,samples=128,p50_us=21.250,p99_us=41.417,max_us=46.084,full_rows_indexes_and_retry=verified,durability=none
+index_roots,rows=100000,batch=64,conversion_ms=22.498,initial_accounted_bytes=45325000,after_accounted_bytes=45344456,old_full_frame=verified
+index_update,mode=snapshot,rows=100000,batch=64,samples=128,p50_us=32.833,p99_us=41.209,max_us=96.833,full_rows_indexes_and_retry=verified,durability=none

@@ -46,17 +46,19 @@ fn item(id: u64) -> Item {
 #[derive(Clone, Copy)]
 struct Request {
     area: u64,
+    last_area: u64,
     owner: u64,
     entity_after: u64,
     item_after: u64,
     kind: u64,
 }
-fn request(i: u64, rows: u64) -> Request {
+fn request(i: u64, rows: u64, areas: u64) -> Request {
     let groups = rows.div_ceil(64);
     let area = i * 7919 % groups;
     let owner = i * 3571 % groups;
     Request {
         area,
+        last_area: area + areas - 1,
         owner,
         entity_after: area * 64 + i * 17 % 64,
         item_after: owner * 64 + i * 31 % 48,
@@ -66,7 +68,7 @@ fn request(i: u64, rows: u64) -> Request {
 type EntityRows = Vec<(u64, Entity)>;
 type JoinedRows = Vec<(u64, Item, Entity)>;
 fn bounded(rows: u64, r: Request) -> EntityRows {
-    (r.area * 64..rows.min((r.area + 2) * 64))
+    (r.area * 64..rows.min((r.last_area + 1) * 64))
         .map(|id| (id, entity(id)))
         .collect()
 }
@@ -96,17 +98,18 @@ fn measure<T: PartialEq + std::fmt::Debug>(
     workload: &str,
     rows: u64,
     count: usize,
+    areas: u64,
     mut query: impl FnMut(Request) -> Result<Vec<T>>,
     expected: fn(u64, Request) -> Vec<T>,
 ) -> Result<()> {
     for i in count..count + 128 {
-        let r = request(i as u64, rows);
+        let r = request(i as u64, rows, areas);
         assert_eq!(query(r)?, expected(rows, r));
     }
     let mut samples = Vec::with_capacity(count);
     let mut returned = 0;
     for i in 0..count {
-        let r = request(i as u64, rows);
+        let r = request(i as u64, rows, areas);
         let start = Instant::now();
         let result = query(std::hint::black_box(r))?;
         samples.push(start.elapsed());
@@ -124,16 +127,17 @@ fn measure<T: PartialEq + std::fmt::Debug>(
     Ok(())
 }
 macro_rules! native_queries {
-    ($view:expr, $mode:expr, $rows:expr, $count:expr) => {{
+    ($view:expr, $mode:expr, $rows:expr, $count:expr, $areas:expr) => {{
         let view = $view;
         measure(
             $mode,
             "bounded",
             $rows,
             $count,
+            $areas,
             |r| {
                 Ok(view
-                    .query(Area, r.area..=r.area + 1)?
+                    .query(Area, r.area..=r.last_area)?
                     .map(|(id, e)| (id, *e))
                     .collect())
             },
@@ -144,9 +148,10 @@ macro_rules! native_queries {
             "filtered",
             $rows,
             $count,
+            $areas,
             |r| {
                 Ok(view
-                    .query(Area, r.area..=r.area + 1)?
+                    .query(Area, r.area..=r.last_area)?
                     .filter(|(_, e)| e.x % 2 == 0)
                     .take(16)
                     .map(|(id, e)| (id, *e))
@@ -159,9 +164,10 @@ macro_rules! native_queries {
             "page",
             $rows,
             $count,
+            $areas,
             |r| {
                 Ok(view
-                    .query_after(Area, r.area..=r.area + 1, (&r.area, r.entity_after))?
+                    .query_after(Area, r.area..=r.last_area, (&r.area, r.entity_after))?
                     .filter(|(_, e)| e.x % 2 == 0)
                     .take(16)
                     .map(|(id, e)| (id, *e))
@@ -174,6 +180,7 @@ macro_rules! native_queries {
             "owner_join",
             $rows,
             $count,
+            $areas,
             |r| {
                 let mut owner = None;
                 view.query_after(Owner, r.owner..=r.owner, (&r.owner, r.item_after))?
@@ -198,6 +205,7 @@ macro_rules! native_queries {
             "compound_join",
             $rows,
             $count,
+            $areas,
             |r| {
                 let key = (r.owner, r.kind);
                 let mut owner = None;
@@ -226,26 +234,33 @@ fn main() -> Result<()> {
         .into_iter()
         .filter(|a| a != "--bench" && a != "--sqlite-first")
         .collect();
-    let (rows, count) = match args.as_slice() {
-        [] => (Some(10000), Some(2000)),
-        [n] => (n.parse().ok(), Some(2000)),
-        [n, c] => (n.parse().ok(), c.parse().ok()),
-        _ => (None, None),
+    let (rows, count, areas) = match args.as_slice() {
+        [] => (Some(10000), Some(2000), Some(2)),
+        [n] => (n.parse().ok(), Some(2000), Some(2)),
+        [n, c] => (n.parse().ok(), c.parse().ok(), Some(2)),
+        [n, c, a] => (n.parse().ok(), c.parse().ok(), a.parse().ok()),
+        _ => (None, None, None),
     };
-    let (rows, count) = match (rows, count) {
-        (Some(n), Some(c)) if (64..=1000000).contains(&n) && (16..=20000).contains(&c) => (n, c),
+    let (rows, count, areas) = match (rows, count, areas) {
+        (Some(n), Some(c), Some(a))
+            if (64..=1000000).contains(&n)
+                && (16..=20000).contains(&c)
+                && (1..=1024).contains(&a) =>
+        {
+            (n, c, a)
+        }
         _ => {
             return Err(Error::InvalidOperation(
-                "usage: game_queries [ROWS=64..1000000 [SAMPLES=16..20000]] [--sqlite-first]"
+                "usage: game_queries [ROWS=64..1000000 [SAMPLES=16..20000 [AREAS=1..1024]]] [--sqlite-first]"
                     .into(),
             ));
         }
     };
     println!(
-        "workload,resident_in_memory=true,durability=none,varied_requests=true,full_rows_materialized=true,owner_group=64,kinds=16,filter_page_limit=16,join_limit=4,setup_warmup_verification_outside_timing=true"
+        "workload,resident_in_memory=true,durability=none,varied_requests=true,full_rows_materialized=true,area_span={areas},owner_group=64,kinds=16,filter_page_limit=16,join_limit=4,setup_warmup_verification_outside_timing=true"
     );
     if sqlite_first {
-        sqlite(rows, count)?;
+        sqlite(rows, count, areas)?;
     }
     let db = CatalogDatabase::<Queries>::in_memory()?;
     for begin in (0..rows).step_by(256) {
@@ -264,7 +279,7 @@ fn main() -> Result<()> {
             assert_eq!(read.get::<Entities>(id)?, Some(&entity(id)));
             assert_eq!(read.get::<Items>(id)?, Some(&item(id)));
         }
-        native_queries!(&read, "native", rows, count);
+        native_queries!(&read, "native", rows, count, areas);
     }
     let db = db.into_snapshots(
         SnapshotOptions {
@@ -274,12 +289,12 @@ fn main() -> Result<()> {
         |_| Ok(std::mem::size_of::<Row>() as u64),
     )?;
     let frame = db.snapshot()?;
-    native_queries!(&frame, "snapshot", rows, count);
+    native_queries!(&frame, "snapshot", rows, count, areas);
     assert_eq!(frame.sequence()?, rows.div_ceil(256));
     drop(frame);
     drop(db);
     if !sqlite_first {
-        sqlite(rows, count)?;
+        sqlite(rows, count, areas)?;
     }
     Ok(())
 }
@@ -328,7 +343,7 @@ fn plan(
     println!("sqlite_plan,workload={name},steps={steps:?}");
     Ok(())
 }
-fn sqlite(rows: u64, count: usize) -> Result<()> {
+fn sqlite(rows: u64, count: usize, areas: u64) -> Result<()> {
     let mut conn = sql(rusqlite::Connection::open_in_memory())?;
     sql(conn.execute_batch("CREATE TABLE entities(id INTEGER PRIMARY KEY,area INTEGER NOT NULL,x INTEGER NOT NULL,y INTEGER NOT NULL,revision INTEGER NOT NULL); CREATE INDEX entities_area ON entities(area,id,x,y,revision); CREATE TABLE items(id INTEGER PRIMARY KEY,owner INTEGER NOT NULL,kind INTEGER NOT NULL); CREATE INDEX items_owner_kind ON items(owner,kind,id);"))?;
     {
@@ -379,7 +394,7 @@ fn sqlite(rows: u64, count: usize) -> Result<()> {
         &conn,
         "bounded",
         BOUNDED,
-        &[0, 1],
+        &[0, areas - 1],
         "USING COVERING INDEX entities_area",
         "area>?",
     )?;
@@ -387,7 +402,7 @@ fn sqlite(rows: u64, count: usize) -> Result<()> {
         &conn,
         "filtered",
         FILTERED,
-        &[0, 1],
+        &[0, areas - 1],
         "USING COVERING INDEX entities_area",
         "area>?",
     )?;
@@ -395,7 +410,7 @@ fn sqlite(rows: u64, count: usize) -> Result<()> {
         &conn,
         "page",
         PAGE,
-        &[0, 32, 1],
+        &[0, 32, areas - 1],
         "USING COVERING INDEX entities_area",
         "area=? AND id>?",
     )?;
@@ -421,8 +436,9 @@ fn sqlite(rows: u64, count: usize) -> Result<()> {
             name,
             rows,
             count,
+            areas,
             |r| {
-                sql(sql(q.query_map([r.area, r.area + 1], entity_row))?
+                sql(sql(q.query_map([r.area, r.last_area], entity_row))?
                     .collect::<rusqlite::Result<_>>())
             },
             expected,
@@ -434,9 +450,10 @@ fn sqlite(rows: u64, count: usize) -> Result<()> {
         "page",
         rows,
         count,
+        areas,
         |r| {
             sql(
-                sql(q.query_map([r.area, r.entity_after, r.area + 1], entity_row))?
+                sql(q.query_map([r.area, r.entity_after, r.last_area], entity_row))?
                     .collect::<rusqlite::Result<_>>(),
             )
         },
@@ -448,6 +465,7 @@ fn sqlite(rows: u64, count: usize) -> Result<()> {
         "compound_join",
         rows,
         count,
+        areas,
         |r| {
             sql(sql(q.query_map([r.owner, r.kind, r.item_after], |r| {
                 Ok((

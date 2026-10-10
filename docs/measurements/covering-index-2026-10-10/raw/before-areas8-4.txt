@@ -1,0 +1,20 @@
+workload,resident_in_memory=true,durability=none,varied_requests=true,full_rows_materialized=true,area_span=8,owner_group=64,kinds=16,filter_page_limit=16,join_limit=4,setup_warmup_verification_outside_timing=true
+sqlite_control,version=3.53.2,prepared_statement_reused=true,covering_indexes=true,transaction_seed_outside_timing=true
+sqlite_plan,workload=bounded,steps=["SEARCH entities USING COVERING INDEX entities_area (area>? AND area<?)"]
+sqlite_plan,workload=filtered,steps=["SEARCH entities USING COVERING INDEX entities_area (area>? AND area<?)"]
+sqlite_plan,workload=page,steps=["MERGE (UNION ALL)", "LEFT", "SEARCH entities USING COVERING INDEX entities_area (area=? AND id>?)", "RIGHT", "SEARCH entities USING COVERING INDEX entities_area (area>? AND area<?)"]
+sqlite_plan,workload=compound_join,steps=["SEARCH e USING INTEGER PRIMARY KEY (rowid=?)", "SEARCH i USING COVERING INDEX items_owner_kind (owner=? AND kind=? AND id>?)"]
+query,mode=sqlite_covering,workload=bounded,rows=100000,samples=2000,returned_rows=1021440,p50_us=35.833,p99_us=67.250,max_us=125.625,exact_full_rows=verified
+query,mode=sqlite_covering,workload=filtered,rows=100000,samples=2000,returned_rows=32000,p50_us=1.917,p99_us=2.625,max_us=25.000,exact_full_rows=verified
+query,mode=sqlite_covering,workload=page,rows=100000,samples=2000,returned_rows=31984,p50_us=2.375,p99_us=3.084,max_us=9.542,exact_full_rows=verified
+query,mode=sqlite_covering,workload=compound_join,rows=100000,samples=2000,returned_rows=4874,p50_us=0.750,p99_us=1.292,max_us=6.708,exact_full_rows=verified
+query,mode=native,workload=bounded,rows=100000,samples=2000,returned_rows=1021440,p50_us=34.708,p99_us=42.417,max_us=78.375,exact_full_rows=verified
+query,mode=native,workload=filtered,rows=100000,samples=2000,returned_rows=32000,p50_us=3.042,p99_us=4.000,max_us=10.208,exact_full_rows=verified
+query,mode=native,workload=page,rows=100000,samples=2000,returned_rows=31984,p50_us=3.333,p99_us=4.167,max_us=24.125,exact_full_rows=verified
+query,mode=native,workload=owner_join,rows=100000,samples=2000,returned_rows=4874,p50_us=4.125,p99_us=6.625,max_us=14.792,exact_full_rows=verified
+query,mode=native,workload=compound_join,rows=100000,samples=2000,returned_rows=4874,p50_us=1.042,p99_us=1.625,max_us=3.458,exact_full_rows=verified
+query,mode=snapshot,workload=bounded,rows=100000,samples=2000,returned_rows=1021440,p50_us=21.208,p99_us=26.250,max_us=42.542,exact_full_rows=verified
+query,mode=snapshot,workload=filtered,rows=100000,samples=2000,returned_rows=32000,p50_us=2.250,p99_us=3.167,max_us=19.250,exact_full_rows=verified
+query,mode=snapshot,workload=page,rows=100000,samples=2000,returned_rows=31984,p50_us=2.458,p99_us=3.208,max_us=6.000,exact_full_rows=verified
+query,mode=snapshot,workload=owner_join,rows=100000,samples=2000,returned_rows=4874,p50_us=3.250,p99_us=4.750,max_us=25.500,exact_full_rows=verified
+query,mode=snapshot,workload=compound_join,rows=100000,samples=2000,returned_rows=4874,p50_us=1.209,p99_us=1.833,max_us=2.208,exact_full_rows=verified

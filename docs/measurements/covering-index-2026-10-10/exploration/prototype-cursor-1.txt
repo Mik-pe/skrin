@@ -1,0 +1,18 @@
+workload,resident_in_memory=true,durability=none,one_equal_key_group=true,full_rows_materialized=true,setup_warmup_and_verification_outside_timing=true
+cursor,mode=native_prefix,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=1.167,p99_us=2.375,max_us=2.416,exact_rows=verified
+cursor,mode=native_prefix,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=2813.875,p99_us=3052.084,max_us=3072.292,exact_rows=verified
+cursor,mode=native_prefix,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=5667.208,p99_us=6022.292,max_us=6051.792,exact_rows=verified
+cursor,mode=native_seek,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.875,p99_us=1.125,max_us=6.791,exact_rows=verified
+cursor,mode=native_seek,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=0.833,p99_us=0.959,max_us=0.959,exact_rows=verified
+cursor,mode=native_seek,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=0.875,p99_us=0.917,max_us=0.917,exact_rows=verified
+cursor,mode=snapshot_prefix,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.375,p99_us=1.417,max_us=1.625,exact_rows=verified
+cursor,mode=snapshot_prefix,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=173.208,p99_us=197.083,max_us=203.791,exact_rows=verified
+cursor,mode=snapshot_prefix,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=351.375,p99_us=391.333,max_us=392.666,exact_rows=verified
+cursor,mode=snapshot_seek,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.375,p99_us=0.417,max_us=4.875,exact_rows=verified
+cursor,mode=snapshot_seek,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=0.375,p99_us=0.417,max_us=0.417,exact_rows=verified
+cursor,mode=snapshot_seek,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=0.292,p99_us=0.334,max_us=0.334,exact_rows=verified
+sqlite_control,version=3.53.2,prepared_statement_reused=true,covering_index=true,transaction_seed_outside_timing=true
+sqlite_plan=["SEARCH entries USING COVERING INDEX entries_group (group_id=? AND id>?)"]
+cursor,mode=sqlite_covering,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=1.333,p99_us=1.500,max_us=2.875,exact_rows=verified
+cursor,mode=sqlite_covering,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=1.375,p99_us=1.458,max_us=1.458,exact_rows=verified
+cursor,mode=sqlite_covering,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=1.334,p99_us=1.417,max_us=1.459,exact_rows=verified

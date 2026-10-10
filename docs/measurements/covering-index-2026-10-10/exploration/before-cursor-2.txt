@@ -1,0 +1,18 @@
+workload,resident_in_memory=true,durability=none,one_equal_key_group=true,full_rows_materialized=true,setup_warmup_and_verification_outside_timing=true
+sqlite_control,version=3.53.2,prepared_statement_reused=true,covering_index=true,transaction_seed_outside_timing=true
+sqlite_plan=["SEARCH entries USING COVERING INDEX entries_group (group_id=? AND id>?)"]
+cursor,mode=sqlite_covering,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=1.334,p99_us=1.625,max_us=5.541,exact_rows=verified
+cursor,mode=sqlite_covering,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=1.375,p99_us=1.458,max_us=1.459,exact_rows=verified
+cursor,mode=sqlite_covering,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=1.333,p99_us=1.417,max_us=1.417,exact_rows=verified
+cursor,mode=native_prefix,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.959,p99_us=11.792,max_us=13.125,exact_rows=verified
+cursor,mode=native_prefix,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=3505.375,p99_us=5820.125,max_us=5878.083,exact_rows=verified
+cursor,mode=native_prefix,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=6473.917,p99_us=9519.833,max_us=11748.584,exact_rows=verified
+cursor,mode=native_seek,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.917,p99_us=35.833,max_us=41.584,exact_rows=verified
+cursor,mode=native_seek,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=0.917,p99_us=3.209,max_us=12.333,exact_rows=verified
+cursor,mode=native_seek,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=2.583,p99_us=56.459,max_us=97.375,exact_rows=verified
+cursor,mode=snapshot_prefix,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.708,p99_us=2.042,max_us=2.458,exact_rows=verified
+cursor,mode=snapshot_prefix,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=1824.750,p99_us=2260.125,max_us=2517.459,exact_rows=verified
+cursor,mode=snapshot_prefix,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=3667.292,p99_us=4269.666,max_us=4522.209,exact_rows=verified
+cursor,mode=snapshot_seek,rows=100000,depth=front,after_id=0,samples=128,predicate=even_value,limit=16,p50_us=0.667,p99_us=15.792,max_us=24.042,exact_rows=verified
+cursor,mode=snapshot_seek,rows=100000,depth=middle,after_id=50000,samples=128,predicate=even_value,limit=16,p50_us=1.542,p99_us=10.458,max_us=11.375,exact_rows=verified
+cursor,mode=snapshot_seek,rows=100000,depth=late,after_id=99936,samples=128,predicate=even_value,limit=16,p50_us=1.375,p99_us=12.250,max_us=20.416,exact_rows=verified

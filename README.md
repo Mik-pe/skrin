@@ -274,6 +274,12 @@ show faster resident reads and independent queued saves on the recorded workload
 SQLite atomic batches remain faster at writes and use much less RAM; one-at-a-time
 saves show no general advantage. Skrin never supports SQL syntax.
 
+[Covering-index measurements](docs/measurements/covering-index-2026-10-10.md)
+record about 13–24× faster resident immutable full-row area queries than prepared
+covering SQLite for 8–128 areas on the recorded machine. The original two-area
+control is about 8×; snapshot saves cost 27–33% more than the prior engine.
+These are repeated volatile queries, not a general durable or whole-game speed claim.
+
 ```sh
 cargo bench -p skrin --bench baseline
 cargo bench -p skrin --bench baseline -- --durable /tmp

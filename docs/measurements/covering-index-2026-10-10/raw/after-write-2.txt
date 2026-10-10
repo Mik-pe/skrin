@@ -1,0 +1,9 @@
+index_update,mode=native,rows=100000,batch=1,samples=128,p50_us=1.041,p99_us=1.917,max_us=7.292,full_rows_indexes_and_retry=verified,durability=none
+index_roots,rows=100000,batch=1,conversion_ms=24.803,initial_accounted_bytes=45325000,after_accounted_bytes=45344456,old_full_frame=verified
+index_update,mode=snapshot,rows=100000,batch=1,samples=128,p50_us=4.041,p99_us=9.875,max_us=22.209,full_rows_indexes_and_retry=verified,durability=none
+index_update,mode=native,rows=100000,batch=16,samples=128,p50_us=5.708,p99_us=6.916,max_us=9.583,full_rows_indexes_and_retry=verified,durability=none
+index_roots,rows=100000,batch=16,conversion_ms=23.958,initial_accounted_bytes=45325000,after_accounted_bytes=45344456,old_full_frame=verified
+index_update,mode=snapshot,rows=100000,batch=16,samples=128,p50_us=11.084,p99_us=19.958,max_us=28.292,full_rows_indexes_and_retry=verified,durability=none
+index_update,mode=native,rows=100000,batch=64,samples=128,p50_us=21.416,p99_us=26.208,max_us=27.500,full_rows_indexes_and_retry=verified,durability=none
+index_roots,rows=100000,batch=64,conversion_ms=22.289,initial_accounted_bytes=45325000,after_accounted_bytes=45344456,old_full_frame=verified
+index_update,mode=snapshot,rows=100000,batch=64,samples=128,p50_us=33.583,p99_us=49.875,max_us=54.000,full_rows_indexes_and_retry=verified,durability=none

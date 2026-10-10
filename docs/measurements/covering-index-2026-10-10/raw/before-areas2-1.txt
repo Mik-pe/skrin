@@ -1,0 +1,20 @@
+workload,resident_in_memory=true,durability=none,varied_requests=true,full_rows_materialized=true,area_span=2,owner_group=64,kinds=16,filter_page_limit=16,join_limit=4,setup_warmup_verification_outside_timing=true
+query,mode=native,workload=bounded,rows=100000,samples=2000,returned_rows=255872,p50_us=9.959,p99_us=12.417,max_us=30.084,exact_full_rows=verified
+query,mode=native,workload=filtered,rows=100000,samples=2000,returned_rows=32000,p50_us=3.000,p99_us=3.625,max_us=3.958,exact_full_rows=verified
+query,mode=native,workload=page,rows=100000,samples=2000,returned_rows=31984,p50_us=3.375,p99_us=4.208,max_us=22.583,exact_full_rows=verified
+query,mode=native,workload=owner_join,rows=100000,samples=2000,returned_rows=4874,p50_us=4.208,p99_us=6.500,max_us=8.958,exact_full_rows=verified
+query,mode=native,workload=compound_join,rows=100000,samples=2000,returned_rows=4874,p50_us=1.125,p99_us=1.667,max_us=1.875,exact_full_rows=verified
+query,mode=snapshot,workload=bounded,rows=100000,samples=2000,returned_rows=255872,p50_us=6.875,p99_us=9.500,max_us=23.583,exact_full_rows=verified
+query,mode=snapshot,workload=filtered,rows=100000,samples=2000,returned_rows=32000,p50_us=2.375,p99_us=3.250,max_us=9.708,exact_full_rows=verified
+query,mode=snapshot,workload=page,rows=100000,samples=2000,returned_rows=31984,p50_us=2.459,p99_us=3.333,max_us=22.334,exact_full_rows=verified
+query,mode=snapshot,workload=owner_join,rows=100000,samples=2000,returned_rows=4874,p50_us=3.166,p99_us=4.667,max_us=9.209,exact_full_rows=verified
+query,mode=snapshot,workload=compound_join,rows=100000,samples=2000,returned_rows=4874,p50_us=1.250,p99_us=1.916,max_us=5.833,exact_full_rows=verified
+sqlite_control,version=3.53.2,prepared_statement_reused=true,covering_indexes=true,transaction_seed_outside_timing=true
+sqlite_plan,workload=bounded,steps=["SEARCH entities USING COVERING INDEX entities_area (area>? AND area<?)"]
+sqlite_plan,workload=filtered,steps=["SEARCH entities USING COVERING INDEX entities_area (area>? AND area<?)"]
+sqlite_plan,workload=page,steps=["MERGE (UNION ALL)", "LEFT", "SEARCH entities USING COVERING INDEX entities_area (area=? AND id>?)", "RIGHT", "SEARCH entities USING COVERING INDEX entities_area (area>? AND area<?)"]
+sqlite_plan,workload=compound_join,steps=["SEARCH e USING INTEGER PRIMARY KEY (rowid=?)", "SEARCH i USING COVERING INDEX items_owner_kind (owner=? AND kind=? AND id>?)"]
+query,mode=sqlite_covering,workload=bounded,rows=100000,samples=2000,returned_rows=255872,p50_us=9.334,p99_us=11.542,max_us=25.083,exact_full_rows=verified
+query,mode=sqlite_covering,workload=filtered,rows=100000,samples=2000,returned_rows=32000,p50_us=1.833,p99_us=2.292,max_us=6.792,exact_full_rows=verified
+query,mode=sqlite_covering,workload=page,rows=100000,samples=2000,returned_rows=31984,p50_us=2.292,p99_us=2.959,max_us=27.917,exact_full_rows=verified
+query,mode=sqlite_covering,workload=compound_join,rows=100000,samples=2000,returned_rows=4874,p50_us=0.750,p99_us=1.250,max_us=6.958,exact_full_rows=verified

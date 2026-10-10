@@ -235,6 +235,115 @@ fn retained_catalog_roots_include_all_rows_unique_and_nonunique_postings() {
         2
     );
 }
+
+#[test]
+fn covering_leaves_follow_row_replacements_with_unchanged_and_changed_keys() {
+    fn coherent(view: &CatalogSnapshot<Banking>) {
+        let root = &view.lease.version.view;
+        for ((index, key, primary), row) in root.postings.range(..) {
+            let definition = Banking::INDEXES.iter().find(|i| i.id == *index).unwrap();
+            assert!(Arc::ptr_eq(
+                row,
+                root.rows.get(&(definition.table_id, *primary)).unwrap()
+            ));
+            assert_eq!(Banking::index_key(*index, row).unwrap(), key.as_ref());
+        }
+        for (id, row) in view.scan::<Accounts>().unwrap() {
+            for index in [1, 2] {
+                let key = if index == 1 {
+                    row.email.as_bytes().to_vec()
+                } else {
+                    row.balance.to_be_bytes().to_vec()
+                };
+                let indexed = view.lookup::<Accounts>(index, &key).unwrap();
+                let found = indexed.iter().find(|(primary, _)| *primary == id).unwrap();
+                assert!(std::ptr::eq(row, found.1));
+            }
+        }
+    }
+    let disk = TestStorage::new(initial());
+    let native = reopen(&disk);
+    native
+        .write(|tx| {
+            for id in (10..330).chain(std::iter::once(u64::MAX)) {
+                tx.insert::<Accounts>(
+                    id,
+                    Account {
+                        email: format!("{id:020}@test"),
+                        balance: 100,
+                    },
+                )?;
+            }
+            Ok(())
+        })
+        .unwrap();
+    let db = native.into_snapshots(options(), footprint).unwrap();
+    let old = db.snapshot().unwrap();
+    coherent(&old);
+    db.write(|tx| {
+        for id in [10, 31, 32, 33, 63, 64, 329, u64::MAX] {
+            tx.update::<Accounts>(id, |row| {
+                Ok(Account {
+                    email: row.email.clone(),
+                    balance: 17,
+                })
+            })?;
+        }
+        Ok(())
+    })
+    .unwrap();
+    let balances = db.snapshot().unwrap();
+    coherent(&balances);
+    coherent(&old);
+    assert_eq!(old.get::<Accounts>(32).unwrap().unwrap().balance, 100);
+    assert_eq!(
+        balances
+            .lookup::<Accounts>(1, b"00000000000000000032@test")
+            .unwrap()[0]
+            .1
+            .balance,
+        17
+    );
+    db.write(|tx| {
+        tx.update::<Accounts>(32, |row| {
+            Ok(Account {
+                email: "new@test".into(),
+                balance: row.balance,
+            })
+        })?;
+        tx.remove::<Accounts>(63)?;
+        tx.remove::<Accounts>(64)?;
+        tx.insert::<Accounts>(
+            64,
+            Account {
+                email: "replacement@test".into(),
+                balance: 17,
+            },
+        )?;
+        Ok(())
+    })
+    .unwrap();
+    let current = db.snapshot().unwrap();
+    coherent(&current);
+    coherent(&balances);
+    coherent(&old);
+    assert!(current.get::<Accounts>(63).unwrap().is_none());
+    let by_balance = current.lookup::<Accounts>(2, &17u64.to_be_bytes()).unwrap();
+    assert_eq!(
+        by_balance.iter().find(|(id, _)| *id == 32).unwrap().1.email,
+        "new@test"
+    );
+    assert_eq!(
+        by_balance.iter().find(|(id, _)| *id == 64).unwrap().1.email,
+        "replacement@test"
+    );
+    drop(current);
+    drop(balances);
+    drop(old);
+    drop(db);
+    let reopened = reopen(&disk).into_snapshots(options(), footprint).unwrap();
+    coherent(&reopened.snapshot().unwrap());
+}
 #[test]
 fn randomized_retained_rows_and_index_ranges_match_independent_reference() {
     let db = CatalogDatabase::<Banking>::in_memory()

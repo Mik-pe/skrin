@@ -302,8 +302,7 @@ impl Indexes {
                             return Err(Error::UniqueViolation { index_id: *id });
                         }
                         if let Some(keys) = self.secondary.get(id).and_then(|i| i.get(key)) {
-                            for primary in keys {
-                                let old_slot = self.primary[&(p.address.0, *primary)];
+                            for (_, old_slot) in keys {
                                 if !changes.contains_key(&old_slot) {
                                     return Err(Error::UniqueViolation { index_id: *id });
                                 }
@@ -361,7 +360,7 @@ impl Indexes {
                     .or_default()
                     .entry(key)
                     .or_default()
-                    .insert(p.address.1);
+                    .insert(p.address.1, p.slot);
             }
         }
     }
@@ -755,8 +754,13 @@ impl<C: Catalog> CatalogRead<'_, C> {
         let mut result = Vec::new();
         if let Some(posting) = self.indexes.secondary.get(&id).and_then(|i| i.get(key)) {
             result.reserve(posting.len());
-            for &primary in posting {
-                if let Some(row) = self.get::<T>(primary)? {
+            for (primary, slot) in posting {
+                if let Some(row) = self
+                    .transaction
+                    .get(slot)
+                    .and_then(|row| row.data.as_ref())
+                    .and_then(|(_, row)| T::borrow(row))
+                {
                     result.push((primary, row));
                 }
             }
@@ -772,18 +776,16 @@ impl<C: Catalog> CatalogRead<'_, C> {
         id: u64,
         range: impl RangeBounds<Vec<u8>>,
     ) -> Result<CatalogIndexScan<'_, C, T>> {
-        let definition = index::<C, T>(id)?;
+        index::<C, T>(id)?;
         validate_index_bounds(&range);
         Ok(CatalogIndexScan {
             rows: &self.transaction.state.rows,
-            primary: &self.indexes.primary,
             entries: self
                 .indexes
                 .secondary
                 .get(&id)
                 .map(|entries| entries.range(range)),
             posting: None,
-            table_id: definition.table_id,
             marker: PhantomData,
         })
     }
@@ -807,25 +809,22 @@ impl<C: Catalog> CatalogRead<'_, C> {
 /// The guard blocks writers until both it and all borrowed iterators are dropped.
 pub struct CatalogIndexScan<'a, C: Catalog, T: Table<C>> {
     rows: &'a BTreeMap<u64, Stored<C>>,
-    primary: &'a BTreeMap<(u64, u64), u64>,
     entries: Option<std::collections::btree_map::Range<'a, Vec<u8>, Posting>>,
     posting: Option<PostingScan<'a>>,
-    table_id: u64,
     marker: PhantomData<fn() -> T>,
 }
 impl<'a, C: Catalog, T: Table<C>> Iterator for CatalogIndexScan<'a, C, T> {
     type Item = (u64, &'a T::Record);
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if let Some(key) = self.posting.as_mut().and_then(Iterator::next) {
+            if let Some((key, slot)) = self.posting.as_mut().and_then(Iterator::next) {
                 if let Some(row) = self
-                    .primary
-                    .get(&(self.table_id, *key))
-                    .and_then(|slot| self.rows.get(slot))
+                    .rows
+                    .get(&slot)
                     .and_then(|r| r.data.as_ref())
                     .and_then(|(_, r)| T::borrow(r))
                 {
-                    return Some((*key, row));
+                    return Some((key, row));
                 }
             } else {
                 self.posting = Some(PostingScan::Full(
@@ -940,8 +939,7 @@ impl<C: Catalog> CatalogWrite<'_, C> {
             for (key, posting) in
                 entries.range::<Vec<u8>, _>((range.start_bound(), range.end_bound()))
             {
-                for &primary in posting {
-                    let slot = self.indexes.primary[&(definition.table_id, primary)];
+                for (primary, slot) in posting {
                     if !self.transaction.changes.contains_key(&slot) {
                         matches.insert((key.clone(), primary));
                     }

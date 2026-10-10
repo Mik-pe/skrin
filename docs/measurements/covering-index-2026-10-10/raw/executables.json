@@ -1,0 +1,44 @@
+{
+  "before": {
+    "game_queries": {
+      "path": "/private/tmp/skrin-query-10x-old-controls/release/deps/game_queries-75eac590491726d0",
+      "sha256": "4fd30146b9e3723caa608989cc5b55b8cad99cb8953d2df8788c9a20c28abf87"
+    },
+    "cursor_queries": {
+      "path": "/private/tmp/skrin-query-10x-old-controls/release/deps/cursor_queries-0cdb8dd2d75a6200",
+      "sha256": "286849206128821d6e9f04a9dd196b145f932d076d2ac4fdaac4d598cc90d672"
+    },
+    "index_updates": {
+      "path": "/private/tmp/skrin-query-10x-old-controls/release/deps/index_updates-0eac4e022b9f9b6c",
+      "sha256": "e9e0330bc73d7ed36f083326f1ae381d8512f4fe1e2815d84206eba4dedbd60f"
+    }
+  },
+  "after": {
+    "game_queries": {
+      "path": "/private/tmp/skrin-query-10x-after/release/deps/game_queries-75eac590491726d0",
+      "sha256": "5719ef9d0a91b70bcde013f8728d3d2922a78df802f47947d7eb045384306973"
+    },
+    "cursor_queries": {
+      "path": "/private/tmp/skrin-query-10x-after/release/deps/cursor_queries-0cdb8dd2d75a6200",
+      "sha256": "326d71967c31bc074b49e6515a73e48fd0ea1434ddb3857fd82c88beb9354911"
+    },
+    "index_updates": {
+      "path": "/private/tmp/skrin-query-10x-after/release/deps/index_updates-0eac4e022b9f9b6c",
+      "sha256": "dae9d79df96b5091dd7cc46a392815b3356402169eb2e05e37f167920e80246e"
+    }
+  },
+  "conditions": {
+    "rows_per_table": 100000,
+    "samples": 2000,
+    "repeats": 5,
+    "area_spans": [
+      1,
+      2,
+      8,
+      32,
+      128
+    ],
+    "platform": "darwin",
+    "resource_scope": "whole query process"
+  }
+}

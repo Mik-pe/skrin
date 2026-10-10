@@ -4,6 +4,10 @@ use std::ops::{Bound, RangeBounds};
 use std::sync::Arc;
 
 type Link<K, V> = Option<Arc<Node<K, V>>>;
+type FloorRange<'a, K, V> = (
+    Option<(&'a K, &'a V)>,
+    VersionIter<'a, K, V, std::ops::RangeFull>,
+);
 struct Node<K, V> {
     key: K,
     value: V,
@@ -264,6 +268,46 @@ impl<K: Ord + Clone, V: Clone> VersionTree<K, V> {
         }
         None
     }
+    /// Last entry at or before a key, without constructing a range iterator.
+    pub(crate) fn floor(&self, key: &K) -> Option<(&K, &V)> {
+        let mut next = self.root.as_deref();
+        let mut found = None;
+        while let Some(node) = next {
+            match key.cmp(&node.key) {
+                Ordering::Less => next = node.left.as_deref(),
+                Ordering::Equal => return Some((&node.key, &node.value)),
+                Ordering::Greater => {
+                    found = Some((&node.key, &node.value));
+                    next = node.right.as_deref();
+                }
+            }
+        }
+        found
+    }
+    /// Seek once: return the predecessor and an iterator over its successors.
+    /// The input key is not retained by either result.
+    pub(crate) fn range_from_floor(&self, key: &K) -> FloorRange<'_, K, V> {
+        let mut stack = TreeStack::default();
+        let mut next = self.root.as_deref();
+        let mut floor = None;
+        while let Some(node) = next {
+            if node.key <= *key {
+                floor = Some((&node.key, &node.value));
+                next = node.right.as_deref();
+            } else {
+                stack.push(node);
+                next = node.left.as_deref();
+            }
+        }
+        (
+            floor,
+            VersionIter {
+                stack,
+                bounds: ..,
+                finished: false,
+            },
+        )
+    }
     pub(crate) fn insert(&self, key: K, value: V, own_weight: u64) -> Self {
         Self {
             root: Some(insert(&self.root, key, value, own_weight)),
@@ -299,7 +343,7 @@ impl<K: Ord + Clone, V: Clone> VersionTree<K, V> {
                 "equal excluded range bounds"
             );
         }
-        let mut stack = Vec::new();
+        let mut stack = TreeStack::default();
         let mut next = self.root.as_deref();
         while let Some(node) = next {
             let before = match bounds.start_bound() {
@@ -322,9 +366,47 @@ impl<K: Ord + Clone, V: Clone> VersionTree<K, V> {
     }
 }
 pub(crate) struct VersionIter<'a, K, V, R> {
-    stack: Vec<&'a Node<K, V>>,
+    stack: TreeStack<'a, Node<K, V>>,
     bounds: R,
     finished: bool,
+}
+// Most AVL traversals fit in 32 pointers. Deeper trees spill safely rather than
+// imposing a hidden row limit or allocating on ordinary query construction.
+struct TreeStack<'a, T> {
+    inline: [Option<&'a T>; 32],
+    len: usize,
+    overflow: Vec<&'a T>,
+}
+impl<T> Default for TreeStack<'_, T> {
+    fn default() -> Self {
+        Self {
+            inline: [None; 32],
+            len: 0,
+            overflow: Vec::new(),
+        }
+    }
+}
+impl<'a, T> TreeStack<'a, T> {
+    fn push(&mut self, value: &'a T) {
+        if self.len < self.inline.len() {
+            self.inline[self.len] = Some(value);
+            self.len += 1;
+        } else {
+            self.overflow.push(value);
+        }
+    }
+    fn pop(&mut self) -> Option<&'a T> {
+        if let Some(value) = self.overflow.pop() {
+            return Some(value);
+        }
+        self.len = self.len.checked_sub(1)?;
+        self.inline[self.len].take()
+    }
+    fn clear(&mut self) {
+        self.overflow.clear();
+        self.inline[..self.len].fill(None);
+        self.len = 0;
+    }
 }
 impl<'a, K: Ord, V, R: RangeBounds<K>> Iterator for VersionIter<'a, K, V, R> {
     type Item = (&'a K, &'a V);
@@ -355,6 +437,44 @@ impl<'a, K: Ord, V, R: RangeBounds<K>> Iterator for VersionIter<'a, K, V, R> {
 mod tests {
     use super::*;
     use std::collections::BTreeMap;
+    #[test]
+    fn predecessor_seek_and_inline_stack_spill_preserve_order() {
+        let map: BTreeMap<_, _> = (0..1000u64)
+            .map(|k| (k * 3, k))
+            .chain([(u64::MAX, 42)])
+            .collect();
+        let tree = VersionTree::try_from_sorted(
+            map.len(),
+            map.iter().map(|(&key, &value)| Ok((key, value, 1))),
+        )
+        .unwrap();
+        for key in [0, 1, 2, 31, 32, 63, 64, 999, 1000, 3000, u64::MAX] {
+            let (floor, rest) = tree.range_from_floor(&key);
+            assert_eq!(floor, map.range(..=key).next_back());
+            assert_eq!(
+                rest.map(|(k, v)| (*k, *v)).collect::<Vec<_>>(),
+                map.range((Bound::Excluded(key), Bound::Unbounded))
+                    .map(|(k, v)| (*k, *v))
+                    .collect::<Vec<_>>()
+            );
+        }
+        let values: Vec<_> = (0..100).collect();
+        let mut stack = TreeStack::default();
+        for value in &values {
+            stack.push(value);
+        }
+        for value in values.iter().rev() {
+            assert_eq!(stack.pop(), Some(value));
+        }
+        assert_eq!(stack.pop(), None);
+        for value in &values {
+            stack.push(value);
+        }
+        stack.clear();
+        assert_eq!(stack.pop(), None);
+        stack.push(&values[17]);
+        assert_eq!(stack.pop(), Some(&17));
+    }
     fn invariant(root: &Link<u64, Arc<u64>>) -> (u32, usize, u64) {
         let Some(n) = root else { return (0, 0, 0) };
         let (lh, lc, lw) = invariant(&n.left);

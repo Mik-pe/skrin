@@ -89,3 +89,8 @@ required-features = ["derive"]
 name = "api_journey"
 harness = false
 required-features = ["derive"]
+
+[[bench]]
+name = "index_updates"
+harness = false
+required-features = ["derive"]

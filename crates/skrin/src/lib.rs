@@ -31,6 +31,7 @@ mod snapshot;
 #[cfg(test)]
 mod test_support;
 mod typed_index;
+mod version_index;
 mod version_tree;
 pub mod versioned;
 

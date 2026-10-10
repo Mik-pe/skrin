@@ -1,0 +1,84 @@
+CHECK run -p skrin --example accounts --locked
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.83s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/accounts`
+7: Bob has 100
+42: Alice has 100
+Committed state: Stats { rows: 2, commits: 1, wal_bytes: 0, recovered_tail_bytes: 0, persistent: false }
+CHECK run -p skrin --example snapshots --locked
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.86s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/snapshots`
+reader retention: RetentionStats { published_sequence: 3, snapshots: 1, pinned_versions: 1, oldest_pinned_sequence: Some(2), pinned_bytes: 926, current_bytes: 1062 }
+CHECK run -p skrin --example game_world --locked
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.58s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/game_world`
+volatile world save, atomic inventory move, old/current frames and retry verified
+CHECK run -p skrin --example game_models --locked
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.97s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/game_models`
+volatile model, signed query bounds and atomic character edit verified
+CHECK run -p skrin --example game_queries --locked
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.71s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/game_queries`
+visible page 1 IDs: [30, 31, 32, 33, 34, 35, 36]
+visible page 2 IDs: [37, 38, 39, 40, 41, 42, 43]
+owner 1, kind 0, item plus owner from one frame: [InventoryEntry { key: 0, item: Item { owner: 1, kind: 0 }, owner: Entity { area: 0, x: 2, y: 0, revision: 1 } }]
+volatile indexed queries, filtered pages, coherent inventory joins and old/current frames verified
+CHECK run -p skrin --example accounts --locked -- /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o/accounts
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/accounts /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o/accounts`
+7: Bob has 100
+42: Alice has 100
+Committed state: Stats { rows: 2, commits: 1, wal_bytes: 130, recovered_tail_bytes: 0, persistent: true }
+Verified 2 records after reopening
+CHECK run -p skrin --example game_models --locked -- /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o/game_models
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/game_models /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o/game_models`
+signed positions, float health, bool index and optional team verified after WAL/checkpoint/backup reopen
+CHECK run -p skrin --example game_queries --locked -- /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o/game_queries
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `/tmp/skrin-query-10x-quality/debug/examples/game_queries /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o/game_queries`
+visible page 1 IDs: [30, 31, 32, 33, 34, 35, 36]
+visible page 2 IDs: [37, 38, 39, 40, 41, 42, 43]
+owner 1, kind 0, item plus owner from one frame: [InventoryEntry { key: 0, item: Item { owner: 1, kind: 0 }, owner: Entity { area: 0, x: 2, y: 0, revision: 1 } }]
+queries verified after WAL reopen, checkpoint, independent backup and snapshot reopen
+CHECK bench -p skrin --bench api_journey --locked
+   Compiling proc-macro2 v1.0.107
+   Compiling find-msvc-tools v0.1.14
+   Compiling shlex v2.0.1
+   Compiling unicode-ident v1.0.26
+   Compiling quote v1.0.47
+   Compiling pkg-config v0.3.34
+   Compiling vcpkg v0.2.15
+   Compiling foldhash v0.2.0
+   Compiling fallible-iterator v0.3.0
+   Compiling smallvec v1.16.2
+   Compiling cc v1.6.0
+   Compiling hashbrown v0.17.1
+   Compiling bitflags v2.13.2
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling syn v2.0.119
+   Compiling hashlink v0.12.2
+   Compiling libsqlite3-sys v0.38.2
+   Compiling skrin-derive v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin-derive)
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+   Compiling rusqlite v0.40.2
+    Finished `bench` profile [optimized] target(s) in 35.27s
+     Running benches/api_journey.rs (/tmp/skrin-query-10x-quality/release/deps/api_journey-7a6e7a9fdf873abf)
+native,phase=create,full_models_and_join=verified,atomic_edit=verified,error_rollback=verified
+native,phase=verify,full_models_and_join=verified,atomic_edit=verified,error_rollback=verified
+sqlite,phase=create,full_models_and_join=verified,atomic_edit=verified,error_with_transaction_drop_rollback=verified
+sqlite,phase=verify,full_models_and_join=verified,atomic_edit=verified,error_with_transaction_drop_rollback=verified
+journeys,independent_process_reopen=verified,durable_create_save_and_error_rollback=verified,no_performance_claim=true
+CHECK bench -p skrin --bench snapshot_build --locked -- 1000
+   Compiling skrin v0.1.0 (/Users/mikpe/.codex/worktrees/skrin-model-ergonomics/skrin/crates/skrin)
+    Finished `bench` profile [optimized] target(s) in 6.95s
+     Running benches/snapshot_build.rs (/tmp/skrin-query-10x-quality/release/deps/snapshot_build-f3fca2554bdfb2cf)
+workload,resident_in_memory=true,seed_and_verification_outside_timing=true,conversion_includes_native_arc_mapping=true
+conversion,mode=single,rows=1000,elapsed_ms=0.072875,accounted_bytes=104000,exact_state=verified
+conversion,mode=catalog,entities=1000,items=1000,postings=2000,elapsed_ms=0.230666,accounted_bytes=453376,exact_rows_indexes_and_retry=verified
+COMPLETE /var/folders/0x/shpdrf8j3j3f0d8qn479_lr40000gn/T/skrin-covering-checks-z9cqaz4o

@@ -6,7 +6,8 @@ baseline. Consume either handle with `into_snapshots(options, footprint)` to
 move its native rows into shared immutable values without changing persistent
 bytes, schema, committed sequence, directory ownership or WAL framing. The
 one-time conversion traverses the resident rows and builds immutable trees
-directly from ordered rows/postings. Each final tree node is allocated once,
+directly from ordered rows/postings, with up to 64 covering postings per catalog
+index leaf. Each final routing node is allocated once,
 without path-copy insertion or a full-size temporary vector; construction uses
 logarithmic recursion space. Native row-to-Arc conversion and catalog slot
 lookups still have their own costs. Ordinary commits copy only changed paths.
@@ -53,9 +54,15 @@ old rows and old postings, including rows deleted from the current version.
 
 Writes use the existing serialized mutable state, staging, codec and final-view
 constraint implementation. Path-copy AVL roots share unchanged nodes/native
-values; only the touched search/rotation paths and index postings are rebuilt.
-Index postings are individual `(index, byte_key, primary)` nodes: changing one
-row does not copy an entire duplicate-key posting set. The original mutable
+values; only the touched search/rotation paths and index leaves are rebuilt.
+Catalog postings store `(index, byte_key, primary)` and a shared reference to
+the same native row as the primary tree. Scans borrow that row directly instead
+of looking it up again. Leaves contain at most 64 entries, including across
+duplicate-key groups; a transaction groups its changes by original leaf and
+copies at most 64 existing references from that leaf once. Replacements refresh
+every covering reference even when its key is unchanged. Old roots retain their
+old values. Sparse leaf buffers shrink, and empty leaves are removed; there is
+no automatic global rebuild or neighboring-leaf merge. The original mutable
 index structures remain for write constraint validation. This increases current
 memory versus the baseline; all active rows and indexes still fit in RAM.
 
@@ -104,7 +111,10 @@ immutable value semantics and cannot report codec bytes as a native-memory
 bound. Assessment errors, inline-size undercounts and arithmetic overflows are
 refused before append. Skrin adds immutable node sizes, index-key data, and Arc
 control counters/alignment padding. Repeated index-key sharing is conservatively
-counted per posting too.
+counted per posting too. Covering leaf vector capacities, routing-key buffers,
+inline row references and leaf Arc counters are included. Native row allocations
+are counted through the coherent primary tree, rather than once per index;
+every covering reference must point to that tree's exact row version.
 
 **This is cooperative retention accounting, not a hard allocator or process RSS
 limit.** Allocator metadata/rounding, publication/lease registry bookkeeping,

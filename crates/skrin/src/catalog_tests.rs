@@ -728,3 +728,47 @@ fn replacement_delta_keeps_primary_and_only_changes_affected_postings() {
         Err(Error::UniqueViolation { index_id: 1 })
     ));
 }
+
+#[test]
+fn slot_bearing_postings_follow_deleted_and_reinserted_primary_ids() {
+    let disk = TestStorage::new(initial());
+    let db = reopen(&disk);
+    let first_slot = db.indexes.read().unwrap().primary[&(1, 1)];
+    db.write(|tx| {
+        assert!(tx.remove::<Accounts>(1)?);
+        Ok(())
+    })
+    .unwrap();
+    db.write(|tx| {
+        tx.insert::<Accounts>(
+            1,
+            Account {
+                email: "new@test".into(),
+                balance: 17,
+            },
+        )
+    })
+    .unwrap();
+    let new_slot = db.indexes.read().unwrap().primary[&(1, 1)];
+    assert_ne!(first_slot, new_slot);
+    for db in [&db, &reopen(&disk)] {
+        let read = db.read().unwrap();
+        let point = read.get::<Accounts>(1).unwrap().unwrap();
+        let mut entries = read
+            .index_scan::<Accounts>(
+                2,
+                17u64.to_be_bytes().to_vec()..=17u64.to_be_bytes().to_vec(),
+            )
+            .unwrap();
+        let (id, row) = entries.next().unwrap();
+        assert_eq!(id, 1);
+        assert_eq!(row.email, "new@test");
+        assert!(std::ptr::eq(row, point));
+        assert!(entries.next().is_none());
+        assert!(
+            read.lookup::<Accounts>(1, b"alice@example.test")
+                .unwrap()
+                .is_empty()
+        );
+    }
+}

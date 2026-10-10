@@ -2,7 +2,7 @@ use super::*;
 use crate::catalog::{
     self, Catalog, CatalogDatabase, CatalogWrite, IndexDefinition, Indexes, Stored, Table,
 };
-use crate::version_tree::VersionIter;
+use crate::version_index::{IndexIter, VersionIndex};
 use std::marker::PhantomData;
 use std::ops::Bound;
 
@@ -64,7 +64,7 @@ fn native<C: Catalog>(database: CatalogDatabase<SharedCatalog<C>>) -> Result<Cat
 type Posting = (u64, Arc<[u8]>, u64);
 struct CatalogView<C: Catalog> {
     rows: VersionTree<(u64, u64), Arc<C::Row>>,
-    postings: VersionTree<Posting, ()>,
+    postings: VersionIndex<Posting, Arc<C::Row>>,
 }
 impl<C: Catalog> Clone for CatalogView<C> {
     fn clone(&self) -> Self {
@@ -83,8 +83,7 @@ impl<C: Catalog> View for CatalogView<C> {
 }
 fn posting_bytes(key: &[u8]) -> Result<u64> {
     (key.len() as u64)
-        .checked_add(VersionTree::<Posting, ()>::node_bytes())
-        .and_then(|n| n.checked_add(2 * std::mem::size_of::<usize>() as u64))
+        .checked_add(2 * std::mem::size_of::<usize>() as u64)
         .ok_or_else(|| Error::InvalidOperation("index footprint overflow".into()))
 }
 impl<C: Catalog> CatalogView<C> {
@@ -119,13 +118,20 @@ impl<C: Catalog> CatalogView<C> {
             .flat_map(|entries| entries.values())
             .map(|posting| posting.len())
             .sum();
-        let postings = VersionTree::try_from_sorted(
+        let stored_rows = &read.state.rows;
+        let postings = VersionIndex::try_from_sorted(
             posting_count,
             indexes.secondary.iter().flat_map(|(&id, entries)| {
                 entries.iter().flat_map(move |(key, posting)| {
                     let shared: Arc<[u8]> = key.as_slice().into();
-                    posting.into_iter().map(move |&primary| {
-                        Ok(((id, shared.clone(), primary), (), posting_bytes(key)?))
+                    posting.into_iter().map(move |(primary, slot)| {
+                        let row = stored_rows[&slot]
+                            .data
+                            .as_ref()
+                            .expect("validated native row")
+                            .1
+                            .clone();
+                        Ok(((id, shared.clone(), primary), row, posting_bytes(key)?))
                     })
                 })
             }),
@@ -139,14 +145,14 @@ impl<C: Catalog> CatalogView<C> {
         footprint: fn(&C::Row) -> Result<u64>,
     ) -> Result<Self> {
         let mut view = self.clone();
+        let mut removed = Vec::new();
+        let mut added = Vec::new();
         for p in &delta.removed {
             if !p.retain_address {
                 view.rows = view.rows.remove(&p.address);
             }
             for (id, key) in &p.keys {
-                view.postings =
-                    view.postings
-                        .remove(&(*id, Arc::from(key.as_slice()), p.address.1));
+                removed.push((*id, Arc::from(key.as_slice()), p.address.1));
             }
         }
         let mut replacements = Vec::new();
@@ -168,16 +174,25 @@ impl<C: Catalog> CatalogView<C> {
             } else {
                 view.rows = view.rows.insert(p.address, row.clone(), bytes);
             }
-            for (id, key) in &p.keys {
-                view.postings = view.postings.insert(
-                    (*id, Arc::from(key.as_slice()), p.address.1),
-                    (),
-                    posting_bytes(key)?,
-                );
+            // A covering posting must advance even when its key did not change:
+            // old frames keep the old row; every current index uses the new row.
+            for index in C::INDEXES.iter().filter(|i| i.table_id == p.address.0) {
+                let key = C::index_key(index.id, row)?;
+                if key.len() > crate::codec::MAX_RECORD_BYTES {
+                    return Err(Error::LimitExceeded {
+                        limit: crate::codec::MAX_RECORD_BYTES,
+                    });
+                }
+                added.push((
+                    (index.id, Arc::from(key.as_slice()), p.address.1),
+                    row.clone(),
+                    posting_bytes(&key)?,
+                ));
             }
         }
         replacements.sort_unstable_by_key(|(address, _, _)| *address);
         view.rows = view.rows.replace_many(&replacements);
+        view.postings = view.postings.changed(removed, added)?;
         Ok(view)
     }
 }
@@ -356,7 +371,7 @@ impl<C: Catalog> CatalogSnapshot<C> {
         finished: bool,
     ) -> Result<CatalogSnapshotIndexScan<'_, C, T>> {
         self.lease.check()?;
-        let definition = catalog::index::<C, T>(id)?;
+        catalog::index::<C, T>(id)?;
         catalog::validate_index_bounds(&range);
         let lower = match range.start_bound() {
             Bound::Unbounded => Bound::Included((id, Arc::from([]), 0)),
@@ -373,9 +388,7 @@ impl<C: Catalog> CatalogSnapshot<C> {
         };
         Ok(CatalogSnapshotIndexScan {
             entries: self.lease.version.view.postings.range((lower, upper)),
-            rows: &self.lease.version.view.rows,
             id,
-            table_id: definition.table_id,
             finished,
             marker: PhantomData,
         })
@@ -398,29 +411,24 @@ type PostingBounds = (Bound<Posting>, Bound<Posting>);
 /// Poison is checked at construction. An already returned iterator cannot be
 /// revoked by a later uncertain write, just like an already borrowed record.
 pub struct CatalogSnapshotIndexScan<'a, C: Catalog, T: Table<C>> {
-    entries: VersionIter<'a, Posting, (), PostingBounds>,
-    rows: &'a VersionTree<(u64, u64), Arc<C::Row>>,
+    entries: IndexIter<'a, Posting, Arc<C::Row>, PostingBounds>,
     id: u64,
-    table_id: u64,
     finished: bool,
     marker: PhantomData<fn() -> T>,
 }
 impl<'a, C: Catalog, T: Table<C>> Iterator for CatalogSnapshotIndexScan<'a, C, T> {
     type Item = (u64, &'a T::Record);
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if self.finished {
             return None;
         }
-        for ((id, _, primary), ()) in self.entries.by_ref() {
+        for ((id, _, primary), row) in self.entries.by_ref() {
             if *id != self.id {
                 self.finished = true;
                 return None;
             }
-            if let Some(row) = self
-                .rows
-                .get(&(self.table_id, *primary))
-                .and_then(|row| T::borrow(row))
-            {
+            if let Some(row) = T::borrow(row) {
                 return Some((*primary, row));
             }
         }

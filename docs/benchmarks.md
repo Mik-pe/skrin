@@ -37,6 +37,7 @@ work encountered stale artifacts when two checkouts shared a target directory.
 ```sh
 cargo +1.89.0 bench -p skrin --bench game_queries --locked -- 100000 2000
 cargo +1.89.0 bench -p skrin --bench game_queries --locked -- 100000 2000 --sqlite-first
+cargo +1.89.0 bench -p skrin --bench game_queries --locked -- 100000 2000 32
 ```
 
 [`game_queries.rs`](../crates/skrin/benches/game_queries.rs) seeds 100,000
@@ -68,6 +69,13 @@ sort. Preparation, data/index construction, snapshot conversion and verification
 are outside timing in every mode. These diagnostic plan-text checks belong
 only to the external comparator. SQL never becomes a Skrin engine dependency.
 
+The optional third positional argument is the area span, 1–1,024 (default two).
+The same span is used in native queries, prepared SQLite binds and independent
+arithmetic verification. Wider intervals return every field of every matching
+row, including partial final intervals; they do not replace the two-area control.
+Report span and returned row counts when comparing timings. CI also exercises
+one/eight/32/128-area spans with existing optimized SQLite plans.
+
 Run at least five fresh processes and alternate SQLite-first/Skrin-first.
 Record per-process p50, p99, maximum and all repeat ranges, including slower
 Skrin cases. This measures single-threaded resident application queries, with
@@ -76,6 +84,42 @@ writers, memory/storage cost, cold cache and query planning costs. All rows and
 indexes fit RAM. CI runs the 1,000-row functional control; runner numbers alone
 support no performance claim. Historical cursor reports retain their original
 simpler game-query harness and measurements.
+
+### Index read/write tradeoffs
+
+```sh
+cargo +1.89.0 bench -p skrin --bench index_updates --locked -- 100000 128
+```
+
+[`index_updates.rs`](../crates/skrin/benches/index_updates.rs) measures complete
+native/snapshot in-memory saves with one, 16 and 64 entity updates, one item
+owner change and a saved operation in the same transaction. It includes all
+staging and publication in write timings, then checks every row/index against
+independent arithmetic, operation retry and the entire retained old frame.
+Conversion time and current/pinned accounted memory are reported separately.
+Use the exact same harness and separate target directories against before/after
+engine sources. These diagnostics quantify the covering index's write and
+memory cost; they are neither durable-write nor SQLite speed claims. Process
+peak RSS of the complete query harness can be measured separately with the
+platform's process accounting; it is not equivalent to accounted lease bytes.
+
+[`compare-query-engines.py`](../scripts/compare-query-engines.py) runs five paired
+fresh-process repetitions across all five area spans, cursor controls and indexed
+updates. Build identical harnesses against separate engine checkouts/target
+directories. In each selection directory, link only the three benchmark
+executables reported by Cargo (`game_queries`, `cursor_queries`, `index_updates`);
+exclude test harness executables. The driver rejects ambiguous directories and
+existing output paths, records executable hashes, alternates engine/SQLite order
+and keeps every successful run's full verification/timing/resource output:
+
+```sh
+python3 scripts/compare-query-engines.py /tmp/before-selected /tmp/after-selected /tmp/new-measurements
+```
+
+[The covering-index report](measurements/covering-index-2026-10-10.md) contains
+the identified machine, source/binary hashes, complete raw output, all repeat
+ranges and read/write costs. Its 10× result applies to the larger resident
+immutable full-row intervals; it is not a general database performance claim.
 
 Run the optimized baseline with `cargo bench -p skrin --bench baseline`. Add `-- --durable /path/to/existing/local/directory` for actual synced transactions. The benchmark creates a unique new file using create-only semantics and removes only that owned file after closing it.
 
