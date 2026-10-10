@@ -534,3 +534,198 @@ fn custom_codec_errors_and_size_limits_propagate_without_changes() -> Result<()>
 fn footprint_custom(_: &CustomRow) -> Result<u64> {
     Ok(256)
 }
+
+skrin::catalog! {
+    Pairs, PairRow {
+        schema: (82, 1), tables: { PairEntries: Value },
+        indexes: {
+            CountScore: PairEntries { id: 1, version: 1, unique: false, key: (u32,u64) => |r| (r.count,r.score) },
+            CountSmall: PairEntries { id: 2, version: 1, unique: true, key: (u32,u8) => |r| (r.count,r.small) }
+        }
+    }
+}
+fn pair_value(count: u32, score: u64, small: u8) -> Value {
+    Value {
+        count,
+        score,
+        small,
+        name: format!("{count}:{score}:{small}"),
+        bytes: vec![small, 0, 255],
+    }
+}
+fn seed_pairs(db: &CatalogDatabase<Pairs>) -> Result<()> {
+    db.write(|tx| {
+        for (id, count, score, small) in [
+            (0, 0, u64::MAX, 0),
+            (2, 1, 0, 0),
+            (9, 1, 1, 1),
+            (u64::MAX, 1, 1, 2),
+            (5, u32::MAX, 0, 0),
+        ] {
+            tx.insert::<PairEntries>(id, pair_value(count, score, small))?;
+        }
+        Ok(())
+    })
+}
+macro_rules! verify_pairs {
+    ($view:expr) => {{
+        let view = $view;
+        let expected = [
+            ((0, u64::MAX), 0),
+            ((1, 0), 2),
+            ((1, 1), 9),
+            ((1, 1), u64::MAX),
+            ((u32::MAX, 0), 5),
+        ];
+        assert_eq!(
+            view.query(CountScore, ..)?
+                .map(|(id, r)| ((r.count, r.score), id))
+                .collect::<Vec<_>>(),
+            expected
+        );
+        assert_eq!(
+            view.matching(CountScore, &(1, 1))?
+                .map(|(id, _)| id)
+                .collect::<Vec<_>>(),
+            [9, u64::MAX]
+        );
+        // Native tuple bounds and cursors, including absent positions and maximum IDs.
+        for lower in [
+            Unbounded,
+            Included((0, 0)),
+            Included((1, 0)),
+            Excluded((1, 1)),
+        ] {
+            for upper in [Unbounded, Included((1, 1)), Excluded((u32::MAX, 0))] {
+                let bounds = (lower, upper);
+                for cursor in [
+                    ((0, 0), 0),
+                    ((1, 0), 2),
+                    ((1, 1), 9),
+                    ((1, 1), 10),
+                    ((1, 1), u64::MAX),
+                    ((u32::MAX, u64::MAX), u64::MAX),
+                ] {
+                    assert_eq!(
+                        view.query_after(CountScore, bounds, (&cursor.0, cursor.1))?
+                            .map(|(id, r)| ((r.count, r.score), id))
+                            .collect::<Vec<_>>(),
+                        expected
+                            .into_iter()
+                            .filter(|p| bounds.contains(&p.0) && *p > cursor)
+                            .collect::<Vec<_>>()
+                    );
+                }
+            }
+        }
+        assert!(matches!(
+            view.query(CountScore, (Included((2, 0)), Included((1, 0)))),
+            Err(Error::InvalidOperation(_))
+        ));
+        let scan = {
+            let temporary = (1, 1);
+            view.query_after(CountScore, temporary..=temporary, (&temporary, 9))?
+        };
+        assert_eq!(scan.map(|(id, _)| id).collect::<Vec<_>>(), [u64::MAX]);
+    }};
+}
+#[test]
+fn compound_queries_constraints_and_old_frames_share_one_version() -> Result<()> {
+    let db = CatalogDatabase::<Pairs>::in_memory()?;
+    seed_pairs(&db)?;
+    verify_pairs!(db.read()?);
+    // Replacing one row and colliding with another unique compound key must roll back both indexes.
+    assert!(matches!(
+        db.write(|tx| {
+            tx.put::<PairEntries>(0, pair_value(7, 8, 9))?;
+            tx.insert::<PairEntries>(77, pair_value(1, 9, 1))
+        }),
+        Err(Error::UniqueViolation { index_id: 2 })
+    ));
+    assert_eq!(db.read()?.sequence(), 1);
+    verify_pairs!(db.read()?);
+    let db = db.into_snapshots(options(), |_| Ok(256))?;
+    let old = db.snapshot()?;
+    verify_pairs!(&old);
+    db.write(|tx| {
+        tx.remove::<PairEntries>(9)?;
+        tx.put::<PairEntries>(2, pair_value(3, 4, 5))
+    })?;
+    verify_pairs!(&old);
+    let current = db.snapshot()?;
+    assert_eq!(
+        current
+            .query(CountScore, ..)?
+            .map(|(id, r)| ((r.count, r.score), id))
+            .collect::<Vec<_>>(),
+        [
+            ((0, u64::MAX), 0),
+            ((1, 1), u64::MAX),
+            ((3, 4), 2),
+            ((u32::MAX, 0), 5)
+        ]
+    );
+    assert_eq!(current.matching(CountSmall, &(1, 1))?.count(), 0);
+    assert_eq!(
+        current
+            .matching(CountSmall, &(3, 5))?
+            .map(|(id, _)| id)
+            .collect::<Vec<_>>(),
+        [2]
+    );
+    assert_eq!(old.sequence()?, 1);
+    assert_eq!(current.sequence()?, 2);
+    Ok(())
+}
+#[cfg(unix)]
+#[test]
+fn compound_indexes_rebuild_from_wal_checkpoint_and_independent_backup() -> Result<()> {
+    let parent = std::env::temp_dir().join(format!(
+        "skrin-compound-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir(&parent).unwrap();
+    let root = parent.join("db");
+    let backup = parent.join("backup");
+    let db = CatalogDatabase::<Pairs>::create_dir(&root)?;
+    seed_pairs(&db)?;
+    drop(db);
+    let db = CatalogDatabase::<Pairs>::open_dir(&root)?;
+    verify_pairs!(db.read()?);
+    db.checkpoint()?;
+    drop(db.backup_to(&backup)?);
+    drop(db);
+    for path in [&root, &backup] {
+        let db = CatalogDatabase::<Pairs>::open_dir(path)?;
+        assert_eq!(db.read()?.sequence(), 1);
+        verify_pairs!(db.read()?);
+        // Verify complete decoded model state as well as index order after recovery.
+        let read = db.read()?;
+        for (id, count, score, small) in [
+            (0, 0, u64::MAX, 0),
+            (2, 1, 0, 0),
+            (9, 1, 1, 1),
+            (u64::MAX, 1, 1, 2),
+            (5, u32::MAX, 0, 0),
+        ] {
+            let row = read.get::<PairEntries>(id)?.unwrap();
+            let expected = pair_value(count, score, small);
+            assert_eq!(
+                (row.count, row.score, row.small, &row.name, &row.bytes),
+                (
+                    expected.count,
+                    expected.score,
+                    expected.small,
+                    &expected.name,
+                    &expected.bytes
+                )
+            );
+        }
+    }
+    std::fs::remove_dir_all(parent).unwrap();
+    Ok(())
+}

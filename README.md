@@ -163,6 +163,10 @@ marker. Both are lazy on borrowed catalog reads and immutable catalog snapshots.
 a page's last position, including inside large equal-key groups.
 It visits byte-key then primary-key order without first materializing all matches.
 Use one retained frame for stable pagination and coherent item/owner joins.
+For direct owner/kind selection, declare a compound
+`key: (u64, u64) => |row| (row.owner, row.kind)` and use
+`matching(OwnerKind, &(owner, kind))`. Bounds and cursors also accept native
+tuples; adding an index to existing storage requires a catalog migration.
 The [complete query example and contract](docs/queries.md) demonstrate filtering,
 seven-row pages, inventory kinds, atomic saves and verified persistent recovery:
 

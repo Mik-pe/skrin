@@ -36,7 +36,12 @@ changing a projection requires the catalog's existing migration protocol.
 Declare `Area: Entities { id: 1, version: 1, unique: false,
 key: u64 => |row| row.area }` in `catalog!`. It generates `Area: Index<World>`;
 the same big-endian key codec serves both persisted projections and query bounds.
-Built-in keys are all fixed-width signed/unsigned integers, bool, str and [u8].
+Built-in keys are all fixed-width signed/unsigned integers, bool, str, [u8],
+and pairs of sized key components. A declared `key: (u64, u64)` can project
+`(row.owner, row.kind)` and use `matching(OwnerKind, &(owner, kind))`. Tuple
+bounds and `query_after(OwnerKind, key..=key, (&key, last_id))` select and page
+that complete compound key; uniqueness also applies to the complete pair.
+The [pair encoding contract](models.md#declare-a-catalog-once) is explicit.
 Signed keys preserve numeric order across negative/positive values; float keys
 require an explicitly chosen application codec/collation. Match strings with
 `read.matching(ByName, "Ada")`; strings use case-sensitive UTF-8 byte order.
@@ -146,11 +151,12 @@ inventory kinds/joins, retained/current frames and a cursor across area ordering
 that differs from primary order. Production short-write/ENOSPC and uncertain-sync
 tests additionally require new lazy snapshot query calls to refuse after poison.
 
-`cargo bench -p skrin --bench game_queries --locked -- 1000` runs 2,000 resident
-queries in native/snapshot modes: two indexed areas, an even-position predicate,
-projection and a 16-row limit. Every result is checked against the workload model
-outside timing. This is a functional in-memory smoke benchmark with per-query
-timings, not durable-storage evidence or a comparative performance claim.
+`cargo bench -p skrin --bench game_queries --locked -- 1000` checks varied
+bounded, filtered and cursor queries plus inventory/owner joins in native,
+snapshot and prepared covering-index SQLite modes. Every full row is checked
+against independent arithmetic outside timing. Its separate catalog includes
+both owner-only and `(owner, kind)` access paths. See
+[methodology](benchmarks.md#varied-resident-game-queries) for controls and scope.
 
 `cargo bench -p skrin --bench cursor_queries --locked -- 100000 128` compares
 direct seeks and the former prefix-filter continuation with a reused prepared

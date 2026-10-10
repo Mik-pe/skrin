@@ -136,7 +136,16 @@ The original raw form remains available for existing catalogs:
 constant, used with `index_scan`/`lookup`. A declaration uses either all typed
 or all raw indexes. Manual catalogs can implement `Index<C>` with the matching
 full `IndexDefinition`, delegating their projection to `Index::project` and
-sharing the same key codec. Custom/composite key types implement `IndexKey` with
+sharing the same key codec. Pairs of sized `IndexKey` components have a built-in
+lexicographic codec; for example `key: (u64, u64) => |row| (row.owner, row.kind)`.
+Query it with `read.matching(OwnerKind, &(owner, kind))` or tuple bounds. Each zero
+in the first encoded component becomes `00 ff`, followed by a `00 00` terminator
+and the unchanged second component. This handles variable-length component
+prefixes without collisions. The combined escaped key, including its terminator,
+must fit the 8 MiB key limit. Existing scalar key encodings are unchanged.
+Adding an index to an existing catalog requires an explicit schema migration;
+the [varied-query benchmark](../crates/skrin/benches/game_queries.rs) uses a separate
+catalog identity for its owner/kind index. Custom key types implement `IndexKey` with
 an explicit canonical, order-preserving encoding. Changing that encoding or
 projection meaning requires an index version and catalog migration.
 

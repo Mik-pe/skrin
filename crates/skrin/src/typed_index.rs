@@ -13,6 +13,10 @@ use std::ops::{Bound, RangeBounds};
 /// uses 0/1. Floating-point keys require an explicit application codec/collation.
 /// `str` uses raw UTF-8
 /// (case-sensitive byte order) and `[u8]` uses its unchanged bytes.
+/// Pairs order first by the first component, then by the second. Their encoding
+/// escapes each zero in the first component as `00 ff`, terminates that component
+/// with `00 00`, and appends the second component unchanged. This preserves
+/// variable-length prefix order and keeps distinct component boundaries unique.
 pub trait IndexKey {
     /// Encode one key; encoded keys may not exceed the record-byte limit.
     fn encode_key(&self) -> Result<Vec<u8>>;
@@ -54,6 +58,29 @@ impl IndexKey for [u8] {
     fn encode_key(&self) -> Result<Vec<u8>> {
         check_size(self.len())?;
         Ok(self.to_vec())
+    }
+}
+
+impl<A: IndexKey, B: IndexKey> IndexKey for (A, B) {
+    fn encode_key(&self) -> Result<Vec<u8>> {
+        let first = encode(&self.0)?;
+        let second = encode(&self.1)?;
+        let size = first
+            .len()
+            .saturating_add(first.iter().filter(|&&byte| byte == 0).count())
+            .saturating_add(2)
+            .saturating_add(second.len());
+        check_size(size)?;
+        let mut bytes = Vec::with_capacity(size);
+        for byte in first {
+            bytes.push(byte);
+            if byte == 0 {
+                bytes.push(255);
+            }
+        }
+        bytes.extend([0, 0]);
+        bytes.extend(second);
+        Ok(bytes)
     }
 }
 
@@ -212,6 +239,73 @@ impl RangeBounds<Vec<u8>> for EqualKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+    struct Bytes(Vec<u8>);
+    impl IndexKey for Bytes {
+        fn encode_key(&self) -> Result<Vec<u8>> {
+            self.0.as_slice().encode_key()
+        }
+    }
+    #[test]
+    fn pairs_preserve_component_prefixes_zeroes_and_signed_order() -> Result<()> {
+        assert_eq!((0u8, 7u8).encode_key()?, [0, 255, 0, 0, 7]);
+        assert_eq!((1u8, 7u8).encode_key()?, [1, 0, 0, 7]);
+        assert_eq!(
+            (Bytes(vec![0, 1, 0]), Bytes(vec![0, 255])).encode_key()?,
+            [0, 255, 1, 0, 255, 0, 0, 0, 255]
+        );
+        let first = [
+            vec![],
+            vec![0],
+            vec![0, 0],
+            vec![0, 1],
+            vec![1],
+            vec![1, 0],
+            vec![255],
+            vec![255, 0],
+        ];
+        let mut pairs = Vec::new();
+        for a in first {
+            for b in [i64::MIN, -1, 0, 1, i64::MAX] {
+                pairs.push((Bytes(a.clone()), b));
+            }
+        }
+        pairs.sort();
+        let bytes: Vec<_> = pairs
+            .iter()
+            .map(IndexKey::encode_key)
+            .collect::<Result<_>>()?;
+        assert!(bytes.windows(2).all(|w| w[0] < w[1]));
+        // Recursion also preserves order; equal first components defer to second.
+        assert!(((0u8, 0u8), i64::MIN).encode_key()? < ((0u8, 0u8), i64::MAX).encode_key()?);
+        Ok(())
+    }
+    struct Refused;
+    impl IndexKey for Refused {
+        fn encode_key(&self) -> Result<Vec<u8>> {
+            Err(Error::Codec("refused component".into()))
+        }
+    }
+    #[test]
+    fn pair_limits_cover_components_escaping_and_terminator() -> Result<()> {
+        let max = crate::codec::MAX_RECORD_BYTES;
+        for pair in [
+            (Bytes(vec![1; max - 2]), Bytes(vec![])),
+            (Bytes(vec![]), Bytes(vec![1; max - 2])),
+        ] {
+            assert_eq!(pair.encode_key()?.len(), max);
+        }
+        for pair in [
+            (Bytes(vec![1; max - 1]), Bytes(vec![])),
+            (Bytes(vec![0; max / 2]), Bytes(vec![])),
+            (Bytes(vec![]), Bytes(vec![1; max + 1])),
+        ] {
+            assert!(matches!(pair.encode_key(),Err(Error::LimitExceeded { limit }) if limit==max));
+        }
+        assert!(matches!((Refused, 0u8).encode_key(), Err(Error::Codec(_))));
+        assert!(matches!((0u8, Refused).encode_key(), Err(Error::Codec(_))));
+        Ok(())
+    }
     #[test]
     fn signed_key_extremes_sort_numerically_and_have_canonical_bytes() -> Result<()> {
         macro_rules! check {

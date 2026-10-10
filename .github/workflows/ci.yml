@@ -161,9 +161,13 @@ jobs:
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash
         run: cargo +${{ matrix.rust }} run -p skrin --example game_queries --locked -- "$RUNNER_TEMP/queries-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-      - name: Smoke lazy bounded indexed game queries
+      - name: Verify varied game queries against prepared covering SQLite controls
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
-        run: cargo +${{ matrix.rust }} bench -p skrin --bench game_queries --locked -- 1000
+        shell: bash
+        run: |
+          cargo +${{ matrix.rust }} bench -p skrin --bench game_queries --locked -- 1000
+          cargo +${{ matrix.rust }} bench -p skrin --bench game_queries --locked -- 64 16
+          cargo +${{ matrix.rust }} bench -p skrin --bench game_queries --locked -- 67 16 --sqlite-first
       - name: Smoke cursor seeking against an indexed prepared SQLite control
         if: matrix.os == 'ubuntu-latest' && matrix.rust == '1.89.0'
         run: cargo +${{ matrix.rust }} bench -p skrin --bench cursor_queries --locked -- 1000 16

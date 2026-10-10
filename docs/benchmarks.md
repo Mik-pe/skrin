@@ -32,6 +32,51 @@ identified machine and repeated full run evidence.
 Give before/after checkouts different `--target-dir` folders; the recorded cursor
 work encountered stale artifacts when two checkouts shared a target directory.
 
+## Varied resident game queries
+
+```sh
+cargo +1.89.0 bench -p skrin --bench game_queries --locked -- 100000 2000
+cargo +1.89.0 bench -p skrin --bench game_queries --locked -- 100000 2000 --sqlite-first
+```
+
+[`game_queries.rs`](../crates/skrin/benches/game_queries.rs) seeds 100,000
+entities and 100,000 items in a separate catalog. Entity area is `id / 64`;
+items share an owner per 64 IDs and have `kind = id % 16`. All primary rows are
+verified before timing. Deterministic multiplicative requests vary areas,
+owners, kinds and cursor positions; partial final groups and empty results
+also run in the small functional controls. Each workload has 128 untimed
+warmups and 2,000 individually timed materialized vectors, checked against
+independent arithmetic afterward:
+
+- **Bounded:** all full entities in two adjacent areas, up to 128 rows.
+- **Filtered:** that interval, even x, limit 16.
+- **Page:** the same filter/limit, strictly after an `(area, id)` cursor.
+- **Compound join:** items matching one `(owner, kind)` after an item ID,
+  limit four, including every item field and the owner's complete entity.
+- **Owner-only join:** identical results from an owner-only cursor and a Rust
+  kind predicate; diagnostic access-path control, compared with SQLite's
+  stronger compound index.
+
+Native and immutable views reuse one read view. Both join paths lazily fetch
+and cache the constant owner once per nonempty result. SQLite reuses prepared
+statements and covering `entities(area,id,x,y,revision)` and
+`items(owner,kind,id)` indexes. Its joined query fetches the owner by primary
+key. The page control uses an ordered `UNION ALL` of an equal-area ID seek and
+a subsequent area interval, avoiding prefix scanning or sorting. Before timing,
+EXPLAIN QUERY PLAN must show these covering seeks and no table scan/temporary
+sort. Preparation, data/index construction, snapshot conversion and verification
+are outside timing in every mode. These diagnostic plan-text checks belong
+only to the external comparator. SQL never becomes a Skrin engine dependency.
+
+Run at least five fresh processes and alternate SQLite-first/Skrin-first.
+Record per-process p50, p99, maximum and all repeat ranges, including slower
+Skrin cases. This measures single-threaded resident application queries, with
+full result allocation in each engine. It excludes persistence, concurrent
+writers, memory/storage cost, cold cache and query planning costs. All rows and
+indexes fit RAM. CI runs the 1,000-row functional control; runner numbers alone
+support no performance claim. Historical cursor reports retain their original
+simpler game-query harness and measurements.
+
 Run the optimized baseline with `cargo bench -p skrin --bench baseline`. Add `-- --durable /path/to/existing/local/directory` for actual synced transactions. The benchmark creates a unique new file using create-only semantics and removes only that owned file after closing it.
 
 ## What is measured
