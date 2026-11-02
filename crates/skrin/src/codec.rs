@@ -127,7 +127,9 @@ impl Encoder {
         Ok(())
     }
 
-    /// Encode length-prefixed UTF-8 text.
+    /// Encode exact length-prefixed UTF-8, including empty text and embedded NULs.
+    /// No normalization or line-ending translation. The byte length (not the
+    /// character count) and all other fields share the record's size budget.
     pub fn string(&mut self, value: &str) -> Result<()> {
         self.bytes(value.as_bytes())
     }

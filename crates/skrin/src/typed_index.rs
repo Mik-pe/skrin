@@ -149,6 +149,9 @@ pub trait Index<C: Catalog> {
     fn project(record: &<Self::Table as Table<C>>::Record) -> Result<Vec<u8>>;
 }
 
+/// Native record type selected by a schema-owned index marker.
+pub type IndexRecord<C, I> = <<I as Index<C>>::Table as Table<C>>::Record;
+
 pub(crate) fn validate<C: Catalog, I: Index<C>>() -> Result<()> {
     let definition = catalog::index::<C, I::Table>(I::DEFINITION.id)?;
     if *definition != I::DEFINITION {
@@ -173,6 +176,21 @@ fn encode<K: IndexKey + ?Sized>(key: &K) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 pub(crate) type KeyBounds = (Bound<Vec<u8>>, Bound<Vec<u8>>);
+// The upper endpoint is a byte sentinel, not necessarily valid UTF-8. Appending
+// a Unicode sentinel would miss strings containing it followed by more text.
+pub(crate) fn prefix(prefix: &str) -> Result<KeyBounds> {
+    let start = encode(prefix)?;
+    let mut end = start.clone();
+    let upper = match end.iter().rposition(|&byte| byte != u8::MAX) {
+        Some(last) => {
+            end.truncate(last + 1);
+            end[last] += 1;
+            Bound::Excluded(end)
+        }
+        None => Bound::Unbounded,
+    };
+    Ok((Bound::Included(start), upper))
+}
 pub(crate) fn bounds<K: IndexKey + ?Sized>(range: impl RangeBounds<K>) -> Result<KeyBounds> {
     let encode_bound = |bound| match bound {
         Bound::Unbounded => Ok(Bound::Unbounded),

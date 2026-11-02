@@ -22,9 +22,15 @@ SQL syntax, parsers and compatibility APIs remain permanently excluded.
 | Explicit table scan | `scan::<T>()`, ordered by primary key |
 
 `lookup` and `index_range` still collect borrowed rows into vectors. Write
-transactions retain their existing staged `lookup`/`index_range` semantics,
+transactions also provide typed `matching`/`query`, collecting borrowed rows into
+vectors with their staged `lookup`/`index_range` semantics,
 including earlier staged changes and temporary duplicates before final unique
 validation. Lazy scans are read-view operations.
+
+String indexes also support `prefix(ByName, "Ada")` on borrowed reads and
+immutable snapshots. It seeks a UTF-8 byte interval and yields lazily; empty
+prefixes select all keys. See [text storage](text-storage.md) for exact string
+identity, arbitrary text fields and the task/comment example.
 
 The game schema encodes area/owner index keys as big-endian u64 bytes, so numeric
 order matches lexicographic order. Record codecs remain explicit little-endian

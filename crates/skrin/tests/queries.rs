@@ -20,6 +20,20 @@ impl Table<Banking> for Counted {
     }
 }
 struct ByCountedBalance;
+struct ByCountedEmail;
+impl Index<Banking> for ByCountedEmail {
+    type Table = Counted;
+    type Key = str;
+    const DEFINITION: IndexDefinition = IndexDefinition {
+        id: 1,
+        table_id: 1,
+        version: 1,
+        unique: true,
+    };
+    fn project(row: &Account) -> Result<Vec<u8>> {
+        row.email.as_str().encode_key()
+    }
+}
 impl Index<Banking> for ByCountedBalance {
     type Table = Counted;
     type Key = u64;
@@ -63,6 +77,33 @@ fn seeded() -> Result<CatalogDatabase<Banking>> {
         Ok(())
     })?;
     Ok(db)
+}
+
+#[test]
+fn prefix_seeks_to_its_interval_and_only_borrows_demanded_rows() -> Result<()> {
+    let db = seeded()?;
+    macro_rules! verify {
+        ($view:expr) => {{
+            let view = $view;
+            BORROWS.with(|calls| calls.set(0));
+            assert_eq!(view.prefix(ByCountedEmail, "query-4")?.take(0).count(), 0);
+            assert_eq!(BORROWS.with(Cell::get), 0);
+            assert_eq!(
+                view.prefix(ByCountedEmail, "query-4")?
+                    .take(2)
+                    .map(|(id, _)| id)
+                    .collect::<Vec<_>>(),
+                [4, 40]
+            );
+            assert_eq!(BORROWS.with(Cell::get), 2);
+            assert_eq!(view.prefix(ByCountedEmail, "missing")?.count(), 0);
+            assert_eq!(BORROWS.with(Cell::get), 2);
+        }};
+    }
+    verify!(db.read()?);
+    let db = db.into_snapshots(options(), footprint)?;
+    verify!(db.snapshot()?);
+    Ok(())
 }
 
 #[test]

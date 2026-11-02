@@ -85,6 +85,10 @@ required-features = ["derive"]
 name = "game_models"
 required-features = ["derive"]
 
+[[example]]
+name = "task_store"
+required-features = ["derive"]
+
 [[bench]]
 name = "api_journey"
 harness = false
@@ -92,5 +96,10 @@ required-features = ["derive"]
 
 [[bench]]
 name = "index_updates"
+harness = false
+required-features = ["derive"]
+
+[[bench]]
+name = "text_queries"
 harness = false
 required-features = ["derive"]

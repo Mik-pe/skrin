@@ -174,6 +174,21 @@ seven-row pages, inventory kinds, atomic saves and verified persistent recovery:
 cargo run -p skrin --example game_queries --locked
 ```
 
+## Store text and application state
+
+Store Markdown, JSON text, comments and arbitrary UTF-8 `String` fields with
+exact byte preservation, including empty strings and embedded NULs. A unique
+string index supplies natural-key identity alongside caller-assigned u64 primary
+IDs. Use `read.matching(ByRequest, "request/42")` for equality and
+`read.prefix(ByTitle, "Lagring/")?.take(20)` for lazy indexed prefix selection.
+Both borrowed reads and immutable snapshots support prefix queries. Typed
+`matching`/`query` also work inside write transactions and see earlier staging.
+
+Run `cargo run -p skrin --example task_store --locked` for a typed
+task/comment workflow, or pass a **new** directory path for WAL recovery,
+checkpoint, backup and verified reopen. Read the [text storage contract](docs/text-storage.md)
+for exact identity, byte ordering, size limits and integration boundaries.
+
 ## Keep it, compact it, evolve it
 
 | Operation | Contract |

@@ -83,6 +83,178 @@ fn seeded() -> Result<CatalogDatabase<Values>> {
 }
 
 #[test]
+fn string_prefixes_match_independent_utf8_filter_and_order_in_both_views() -> Result<()> {
+    let db = CatalogDatabase::<Values>::in_memory()?;
+    let mut names: Vec<String> = [
+        "",
+        "\0",
+        "\0a",
+        "a",
+        "a\0",
+        "a\0b",
+        "a%_",
+        "a\u{10ffff}",
+        "a\u{10ffff}tail",
+        "b",
+        "A",
+        "é",
+        "e\u{301}",
+        "å",
+        "日本語",
+        "🦀",
+        "\u{7f}",
+        "\u{7f}tail",
+        "\u{7ff}tail",
+        "\u{ffff}tail",
+        "\u{10ffff}",
+        "\u{10ffff}\0tail",
+        "duplicate",
+        "duplicate",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    // Include scalar encoding boundaries and many distinct multibyte prefixes.
+    for scalar in (0..=0x10ffff).step_by(997) {
+        if let Some(ch) = char::from_u32(scalar) {
+            names.push(format!("{ch}\0{ch}tail"));
+        }
+    }
+    let mut sorted: Vec<_> = names
+        .iter()
+        .enumerate()
+        .map(|(i, name)| (name.as_str(), u64::MAX - i as u64))
+        .collect();
+    sorted.sort();
+    db.write(|tx| {
+        for (name, id) in &sorted {
+            tx.insert::<Entries>(
+                *id,
+                Value {
+                    small: 0,
+                    count: 0,
+                    score: 0,
+                    name: (*name).into(),
+                    bytes: vec![],
+                },
+            )?;
+        }
+        Ok(())
+    })?;
+    macro_rules! verify {
+        ($view:expr) => {{
+            let view = $view;
+            for name in &names {
+                for end in name.char_indices().map(|(i, _)| i).chain([name.len()]) {
+                    let prefix = &name[..end];
+                    let expected: Vec<_> = sorted
+                        .iter()
+                        .filter(|(name, _)| name.starts_with(prefix))
+                        .copied()
+                        .collect();
+                    assert_eq!(
+                        view.prefix(Name, prefix)?
+                            .map(|(id, row)| (row.name.as_str(), id))
+                            .collect::<Vec<_>>(),
+                        expected,
+                        "{prefix:?}"
+                    );
+                }
+            }
+            assert_eq!(view.prefix(Name, "no-such-prefix")?.count(), 0);
+            // Query inputs need not live as long as returned iterators.
+            let scan = {
+                let input = "a\0".to_owned();
+                view.prefix(Name, &input)?
+            };
+            assert_eq!(
+                scan.map(|(id, _)| id).collect::<Vec<_>>(),
+                sorted
+                    .iter()
+                    .filter(|(name, _)| name.starts_with("a\0"))
+                    .map(|(_, id)| *id)
+                    .collect::<Vec<_>>()
+            );
+            let oversized = "a".repeat(skrin::codec::MAX_RECORD_BYTES + 1);
+            assert!(matches!(
+                view.prefix(Name, &oversized),
+                Err(Error::LimitExceeded { .. })
+            ));
+        }};
+    }
+    verify!(db.read()?);
+    let db = db.into_snapshots(options(), footprint)?;
+    let old = db.snapshot()?;
+    db.write(|tx| {
+        tx.remove::<Entries>(u64::MAX)?;
+        Ok(())
+    })?;
+    verify!(&old);
+    assert_eq!(db.snapshot()?.prefix(Name, "")?.count(), sorted.len() - 1);
+    Ok(())
+}
+
+#[test]
+fn typed_write_queries_observe_staging_removal_and_order_in_both_modes() -> Result<()> {
+    let db = seeded()?;
+    macro_rules! exercise {
+        ($db:expr) => {
+            $db.write(|tx| {
+                assert_eq!(
+                    tx.matching(Name, "Ada")?
+                        .iter()
+                        .map(|(id, _)| *id)
+                        .collect::<Vec<_>>(),
+                    [9, u64::MAX]
+                );
+                tx.update::<Entries>(9, |r| {
+                    Ok(Value {
+                        name: "new\0🦀".into(),
+                        small: r.small,
+                        count: r.count,
+                        score: r.score,
+                        bytes: r.bytes.clone(),
+                    })
+                })?;
+                tx.remove::<Entries>(u64::MAX)?;
+                assert!(tx.matching(Name, "Ada")?.is_empty());
+                assert_eq!(tx.matching(Name, "new\0🦀")?[0].0, 9);
+                assert_eq!(
+                    tx.query(Name, (Included("new"), Excluded("å")))?
+                        .iter()
+                        .map(|(id, r)| (r.name.as_str(), *id))
+                        .collect::<Vec<_>>(),
+                    [("new\0🦀", 9), ("z", 5)]
+                );
+                assert_eq!(
+                    tx.query(Score, ..)?
+                        .iter()
+                        .map(|(id, _)| *id)
+                        .collect::<Vec<_>>(),
+                    [2, 9, 5, 0]
+                );
+                assert!(matches!(
+                    tx.query(Score, (Included(2), Included(1))),
+                    Err(Error::InvalidOperation(_))
+                ));
+                assert!(matches!(
+                    tx.query(Score, (Excluded(1), Excluded(1))),
+                    Err(Error::InvalidOperation(_))
+                ));
+                // Propagating an application error rolls back every staged row/index.
+                Err::<(), _>(Error::Codec("rollback".into()))
+            })
+        };
+    }
+    assert!(matches!(exercise!(db), Err(Error::Codec(_))));
+    assert_eq!(db.read()?.matching(Name, "Ada")?.count(), 2);
+    let db = db.into_snapshots(options(), footprint)?;
+    assert!(matches!(exercise!(db), Err(Error::Codec(_))));
+    assert_eq!(db.snapshot()?.matching(Name, "Ada")?.count(), 2);
+    Ok(())
+}
+
+#[test]
 fn cursor_seek_matches_independent_order_for_all_bounds_and_missing_positions() -> Result<()> {
     let db = seeded()?;
     let expected = [(0, 2), (1, 9), (1, u64::MAX), (256, 5), (u64::MAX, 0)];
@@ -352,6 +524,18 @@ fn queries_borrow_the_view_without_retaining_input_keys_or_bound_types() -> Resu
 
 // A marker can be handwritten, but it must match every persisted definition field.
 struct Mismatched<const FIELD: u8>;
+struct MismatchedName;
+impl Index<Values> for MismatchedName {
+    type Table = Entries;
+    type Key = str;
+    const DEFINITION: IndexDefinition = IndexDefinition {
+        version: 2,
+        ..Name::DEFINITION
+    };
+    fn project(r: &Value) -> Result<Vec<u8>> {
+        Name::project(r)
+    }
+}
 impl<const FIELD: u8> Index<Values> for Mismatched<FIELD> {
     type Table = Entries;
     type Key = u64;
@@ -378,6 +562,15 @@ fn invalid_bounds_and_definitions_are_refused_on_empty_indexes() -> Result<()> {
         Err(Error::InvalidOperation(_))
     ));
     assert_eq!(read.query(Score, ..)?.count(), 0);
+    assert_eq!(read.prefix(Name, "")?.count(), 0);
+    assert!(matches!(
+        read.prefix(MismatchedName, ""),
+        Err(Error::InvalidOperation(_))
+    ));
+    assert!(matches!(
+        read.prefix(Name, &"a".repeat(skrin::codec::MAX_RECORD_BYTES + 1)),
+        Err(Error::LimitExceeded { .. })
+    ));
     macro_rules! reject {
         ($view:ident) => {
             assert!(matches!(
@@ -408,6 +601,27 @@ fn invalid_bounds_and_definitions_are_refused_on_empty_indexes() -> Result<()> {
     }
     reject!(read);
     drop(read);
+    macro_rules! reject_write {
+        ($db:expr) => {
+            $db.write(|tx| {
+                assert!(matches!(
+                    tx.query(Mismatched::<0>, ..),
+                    Err(Error::InvalidOperation(_))
+                ));
+                assert!(matches!(
+                    tx.matching(Mismatched::<2>, &0),
+                    Err(Error::InvalidOperation(_))
+                ));
+                assert!(matches!(
+                    tx.query(Score, (Excluded(1), Excluded(1))),
+                    Err(Error::InvalidOperation(_))
+                ));
+                assert!(tx.query(Name, ..)?.is_empty());
+                Ok(())
+            })?;
+        };
+    }
+    reject_write!(db);
     let db = db.into_snapshots(options(), footprint)?;
     let frame = db.snapshot()?;
     assert!(matches!(
@@ -419,6 +633,16 @@ fn invalid_bounds_and_definitions_are_refused_on_empty_indexes() -> Result<()> {
         Err(Error::InvalidOperation(_))
     ));
     reject!(frame);
+    assert_eq!(frame.prefix(Name, "")?.count(), 0);
+    assert!(matches!(
+        frame.prefix(MismatchedName, ""),
+        Err(Error::InvalidOperation(_))
+    ));
+    assert!(matches!(
+        frame.prefix(Name, &"a".repeat(skrin::codec::MAX_RECORD_BYTES + 1)),
+        Err(Error::LimitExceeded { .. })
+    ));
+    reject_write!(db);
     Ok(())
 }
 
@@ -477,7 +701,32 @@ fn custom_codec_errors_and_size_limits_propagate_without_changes() -> Result<()>
         Err(Error::LimitExceeded { .. })
     ));
     drop(read);
+    macro_rules! reject_write {
+        ($db:expr) => {
+            $db.write(|tx| {
+                assert!(matches!(
+                    tx.matching(CustomScore, &Fallible(2)),
+                    Err(Error::Codec(_))
+                ));
+                assert!(matches!(
+                    tx.query(CustomScore, Fallible(2)..),
+                    Err(Error::Codec(_))
+                ));
+                assert!(matches!(
+                    tx.matching(CustomScore, &Fallible(3)),
+                    Err(Error::LimitExceeded { .. })
+                ));
+                assert!(matches!(
+                    tx.query(CustomScore, ..=Fallible(3)),
+                    Err(Error::LimitExceeded { .. })
+                ));
+                Ok(())
+            })?;
+        };
+    }
+    reject_write!(db);
     let db = db.into_snapshots(options(), footprint_custom)?;
+    reject_write!(db);
     let frame = db.snapshot()?;
     assert!(matches!(
         frame.matching(CustomScore, &Fallible(2)),
