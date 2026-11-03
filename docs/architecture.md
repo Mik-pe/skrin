@@ -1,5 +1,17 @@
 # Architecture
 
+## C ownership boundary
+
+`skrin-ffi` is a separate static-library adapter for u64 keys and opaque bytes.
+Only its ABI module handles foreign pointers; its staging/ownership module and
+the engine forbid unsafe code. Owned transaction handles retain one writer
+admission lease and only touched keys. Commit moves those rows through the
+existing production write path. No borrowed guard crosses C calls and no Rust
+lifetime is extended with a cast/transmute. Point reads copy committed data;
+they remain available while a C transaction stages its changes. The adapter
+does not export Rust generic catalogs or MVCC. See [C API](c-api.md) for its
+fixed record codec, per-call errors, panic containment and ownership contract.
+
 ## Ownership and representation
 
 `Database<R: Record>` owns one typed table. Its committed records are a `BTreeMap<u64, R>`, not serialized byte buffers. Borrowed point reads and ordered scans avoid decoding and record cloning. `Record` does not require `Clone`.

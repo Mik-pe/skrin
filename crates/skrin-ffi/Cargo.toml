@@ -1,0 +1,14 @@
+[package]
+name = "skrin-ffi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+description = "C ABI for Skrin byte records and durable transactions"
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+skrin = { path = "../skrin", default-features = false }

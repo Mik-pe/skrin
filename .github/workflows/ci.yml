@@ -13,6 +13,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  c-api:
+    name: C ABI (${{ matrix.os }}, ${{ matrix.rust }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rust: [1.89.0, stable]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain
+        run: rustup toolchain install ${{ matrix.rust }} --profile minimal
+      - name: Link and verify static C and C++ consumers
+        env:
+          SKRIN_TEST_TOOLCHAIN: ${{ matrix.rust }}
+        run: scripts/test-c-api.sh --release
+      - name: Sanitize native callers
+        if: matrix.os == 'ubuntu-latest' && matrix.rust == 'stable'
+        env:
+          SKRIN_TEST_TOOLCHAIN: ${{ matrix.rust }}
+          SKRIN_C_SANITIZE: 1
+          CC: clang
+          CXX: clang++
+        run: scripts/test-c-api.sh --release
   quality:
     name: Format and lint
     runs-on: ubuntu-latest

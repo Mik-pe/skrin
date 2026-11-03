@@ -6,7 +6,7 @@
 <p align="center">
   <a href="https://github.com/Mik-pe/skrin/actions/workflows/ci.yml"><img src="https://github.com/Mik-pe/skrin/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/Rust-1.89%2B-DEA584" alt="Rust 1.89 or newer">
-  <img src="https://img.shields.io/badge/unsafe-forbidden-537B65" alt="Unsafe code forbidden">
+  <img src="https://img.shields.io/badge/engine_unsafe-forbidden-537B65" alt="Unsafe code forbidden in the engine">
   <img src="https://img.shields.io/badge/status-experimental-C89D58" alt="Experimental">
 </p>
 <p align="center">
@@ -188,6 +188,21 @@ Run `cargo run -p skrin --example task_store --locked` for a typed
 task/comment workflow, or pass a **new** directory path for WAL recovery,
 checkpoint, backup and verified reopen. Read the [text storage contract](docs/text-storage.md)
 for exact identity, byte ordering, size limits and integration boundaries.
+
+## Use from C
+
+The experimental `skrin-ffi` crate builds a static C library with
+[`skrin.h`](crates/skrin-ffi/include/skrin.h). ABI v1 stores u64 keys and opaque
+byte records, with atomic transactions, caller-owned read buffers, explicit
+failure statuses, managed checkpoints/reclamation and verified backups. C
+applications define explicit codecs for their payloads; the interface does not
+automatically export Rust catalogs or secondary indexes. No SQL is accepted.
+
+Run `scripts/test-c-api.sh --release` to compile and verify the C example,
+native failure regressions, C++ header/link probe and benchmark. Read the
+[C API contract](docs/c-api.md) for linkage, ownership and current limits.
+Foreign pointer handling is isolated in this crate; the engine continues to
+forbid unsafe code.
 
 ## Keep it, compact it, evolve it
 
