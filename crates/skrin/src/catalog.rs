@@ -6,7 +6,7 @@
 //! a tail; ordinary commits touch only changed rows and their index postings.
 use crate::directory::Directory;
 use crate::postings::{Posting, PostingScan};
-pub use crate::typed_index::{Index, IndexKey};
+pub use crate::typed_index::{Index, IndexKey, IndexRecord};
 use crate::{Database, Decoder, Encoder, Error, MaintenanceOptions, Record, Result, Schema};
 use std::collections::{BTreeMap, BTreeSet};
 use std::marker::PhantomData;
@@ -722,6 +722,25 @@ impl<C: Catalog> CatalogRead<'_, C> {
         crate::typed_index::validate::<C, I>()?;
         self.index_scan::<I::Table>(I::DEFINITION.id, crate::typed_index::EqualKey::new(key)?)
     }
+    /// Lazily select string index keys starting with this exact UTF-8 prefix.
+    /// Uses an index interval, in byte-key then primary-key order. Empty selects
+    /// every key; case, Unicode normalization and embedded NULs are unchanged.
+    /// The input is not retained. Compose `filter`, `map` and `take` as usual.
+    /// Numeric indexes cannot be used as text prefixes:
+    /// ```compile_fail
+    /// use skrin::catalog::{Catalog, CatalogRead, Index};
+    /// fn numeric<C: Catalog, I: Index<C, Key = u64>>(read: &CatalogRead<'_, C>, index: I) {
+    ///     read.prefix(index, "123");
+    /// }
+    /// ```
+    pub fn prefix<I: Index<C, Key = str>>(
+        &self,
+        _index: I,
+        prefix: &str,
+    ) -> Result<CatalogIndexScan<'_, C, I::Table>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.index_scan::<I::Table>(I::DEFINITION.id, crate::typed_index::prefix(prefix)?)
+    }
     /// Borrow a typed primary-key row without cloning or decoding.
     pub fn get<T: Table<C>>(&self, key: u64) -> Result<Option<&T::Record>> {
         let id = table::<C, T>()?;
@@ -844,6 +863,27 @@ pub struct CatalogWrite<'a, C: Catalog> {
     pub(crate) next_slot: u64,
 }
 impl<C: Catalog> CatalogWrite<'_, C> {
+    /// Select equal native index keys from the current staged view. Returns
+    /// rows in primary-key order, including temporary unique-key duplicates.
+    /// Uniqueness is checked on the final transaction, before append.
+    pub fn matching<I: Index<C>>(
+        &self,
+        _index: I,
+        key: &I::Key,
+    ) -> Result<Vec<(u64, &IndexRecord<C, I>)>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.index_range::<I::Table>(I::DEFINITION.id, crate::typed_index::EqualKey::new(key)?)
+    }
+    /// Collect a native indexed interval, including earlier staged changes,
+    /// in index-key then primary-key order. Invalid bounds return an error.
+    pub fn query<I: Index<C>>(
+        &self,
+        _index: I,
+        range: impl RangeBounds<I::Key>,
+    ) -> Result<Vec<(u64, &IndexRecord<C, I>)>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.index_range::<I::Table>(I::DEFINITION.id, crate::typed_index::bounds(range)?)
+    }
     fn slot(&self, address: (u64, u64)) -> Option<u64> {
         self.staged
             .get(&address)

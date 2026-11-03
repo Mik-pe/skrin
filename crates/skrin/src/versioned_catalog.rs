@@ -318,6 +318,19 @@ impl<C: Catalog> CatalogSnapshot<C> {
         crate::typed_index::validate::<C, I>()?;
         self.index_scan::<I::Table>(I::DEFINITION.id, crate::typed_index::EqualKey::new(key)?)
     }
+    /// Lazily select exact UTF-8 string prefixes in this coherent version.
+    /// Uses an index interval, in byte-key then primary-key order. An empty
+    /// prefix selects all keys. No case folding or normalization is performed;
+    /// embedded NULs are ordinary data. The input is not retained.
+    pub fn prefix<I: catalog::Index<C, Key = str>>(
+        &self,
+        _index: I,
+        prefix: &str,
+    ) -> Result<CatalogSnapshotIndexScan<'_, C, I::Table>> {
+        self.lease.check()?;
+        crate::typed_index::validate::<C, I>()?;
+        self.index_scan::<I::Table>(I::DEFINITION.id, crate::typed_index::prefix(prefix)?)
+    }
     /// The synchronized sequence shared by rows and every index.
     pub fn sequence(&self) -> Result<u64> {
         self.lease.check()?;
@@ -442,6 +455,32 @@ pub struct CatalogSnapshotWrite<'a, C: Catalog> {
     transaction: CatalogWrite<'a, SharedCatalog<C>>,
 }
 impl<C: Catalog> CatalogSnapshotWrite<'_, C> {
+    /// Select equal native index keys including earlier staging and preceding
+    /// group transactions. Temporary duplicates remain visible until commit.
+    pub fn matching<I: catalog::Index<C>>(
+        &self,
+        _index: I,
+        key: &I::Key,
+    ) -> Result<Vec<(u64, &catalog::IndexRecord<C, I>)>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.transaction.index_range::<SharedTable<I::Table>>(
+            I::DEFINITION.id,
+            crate::typed_index::EqualKey::new(key)?,
+        )
+    }
+    /// Collect a native indexed interval including staging, in index-key then
+    /// primary-key order. Invalid bounds return an error before traversal.
+    pub fn query<I: catalog::Index<C>>(
+        &self,
+        _index: I,
+        range: impl RangeBounds<I::Key>,
+    ) -> Result<Vec<(u64, &catalog::IndexRecord<C, I>)>> {
+        crate::typed_index::validate::<C, I>()?;
+        self.transaction.index_range::<SharedTable<I::Table>>(
+            I::DEFINITION.id,
+            crate::typed_index::bounds(range)?,
+        )
+    }
     /// Read a typed row, including staging and preceding group transactions.
     pub fn get<T: Table<C>>(&self, key: u64) -> Result<Option<&T::Record>> {
         self.transaction.get::<SharedTable<T>>(key)

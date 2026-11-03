@@ -7,6 +7,20 @@ use crate::test_support::banking_v2;
 use banking::*;
 use std::time::Duration;
 struct ByBalance;
+struct ByEmail;
+impl catalog::Index<Banking> for ByEmail {
+    type Table = Accounts;
+    type Key = str;
+    const DEFINITION: catalog::IndexDefinition = catalog::IndexDefinition {
+        id: 1,
+        table_id: 1,
+        version: 1,
+        unique: true,
+    };
+    fn project(row: &Account) -> Result<Vec<u8>> {
+        catalog::IndexKey::encode_key(row.email.as_str())
+    }
+}
 impl catalog::Index<Banking> for ByBalance {
     type Table = Accounts;
     type Key = u64;
@@ -464,6 +478,7 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
                 Err(Error::Poisoned)
             ));
             assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+            assert!(matches!(old.prefix(ByEmail, "alice"), Err(Error::Poisoned)));
             assert!(matches!(
                 old.query_after(ByBalance, .., (&u64::MAX, u64::MAX)),
                 Err(Error::Poisoned)
@@ -503,6 +518,7 @@ fn every_catalog_append_prefix_and_uncertain_sync_refuse_all_snapshot_reads() {
             Err(Error::Poisoned)
         ));
         assert!(matches!(old.query(ByBalance, ..), Err(Error::Poisoned)));
+        assert!(matches!(old.prefix(ByEmail, "alice"), Err(Error::Poisoned)));
         assert!(matches!(
             old.query_after(ByBalance, .., (&u64::MAX, u64::MAX)),
             Err(Error::Poisoned)
